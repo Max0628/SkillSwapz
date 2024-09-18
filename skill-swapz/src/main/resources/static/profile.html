@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人資料</title>
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+<div class="container">
+    <h1>個人資料</h1>
+    <form id="profile-form" enctype="multipart/form-data">
+        <div class="profile-image">
+            <img id="avatar" src="" alt="個人頭像">
+            <input type="file" id="avatar-upload" accept="image/*">
+            <label for="avatar-upload" class="upload-btn">上傳照片</label>
+        </div>
+        <div class="form-group">
+            <label for="username">名稱</label>
+            <input type="text" id="username" name="username" placeholder="取一個很酷的名稱">
+        </div>
+        <div class="form-group">
+            <label for="job-title">身份/職位</label>
+            <input type="text" id="job-title" name="job_title" placeholder="學生、工程師、設計師、上班族...">
+        </div>
+        <div class="form-group">
+            <label for="bio">自我介紹</label>
+            <textarea id="bio" name="bio" placeholder="稍微介紹自己，讓其他人更認識你！"></textarea>
+        </div>
+        <button type="submit" class="submit-btn">更新個人檔案</button>
+    </form>
+</div>
+<script type="module" src="js/profile.js"></script>
+</body>
+</html>

@@ -76,7 +76,6 @@ public class PostRepository {
         return keyHolder.getKey().intValue();
     }
 
-    // 增加文章的點讚數
     public void incrementLikeCount(int postId) {
         String sql = "UPDATE `post` SET like_count = like_count + 1 WHERE id = :postId";
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -85,7 +84,6 @@ public class PostRepository {
         template.update(sql, params);
     }
 
-    // 減少文章的點讚數
     public void decrementLikeCount(int postId) {
         String sql = "UPDATE `post` SET like_count = like_count - 1 WHERE id = :postId";
         MapSqlParameterSource params = new MapSqlParameterSource();

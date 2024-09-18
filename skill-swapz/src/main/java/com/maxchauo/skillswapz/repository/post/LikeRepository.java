@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Log4j2
 @Repository
 public class LikeRepository {
@@ -41,5 +43,21 @@ public class LikeRepository {
                 .addValue("userId", postLikeForm.getUserId());
 
         template.update(sql, params);
+    }
+
+    public int getLikeCount(int postId) {
+        String sql = "SELECT COUNT(*) FROM `post_like` WHERE post_id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("postId", postId);
+
+        return template.queryForObject(sql, params, Integer.class);
+    }
+
+
+    public List<Integer> findLikedPostIdsByUserId(Integer userId) {
+        String sql = "SELECT post_id FROM post_like WHERE user_id = :userId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", userId);
+        return template.queryForList(sql, params, Integer.class);
     }
 }

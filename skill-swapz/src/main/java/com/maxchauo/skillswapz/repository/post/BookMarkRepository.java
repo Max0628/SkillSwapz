@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Log4j2
 @Repository
 public class BookMarkRepository {
@@ -42,4 +44,12 @@ public class BookMarkRepository {
 
         template.update(sql, params);
     }
+
+    public List<Integer> findBookmarkedPostIdsByUserId(Integer userId) {
+        String sql = "SELECT post_id FROM post_bookmark WHERE user_id = :userId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", userId);
+        return template.queryForList(sql, params, Integer.class);
+    }
+
 }

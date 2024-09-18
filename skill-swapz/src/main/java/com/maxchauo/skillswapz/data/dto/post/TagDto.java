@@ -1,13 +1,13 @@
-package com.maxchauo.skillswapz.data.form.post;
+package com.maxchauo.skillswapz.data.dto.post;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class TagForm {
-    private Integer categoryId;
+public class TagDto {
+    private Integer id;
     private String tagName;
 }

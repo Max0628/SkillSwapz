@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>發表文章</title>
+    <link rel="stylesheet" href="css/create-post.css">
+</head>
+<body>
+<div class="container">
+    <h2>發表文章</h2>
+
+    <form id="postForm" enctype="multipart/form-data">
+        <label for="type">類別</label>
+        <select name="type" id="type" required>
+            <option value="">請選擇類別</option>
+            <option value="交換技能">交換技能</option>
+            <option value="找老師">找老師</option>
+            <option value="找學生">找學生</option>
+            <option value="讀書會">讀書會</option>
+        </select>
+
+        <div id="dynamic-fields">
+            <!-- 根據選擇的類型，這裡的欄位會動態更換 -->
+        </div>
+
+        <label for="tag">標籤</label>
+        <input type="text" id="tag" name="tag" placeholder="標籤 (以逗號分隔)">
+
+        <button type="submit">發表文章</button>
+        <button type="button" onclick="resetForm()">取消</button>
+    </form>
+</div>
+
+<script type="module" src="js/create-post.js"></script>
+</body>
+</html>

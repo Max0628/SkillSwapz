@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章展示</title>
+    <link rel="stylesheet" href="css/my-post.css">
+</head>
+<body>
+<div class="container">
+    <!-- 貼文欄位 -->
+    <section id="posts" class="section">
+        <h2>我的發文</h2>
+        <div id="posts-list">
+            <!-- 文章將透過 JS 動態生成 -->
+        </div>
+    </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script type="module" src="js/my-post.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.maxchauo.skillswapz.service.post;
 
+import com.maxchauo.skillswapz.data.dto.post.CategoryDto;
 import com.maxchauo.skillswapz.data.form.post.CommentForm;
 import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
 import com.maxchauo.skillswapz.data.form.post.PostForm;
@@ -29,6 +30,17 @@ public class PostService {
 
     @Autowired
     private PostSearchRepository searchRepo;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Autowired
+    private BookMarkRepository bookMarkRepository;
+    @Autowired
+    private PostSearchRepository postSearchRepository;
 
     public Integer getPostId(PostForm postForm) {
         Integer postId = null;
@@ -82,24 +94,55 @@ public class PostService {
         }
     }
 
-    public String toggleLike(PostLikeForm likeForm) {
+    public boolean toggleLike(PostLikeForm likeForm) {
         if (likeRepo.isLiked(likeForm)) {
-
             likeRepo.deleteLike(likeForm);
             postRepo.decrementLikeCount(likeForm.getPostId());
-            return "Like removed successfully.";
+            return false;
         } else {
-
             likeRepo.insertLike(likeForm);
             postRepo.incrementLikeCount(likeForm.getPostId());
-            return "Like added successfully.";
+            return true;
         }
     }
 
 
     public List<PostForm> searchPost(String keyword, String sortType) {
         return searchRepo.searchPost(keyword, sortType);
+    }
 
+
+    public List<PostForm> getPostsByIds(List<Integer> postIds) {
+        return searchRepo.findPostsByIds(postIds);
+    }
+
+    public PostForm getPostDetail(int postId) throws Exception {
+        PostForm post = searchRepo.findPostById(postId);
+        if (post == null) {
+            throw new Exception("Post not found with id: " + postId);
+        }
+
+        List<CommentForm> comments = searchRepo.findCommentsByPostId(postId);
+        post.setComments(comments);
+
+        return post;
+    }
+
+    public List<PostForm> getPostsByUserId(Integer userId) {
+        return postSearchRepository.findPostsByUserId(userId);
+    }
+
+    public List<CategoryDto> getCategoriesWithTags() {
+        return categoryRepository.findAllCategoriesWithTags();
+    }
+
+    public List<Integer> getBookmarkedPostsByUserId(Integer userId) {
+        return bookMarkRepository.findBookmarkedPostIdsByUserId(userId);
+    }
+
+
+    public List<Integer> getLikedPostsByUserId(Integer userId) {
+        return likeRepository.findLikedPostIdsByUserId(userId);
     }
 }
 
