@@ -1,3 +1,4 @@
+//index
 import { getUserId, fetchLikedAndBookmarkedPosts, displayPost } from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
 
@@ -23,8 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const posts = await response.json();
             const postsList = document.getElementById('posts-list');
             postsList.innerHTML = '';
-            console.log(posts)
-            console.log(postsList)
             posts.forEach(post => {
                 displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
             });

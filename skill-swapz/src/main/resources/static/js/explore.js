@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function searchByTag(tagName) {
         try {
-            const response = await fetch(`http://localhost:8080/api/1.0/post?keyword=${encodeURIComponent(tagName)}`);
+            const response = await fetch(`api/1.0/post?keyword=${encodeURIComponent(tagName)}`);
             const results = await response.json();
             displaySearchResults(results);
         } catch (error) {
@@ -84,5 +84,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    fetchCategories();
+    await fetchCategories();
 });

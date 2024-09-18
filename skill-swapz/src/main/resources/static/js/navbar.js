@@ -31,7 +31,7 @@ export function createNavbar() {
     const dropdownContent = document.createElement('div');
     dropdownContent.className = 'dropdown-content';
     const menuItems = [
-        { name: '訊息', href: '/messages.html' },
+        { name: '訊息', href: '/chat.html' },
         { name: '個人資料', href: '/profile.html' },
         { name: '我的文章', href: '/my-post.html' },
         { name: '收藏文章', href: '/my-bookmark.html' },

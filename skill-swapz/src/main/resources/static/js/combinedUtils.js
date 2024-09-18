@@ -1,7 +1,4 @@
-/**
- * 獲取已登入用戶的 ID
- * @returns {Promise<Number|null>} - 返回用戶的 user_id 或 null
- */
+//combinedUtils.js
 export async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
@@ -12,7 +9,7 @@ export async function getUserId() {
         const data = await response.json();
 
         if (response.ok) {
-            return data.user_id;
+            return data.user_id; //回傳當前登入的使用者id
         } else {
             console.error('Error fetching user ID:', data.message);
             return null;
@@ -23,12 +20,6 @@ export async function getUserId() {
     }
 }
 
-/**
- * 使用 UUID 連接 WebSocket
- * @param {Number} userId - 當前登入用戶的 ID
- * @param {String} chatUuid - 聊天頻道的 UUID
- * @param {Function} onMessageReceived - 收到訊息的回調函數
- */
 export function connectWebSocket(userId, chatUuid, onMessageReceived) {
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
     const stompClient = Stomp.over(socket);
@@ -115,10 +106,12 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
         postContent += `<div><strong>留言：</strong>${comments}</div>`;
     }
 
+    // 新增開始聊天按鈕
     postContent += `
         <div class="action-buttons">
             <button class="like-btn" id="like-btn-${post.id}"><i class="fas fa-thumbs-up"></i> 喜歡</button>
             <button class="bookmark-btn" id="bookmark-btn-${post.id}"><i class="fas fa-bookmark"></i> 收藏</button>
+            <button class="chat-btn" id="chat-btn-${post.id}"><i class="fas fa-comments"></i> 開始聊天</button>
         </div>
         <div class="comment-box">
             <textarea id="comment-input-${post.id}" placeholder="輸入評論..."></textarea>
@@ -137,10 +130,37 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
         document.getElementById(`bookmark-btn-${post.id}`).classList.add('bookmarked');
     }
 
+    // 綁定按鈕事件
     document.getElementById(`like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
     document.getElementById(`bookmark-btn-${post.id}`).addEventListener('click', () => handleBookmark(post.id, userId));
     document.getElementById(`comment-btn-${post.id}`).addEventListener('click', () => handleComment(post.id, userId));
+
+    // 綁定開始聊天按鈕事件
+    document.getElementById(`chat-btn-${post.id}`).addEventListener('click', () => startChat(post.userId, userId));
 }
+
+
+async function startChat(receiverId, senderId) {
+    try {
+        const response = await fetch('/api/1.0/chat/channel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+        if (response.ok && data.chat_uuid) {
+            // 成功創建/獲取聊天室，跳轉到聊天頁面
+            window.location.href = `/chat.html?chatUuid=${data.chat_uuid}&receiverId=${receiverId}`;
+        } else {
+            console.error('Failed to create chat channel:', data.message);
+        }
+    } catch (error) {
+        console.error('Error starting chat:', error);
+    }
+}
+
 
 export async function handleLike(postId, userId) {
     try {
@@ -209,4 +229,7 @@ export async function handleComment(postId, userId) {
     } catch (error) {
         console.error('Error commenting:', error);
     }
+
+
 }
+

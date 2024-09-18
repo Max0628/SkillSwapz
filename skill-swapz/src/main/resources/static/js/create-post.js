@@ -1,4 +1,4 @@
-import { getUserId } from './utils.js';
+import { getUserId } from './combinedUtils';
 
 const postTypes = {
     '交換技能': [
@@ -26,7 +26,7 @@ const postTypes = {
     ]
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     const typeSelect = document.getElementById('type');
     const dynamicFieldsContainer = document.getElementById('dynamic-fields');
     const postForm = document.getElementById('postForm');
@@ -34,22 +34,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     typeSelect.addEventListener('change', () => renderFieldsForType(typeSelect.value));
 
     function renderFieldsForType(type) {
-        dynamicFieldsContainer.innerHTML = '';
+        dynamicFieldsContainer.innerHTML = ''; // Clear the container first
         const fields = postTypes[type] || [];
 
         fields.forEach(field => {
-            const fieldHtml = `
-                <label for="${field.name}">${field.label}*</label>
-                ${field.type === 'textarea'
-                ? `<textarea id="${field.name}" name="${field.name}" required></textarea>`
-                : `<input type="${field.type}" id="${field.name}" name="${field.name}" required>`
+            const fieldWrapper = document.createElement('div');
+            const label = document.createElement('label');
+            label.htmlFor = field.name;
+            label.textContent = `${field.label}*`;
+
+            let inputElement;
+            if (field.type === 'textarea') {
+                inputElement = document.createElement('textarea');
+            } else {
+                inputElement = document.createElement('input');
+                inputElement.type = field.type;
             }
-            `;
-            dynamicFieldsContainer.innerHTML += fieldHtml;
+            inputElement.id = field.name;
+            inputElement.name = field.name;
+            inputElement.required = true;
+
+            fieldWrapper.appendChild(label);
+            fieldWrapper.appendChild(inputElement);
+            dynamicFieldsContainer.appendChild(fieldWrapper);
         });
     }
 
-    async function handleSubmit(e) {
+    postForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(postForm);
         const userId = await getUserId();
@@ -68,20 +79,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 credentials: 'include',
             });
 
+            const resultText = await response.text();
             if (response.ok) {
-                const result = await response.text();
                 alert('文章發表成功！');
-                console.log('Response:', result);
+                console.log('Response:', resultText);
             } else {
-                const errorText = await response.text();
-                console.error('Error:', errorText);
+                console.error('Error:', resultText);
                 alert('發表文章失敗。');
             }
         } catch (error) {
             console.error('Submission error:', error);
             alert('發表文章時發生錯誤，請稍後再試。');
         }
-    }
-
-    postForm.addEventListener('submit', handleSubmit);
+    });
 });
+
