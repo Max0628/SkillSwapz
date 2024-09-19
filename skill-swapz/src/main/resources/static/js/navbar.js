@@ -1,3 +1,4 @@
+//navbar.js
 export function createNavbar() {
     const navbar = document.createElement('nav');
     navbar.className = 'navbar';

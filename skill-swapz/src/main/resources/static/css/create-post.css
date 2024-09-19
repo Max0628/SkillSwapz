@@ -1,62 +1,62 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-}
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
 
-.container {
-    width: 50%;
-    margin: 40px auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+    .container {
+        width: 50%;
+        margin: 40px auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-h2 {
-    text-align: center;
-}
+    h2 {
+        text-align: center;
+    }
 
-label {
-    display: block;
-    margin-top: 10px;
-}
+    label {
+        display: block;
+        margin-top: 10px;
+    }
 
-input[type="text"],
-textarea,
-select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
+    input[type="text"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 
-textarea {
-    resize: vertical;
-    height: 100px;
-}
+    textarea {
+        resize: vertical;
+        height: 100px;
+    }
 
-button {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
-    background-color: #333;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
+    button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 
-button:hover {
-    background-color: #555;
-}
+    button:hover {
+        background-color: #555;
+    }
 
-button[type="button"] {
-    background-color: #ccc;
-}
+    button[type="button"] {
+        background-color: #ccc;
+    }
 
-button[type="button"]:hover {
-    background-color: #aaa;
-}
+    button[type="button"]:hover {
+        background-color: #aaa;
+    }

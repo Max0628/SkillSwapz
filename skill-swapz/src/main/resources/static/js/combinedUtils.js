@@ -1,5 +1,4 @@
 // combinedUtils.js
-
 //取得當前登入使用者的id
 export async function getUserId() {
     try {
