@@ -1,4 +1,6 @@
-//combinedUtils.js
+// combinedUtils.js
+
+//取得當前登入使用者的id
 export async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
@@ -20,22 +22,68 @@ export async function getUserId() {
     }
 }
 
-export function connectWebSocket(userId, chatUuid, onMessageReceived) {
+//連接到websocket
+export function connectWebSocket(userId) {
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
     const stompClient = Stomp.over(socket);
 
-    stompClient.connect({}, () => {
-        console.log(`Connected to WebSocket with chat UUID: ${chatUuid}`);
-        stompClient.subscribe(`/queue/private/${chatUuid}`, (message) => {
-            onMessageReceived(JSON.parse(message.body));
+    return new Promise((resolve, reject) => {
+        stompClient.connect({}, () => {
+            console.log(`Connected to WebSocket for user: ${userId}`);
+            resolve(stompClient);
+        }, (error) => {
+            console.error('WebSocket connection error:', error);
+            reject(error);
         });
-    }, (error) => {
-        console.error('WebSocket connection error:', error);
     });
-
-    return stompClient;
 }
 
+// //按下開始聊天按鈕
+// export async function startChat(receiverId, senderId) {
+//     try {
+//         const response = await fetch('/api/1.0/chat/channel', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
+//             credentials: 'include'
+//         });
+//
+//         const data = await response.json();
+//         if (response.ok && data.chat_uuid) {
+//             // 成功創建/獲取聊天室，跳轉到聊天頁面
+//             window.location.href = `/chat.html?chatUuid=${data.chat_uuid}&receiverId=${receiverId}`;
+//         } else {
+//             throw new Error('Failed to create chat channel: ' + data.message);
+//         }
+//     } catch (error) {
+//         console.error('Error starting chat:', error);
+//         alert('無法啟動聊天，請稍後再試。');
+//     }
+// }
+
+export async function startChat(receiverId, senderId) {
+    try {
+        const response = await fetch('/api/1.0/chat/channel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+        if (response.ok && data.chat_uuid) {
+            return data.chat_uuid;
+        } else {
+            throw new Error('Failed to create chat channel: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error starting chat:', error);
+        throw error;
+    }
+}
+
+
+//獲取目前按讚與收藏狀態
 export async function fetchLikedAndBookmarkedPosts(userId) {
     try {
         const [likedPostsResponse, bookmarkedPostsResponse] = await Promise.all([
@@ -63,6 +111,78 @@ export async function fetchLikedAndBookmarkedPosts(userId) {
     }
 }
 
+//處理按讚
+export async function handleLike(postId, userId) {
+    try {
+        const response = await fetch('/api/1.0/post/like', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId, userId }),
+            credentials: 'include'
+        });
+
+        const result = await response.json();
+        const likeButton = document.getElementById(`like-btn-${postId}`);
+        const likeCount = document.getElementById(`like-count-${postId}`);
+        let currentCount = parseInt(likeCount.textContent);
+
+        if (result.message === "Like added successfully.") {
+            likeButton.classList.add('liked');
+            likeCount.textContent = currentCount + 1;
+        } else if (result.message === "Like removed successfully.") {
+            likeButton.classList.remove('liked');
+            likeCount.textContent = currentCount - 1;
+        }
+    } catch (error) {
+        console.error('Error liking post:', error);
+    }
+}
+
+//處理收藏
+export async function handleBookmark(postId, userId) {
+    try {
+        const response = await fetch('/api/1.0/post/bookMark', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId, userId }),
+            credentials: 'include'
+        });
+
+        const bookmarkButton = document.getElementById(`bookmark-btn-${postId}`);
+        bookmarkButton.classList.toggle('bookmarked');
+    } catch (error) {
+        console.error('Error bookmarking post:', error);
+    }
+}
+
+export async function handleComment(postId, userId) {
+    const commentInput = document.getElementById(`comment-input-${postId}`);
+    const commentContent = commentInput.value.trim();
+    if (!commentContent) {
+        alert('請輸入評論');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/1.0/post/comment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ post_id: postId, user_id: userId, content: commentContent }),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            alert('評論已送出！');
+            commentInput.value = '';
+        } else {
+            console.error('Error commenting on post');
+        }
+    } catch (error) {
+        console.error('Error commenting:', error);
+    }
+}
+
+//展示PO文
 export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
@@ -136,100 +256,13 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
     document.getElementById(`comment-btn-${post.id}`).addEventListener('click', () => handleComment(post.id, userId));
 
     // 綁定開始聊天按鈕事件
-    document.getElementById(`chat-btn-${post.id}`).addEventListener('click', () => startChat(post.userId, userId));
+    // document.getElementById(`chat-btn-${post.id}`).addEventListener('click', () => startChat(post.userId, userId));
+    document.getElementById(`chat-btn-${post.id}`).addEventListener('click', (event) => {
+        event.preventDefault(); // 防止可能的表單提交
+        startChat(post.userId, userId);
+    });
 }
 
 
-async function startChat(receiverId, senderId) {
-    try {
-        const response = await fetch('/api/1.0/chat/channel', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
-            credentials: 'include'
-        });
 
-        const data = await response.json();
-        if (response.ok && data.chat_uuid) {
-            // 成功創建/獲取聊天室，跳轉到聊天頁面
-            window.location.href = `/chat.html?chatUuid=${data.chat_uuid}&receiverId=${receiverId}`;
-        } else {
-            console.error('Failed to create chat channel:', data.message);
-        }
-    } catch (error) {
-        console.error('Error starting chat:', error);
-    }
-}
-
-
-export async function handleLike(postId, userId) {
-    try {
-        const response = await fetch('/api/1.0/post/like', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId, userId }),
-            credentials: 'include'
-        });
-
-        const result = await response.json();
-        const likeButton = document.getElementById(`like-btn-${postId}`);
-        const likeCount = document.getElementById(`like-count-${postId}`);
-        let currentCount = parseInt(likeCount.textContent);
-
-        if (result.message === "Like added successfully.") {
-            likeButton.classList.add('liked');
-            likeCount.textContent = currentCount + 1;
-        } else if (result.message === "Like removed successfully.") {
-            likeButton.classList.remove('liked');
-            likeCount.textContent = currentCount - 1;
-        }
-    } catch (error) {
-        console.error('Error liking post:', error);
-    }
-}
-
-export async function handleBookmark(postId, userId) {
-    try {
-        const response = await fetch('/api/1.0/post/bookMark', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId, userId }),
-            credentials: 'include'
-        });
-
-        const bookmarkButton = document.getElementById(`bookmark-btn-${postId}`);
-        bookmarkButton.classList.toggle('bookmarked');
-    } catch (error) {
-        console.error('Error bookmarking post:', error);
-    }
-}
-
-export async function handleComment(postId, userId) {
-    const commentInput = document.getElementById(`comment-input-${postId}`);
-    const commentContent = commentInput.value.trim();
-    if (!commentContent) {
-        alert('請輸入評論');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/1.0/post/comment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ post_id: postId, user_id: userId, content: commentContent }),
-            credentials: 'include'
-        });
-
-        if (response.ok) {
-            alert('評論已送出！');
-            commentInput.value = '';
-        } else {
-            console.error('Error commenting on post');
-        }
-    } catch (error) {
-        console.error('Error commenting:', error);
-    }
-
-
-}
 
