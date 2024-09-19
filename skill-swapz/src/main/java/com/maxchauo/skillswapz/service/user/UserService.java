@@ -24,19 +24,19 @@ public class UserService {
     }
 
 
-    public String registerUser(UserDto userDto) {
+    public boolean registerUser(UserDto userDto) {
         if (authRepo.getUserByEmail(userDto.getEmail()) != null) {
-            return "該 Email 已經被使用";
+            return false;
         }
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
         authRepo.saveUser(userDto);
-        return "用戶註冊成功";
+        return true;
     }
 
     public String loginUser(String email, String password) {
         UserDto user = authRepo.getUserByEmail(email);
         if (user == null) {
-            return "該用戶不存在";
+            return null;
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {

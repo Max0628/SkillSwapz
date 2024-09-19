@@ -24,8 +24,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
-        String result = userService.registerUser(userDto);
-        if (result.equals("用戶註冊成功")) {
+        boolean result = userService.registerUser(userDto);
+        if (result) {
             return ResponseEntity.ok(Map.of("message","用戶註冊成功"));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message","用戶註冊失敗"));
