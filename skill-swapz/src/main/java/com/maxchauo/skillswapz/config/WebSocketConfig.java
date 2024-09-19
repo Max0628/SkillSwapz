@@ -19,6 +19,13 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
         @Override
         public void registerStompEndpoints(StompEndpointRegistry registry) {
             registry.addEndpoint("/ws")
+                    .setAllowedOrigins(
+                            "https://maxchauo0628.com",
+                            "https://www.maxchauo0628.com",
+                            "http://maxchauo0628.com",
+                            "http://www.maxchauo0628.com",
+                            "http://localhost:8080"
+                    )
                     .addInterceptors(new UserHandshakeInterceptor())
                     .setHandshakeHandler(new UserHandshakeHandler())
                     .withSockJS();
