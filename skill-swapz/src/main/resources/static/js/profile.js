@@ -1,27 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('profile-form');
-    // const avatarImg = document.getElementById('avatar');
-    // const avatarUpload = document.getElementById('avatar-upload');
-
-    // 載入用戶資料
-    loadUserProfile();
-
-    // 處理頭像上傳
-    // avatarUpload.addEventListener('change', function(event) {
-    //     const file = event.target.files[0];
-    //     if (file) {
-    //         const reader = new FileReader();
-    //         reader.onload = function(e) {
-    //             avatarImg.src = e.target.result;
-    //         }
-    //         reader.readAsDataURL(file);
-    //     }
-    // });
-
-    // 處理表單提交
     form.addEventListener('submit', function(event) {
         event.preventDefault();
-        updateProfile();
     });
 });
 
