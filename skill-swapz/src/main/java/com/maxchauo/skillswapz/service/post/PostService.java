@@ -74,12 +74,10 @@ public class PostService {
         if (bookMarkRepo.isBookMark(bookmark)) {
 
             bookMarkRepo.deleteBookMark(bookmark);
-            postRepo.decrementLikeCount(bookmark.getPostId());
             return "BookMark removed successfully.";
         } else {
 
             bookMarkRepo.insertBookMark(bookmark);
-            postRepo.incrementLikeCount(bookmark.getPostId());
             return "BookMark added successfully.";
         }
     }
