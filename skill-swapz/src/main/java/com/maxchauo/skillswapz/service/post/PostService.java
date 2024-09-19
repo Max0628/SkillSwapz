@@ -7,7 +7,6 @@ import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import com.maxchauo.skillswapz.repository.post.*;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,62 +15,53 @@ import java.util.List;
 @Service
 public class PostService {
 
-    @Autowired
-    private PostRepository postRepo;
+    private final PostRepository postRepo;
+    private final CommentRepository commentRepo;
+    private final LikeRepository likeRepo;
+    private final BookMarkRepository bookMarkRepo;
+    private final PostSearchRepository searchRepo;
+    private final CategoryRepository categoryRepository;
+    private final LikeRepository likeRepository;
+    private final BookMarkRepository bookMarkRepository;
+    private final PostSearchRepository postSearchRepository;
 
-    @Autowired
-    private CommentRepository commentRepo;
-
-    @Autowired
-    private LikeRepository likeRepo;
-
-    @Autowired
-    private BookMarkRepository bookMarkRepo;
-
-    @Autowired
-    private PostSearchRepository searchRepo;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private LikeRepository likeRepository;
-
-    @Autowired
-    private BookMarkRepository bookMarkRepository;
-    @Autowired
-    private PostSearchRepository postSearchRepository;
+    public PostService(PostRepository postRepo, CommentRepository commentRepo, LikeRepository likeRepo, BookMarkRepository bookMarkRepo, BookMarkRepository bookMarkRepository, PostSearchRepository postSearchRepository, LikeRepository likeRepository, CategoryRepository categoryRepository, PostSearchRepository searchRepo) {
+        this.postRepo = postRepo;
+        this.commentRepo = commentRepo;
+        this.likeRepo = likeRepo;
+        this.bookMarkRepo = bookMarkRepo;
+        this.bookMarkRepository = bookMarkRepository;
+        this.postSearchRepository = postSearchRepository;
+        this.likeRepository = likeRepository;
+        this.categoryRepository = categoryRepository;
+        this.searchRepo = searchRepo;
+    }
 
     public Integer getPostId(PostForm postForm) {
-        Integer postId = null;
-
-        switch (postForm.getType()) {
-            case "交換技能":
+        Integer postId = switch (postForm.getType()) {
+            case "交換技能" -> {
                 log.info("Inserting exchange post...");
-                postId = postRepo.insertExchangeForm(postForm);
-                break;
-
-            case "找老師":
+                yield postRepo.insertExchangeForm(postForm);
+            }
+            case "找老師" -> {
                 log.info("Inserting find tutor post...");
-                postId = postRepo.insertFindTutorForm(postForm);
-                break;
-
-            case "找學生":
+                yield postRepo.insertFindTutorForm(postForm);
+            }
+            case "找學生" -> {
                 log.info("Inserting find student post...");
-                postId = postRepo.insertFindStudentForm(postForm);
-                break;
-
-            case "讀書會":
+                yield postRepo.insertFindStudentForm(postForm);
+            }
+            case "讀書會" -> {
                 log.info("Inserting book club post...");
-                postId = postRepo.insertFindBookClubForm(postForm);
-                break;
-
-            default:
-                log.error("Invalid post type: " + postForm.getType());
+                yield postRepo.insertFindBookClubForm(postForm);
+            }
+            default -> {
+                log.error("Invalid post type: {}", postForm.getType());
                 throw new IllegalArgumentException("Invalid post type: " + postForm.getType());
-        }
+            }
+        };
 
-        log.info("Post inserted with ID: " + postId);
+        log.info("Post inserted with ID: {}", postId);
         return postId;
     }
 

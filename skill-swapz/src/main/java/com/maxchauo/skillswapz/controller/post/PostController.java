@@ -22,11 +22,14 @@ import java.util.Map;
 @RequestMapping("api/1.0/post")
 public class PostController {
 
-    @Autowired
-    private PostService service;
+    private final PostService service;
 
-    @Autowired
-    private LikeRepository likeRepository;
+    private final LikeRepository likeRepository;
+
+    public PostController(PostService service, LikeRepository likeRepository) {
+        this.service = service;
+        this.likeRepository = likeRepository;
+    }
 
 
     @PostMapping

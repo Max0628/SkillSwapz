@@ -10,8 +10,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class PostRepository {
-    @Autowired
-    NamedParameterJdbcTemplate template;
+    final NamedParameterJdbcTemplate template;
+
+    public PostRepository(NamedParameterJdbcTemplate template) {
+        this.template = template;
+    }
 
     public Integer insertExchangeForm(PostForm postForm) {
         String sql = "INSERT INTO `post` (type,user_id,location,skill_offered,skill_wanted,content,tag)" +

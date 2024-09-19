@@ -17,11 +17,14 @@ import java.util.List;
 @Repository
 public class PostSearchRepository {
 
-    @Autowired
-    NamedParameterJdbcTemplate template;
+    final NamedParameterJdbcTemplate template;
 
-    @Autowired
-    CommentRepository commentRepository;
+    final CommentRepository commentRepository;
+
+    public PostSearchRepository(NamedParameterJdbcTemplate template, CommentRepository commentRepository) {
+        this.template = template;
+        this.commentRepository = commentRepository;
+    }
 
     public List<PostForm> searchPost(String keyword, String sortType) {
         String sql = "SELECT * FROM post WHERE (:keyword IS NULL OR " +

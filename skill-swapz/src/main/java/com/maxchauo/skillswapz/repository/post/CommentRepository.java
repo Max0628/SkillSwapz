@@ -1,7 +1,6 @@
 package com.maxchauo.skillswapz.repository.post;
 
 import com.maxchauo.skillswapz.data.form.post.CommentForm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -12,8 +11,11 @@ import java.util.List;
 @Repository
 public class CommentRepository {
 
-    @Autowired
-    NamedParameterJdbcTemplate template;
+    final NamedParameterJdbcTemplate template;
+
+    public CommentRepository(NamedParameterJdbcTemplate template) {
+        this.template = template;
+    }
 
     public void insertComment(CommentForm commentForm) {
 

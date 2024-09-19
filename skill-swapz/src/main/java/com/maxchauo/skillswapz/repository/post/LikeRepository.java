@@ -13,8 +13,11 @@ import java.util.List;
 @Repository
 public class LikeRepository {
 
-    @Autowired
-    NamedParameterJdbcTemplate template;
+    final NamedParameterJdbcTemplate template;
+
+    public LikeRepository(NamedParameterJdbcTemplate template) {
+        this.template = template;
+    }
 
     public boolean isLiked(PostLikeForm postLikeForm) {
         String sql = "SELECT COUNT(*) FROM `post_like` WHERE post_id = :postId AND user_id = :userId";

@@ -2,7 +2,6 @@ package com.maxchauo.skillswapz.repository.post;
 
 import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,8 +12,11 @@ import java.util.List;
 @Repository
 public class BookMarkRepository {
 
-    @Autowired
-    NamedParameterJdbcTemplate template;
+    final NamedParameterJdbcTemplate template;
+
+    public BookMarkRepository(NamedParameterJdbcTemplate template) {
+        this.template = template;
+    }
 
     public boolean isBookMark(PostBookmarkForm bookmark) {
         String sql = "SELECT COUNT(*) FROM `post_bookmark` WHERE post_id = :postId AND user_id = :userId";
