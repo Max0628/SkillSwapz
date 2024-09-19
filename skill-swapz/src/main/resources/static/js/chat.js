@@ -1,10 +1,10 @@
-// chat.js
 import { getUserId, connectWebSocket, startChat } from './combinedUtils.js';
 
 let stompClient = null;
 let currentUserId = null;
 let currentChatUuid = null;
 let receiverId = null;
+let subscribedChats = new Set();  // 新增：用來追蹤已訂閱的聊天
 
 document.addEventListener('DOMContentLoaded', async () => {
     currentUserId = await getUserId();
@@ -49,8 +49,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function subscribeToPrivateChat(chatUuid) {
+        // 檢查是否已經訂閱該 chatUuid
+        if (subscribedChats.has(chatUuid)) {
+            console.log(`Already subscribed to private chat: ${chatUuid}`);
+            return;
+        }
+
         if (stompClient && stompClient.connected) {
             stompClient.subscribe(`/user/queue/private/${chatUuid}`, onMessageReceived);
+            subscribedChats.add(chatUuid);  // 訂閱後將 chatUuid 加入集合
             console.log(`Subscribed to private chat: ${chatUuid}`);
         } else {
             console.error('STOMP client is not connected');
@@ -121,8 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return messageElement;
     }
 
-
-
     async function openChat(userId, chatUuid, username) {
         receiverId = userId;
         if (!chatUuid) {
@@ -155,7 +160,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentUserItem.classList.add('active');
         }
     }
-
 
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
@@ -202,20 +206,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-
-// 用於開始新聊天的函數
-export async function startNewChat(receiverId) {
-    try {
-        const chatUuid = await startChat(receiverId, currentUserId);
-        if (stompClient && stompClient.connected) {
-            stompClient.send("/app/startChat", {}, JSON.stringify({
-                sender_id: currentUserId,
-                receiver_id: receiverId,
-                chatUuid: chatUuid
-            }));
-        }
-        openChat(receiverId, chatUuid, `User ${receiverId}`);
-    } catch (error) {
-        console.error('Error starting new chat:', error);
-    }
-}
