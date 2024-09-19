@@ -9,8 +9,6 @@ import java.util.Map;
 
 @Service
 public class ChatService {
-
-    @Autowired
     private final ChatRepository chatRepo;
 
     @Autowired

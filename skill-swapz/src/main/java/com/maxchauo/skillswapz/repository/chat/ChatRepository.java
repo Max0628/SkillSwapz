@@ -13,11 +13,11 @@ import java.util.UUID;
 @Repository
 public class ChatRepository {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate template;
 
     @Autowired
-    public ChatRepository(NamedParameterJdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public ChatRepository(NamedParameterJdbcTemplate template) {
+        this.template = template;
     }
 
     public String createOrGetChatChannel(Integer userId1, Integer userId2) {
@@ -30,7 +30,7 @@ public class ChatRepository {
                 .addValue("user_id_1", userId1)
                 .addValue("user_id_2", userId2);
 
-        List<String> results = jdbcTemplate.queryForList(sqlCheck, params, String.class);
+        List<String> results = template.queryForList(sqlCheck, params, String.class);
         if (!results.isEmpty()) {
             return results.get(0);
         }
@@ -40,7 +40,7 @@ public class ChatRepository {
                 "VALUES (:user_id_1, :user_id_2, :chat_uuid)";
         params.addValue("chat_uuid", chatUuid);
 
-        jdbcTemplate.update(sqlInsert, params);
+        template.update(sqlInsert, params);
         return chatUuid;
     }
 
@@ -53,10 +53,10 @@ public class ChatRepository {
                 .addValue("receiver_id", receiverId)
                 .addValue("content", content);
 
-        jdbcTemplate.update(sqlInsert, params);
+        template.update(sqlInsert, params);
 
         String sqlGetMessageId = "SELECT LAST_INSERT_ID()";
-        return jdbcTemplate.queryForObject(sqlGetMessageId, params, Integer.class);
+        return template.queryForObject(sqlGetMessageId, params, Integer.class);
     }
 
     public List<Map<String, Object>> getMessagesByChatUuid(String chatUuid) {
@@ -64,7 +64,7 @@ public class ChatRepository {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("chat_uuid", chatUuid);
 
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+        return template.query(sql, params, (rs, rowNum) -> {
             Map<String, Object> message = new HashMap<>();
             message.put("id", rs.getInt("id"));
             message.put("sender_id", rs.getInt("sender_id"));
