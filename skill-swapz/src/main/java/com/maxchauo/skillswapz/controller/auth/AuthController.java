@@ -23,12 +23,12 @@ public class AuthController {
     JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UserDto userDto) {
+    public ResponseEntity<?> register(@RequestBody UserDto userDto) {
         String result = userService.registerUser(userDto);
         if (result.equals("用戶註冊成功")) {
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(Map.of("message","用戶註冊成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message","用戶註冊失敗"));
         }
     }
 
@@ -37,7 +37,7 @@ public class AuthController {
         String token = userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
 
         if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("帳號或密碼錯誤");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","帳號或密碼錯誤"));
         }
 
         ResponseCookie jwtCookie = ResponseCookie.from("access_token", token)
