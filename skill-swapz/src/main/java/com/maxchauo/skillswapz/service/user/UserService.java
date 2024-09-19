@@ -11,18 +11,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    @Autowired
-    private AuthRepository authRepo;
+    private final AuthRepository authRepo;
+    private final UserRepository userRepo;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    private UserRepository userRepo;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-
+    public UserService(AuthRepository authRepo, UserRepository userRepo, PasswordEncoder passwordEncoder, JwtTokenUtil jwtTokenUtil) {
+        this.authRepo = authRepo;
+        this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
 
     public String registerUser(UserDto userDto) {
