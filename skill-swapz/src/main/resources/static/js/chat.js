@@ -83,28 +83,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function loadChatHistory(chatUuid) {
+    async function loadChatHistory() {
         try {
-            const response = await fetch(`/api/1.0/chat/messages?chat_uuid=${chatUuid}`, {
+            const response = await fetch(`/api/1.0/chat/messages?chat_uuid=${currentChatUuid}`, {
+                method: 'GET',
                 credentials: 'include'
             });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
             const messages = await response.json();
-            if (!Array.isArray(messages)) {
-                throw new Error('Received data is not an array');
-            }
-            chatContent.innerHTML = '';
+            console.log(JSON.stringify(messages));
+            chatContent.innerHTML = ''; // 清空現有的聊天內容
+
             messages.forEach(message => {
-                const messageElement = createMessageElement(message.content, message.sender_id.toString() === currentUserId ? 'sent' : 'received');
+                const type = message.sender_id.toString() === currentUserId ? 'sent' : 'received';
+                const messageElement = createMessageElement(message.content, type);
                 chatContent.appendChild(messageElement);
             });
+
             chatContent.scrollTop = chatContent.scrollHeight;
         } catch (error) {
             console.error('Error loading chat history:', error);
+            alert('無法加載聊天記錄，請刷新頁面重試。');
         }
     }
+
 
     function onMessageReceived(message) {
         const parsedMessage = JSON.parse(message.body);
@@ -161,6 +166,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+
+
+
+
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -169,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    function sendMessage() {
+    async function sendMessage() {
         const messageText = messageInput.value.trim();
         if (!messageText) {
             alert('請輸入訊息');
@@ -177,21 +186,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const chatMessage = {
-            sender_id: currentUserId,
-            receiver_id: receiverId,
+            sender_id: parseInt(currentUserId, 10),
+            receiver_id: parseInt(receiverId, 10),
             content: messageText,
-            chatUuid: currentChatUuid
+            chat_uuid: currentChatUuid
         };
 
-        if (stompClient && stompClient.connected) {
-            stompClient.send("/app/sendMessage", {}, JSON.stringify(chatMessage));
+
+        try {
+            const response = await fetch('/api/1.0/chat/sendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(chatMessage),
+                credentials: 'include'
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response statusText:', response.statusText);
+            console.log("chatMessage.chat_uuid",chatMessage.chat_uuid)
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+            }
+
+            const data = JSON.parse(responseText);
+            console.log('Message saved:', data);
+
+            // 在聊天界面上顯示新發送的消息
             const messageElement = createMessageElement(messageText, 'sent');
             chatContent.appendChild(messageElement);
             messageInput.value = '';
             chatContent.scrollTop = chatContent.scrollHeight;
-        } else {
-            console.error('WebSocket is not connected.');
+
+            // WebSocket 發送邏輯
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/sendMessage", {}, JSON.stringify(chatMessage));
+                console.log(JSON.stringify(chatMessage));
+            } else {
+                console.warn('WebSocket is not connected. Message sent via HTTP only.');
+            }
+
+        } catch (error) {
+            console.error('Error sending/saving message:', error);
+            alert('發送消息失敗，請稍後再試。錯誤詳情：' + error.message);
         }
+    }
+
+// 輔助函數：創建消息元素
+    function createMessageElement(text, type) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message', type);
+        messageElement.innerHTML = `
+        <span class="message-text">${text}</span>
+        <span class="message-time">${new Date().toLocaleTimeString()}</span>
+    `;
+        return messageElement;
     }
 
     function showNotification(message) {

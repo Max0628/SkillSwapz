@@ -1,8 +1,11 @@
 package com.maxchauo.skillswapz.repository.chat;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
@@ -46,21 +49,30 @@ public class ChatRepository {
 
 
     public Integer saveMessage(String chatUuid, Integer senderId, Integer receiverId, String content) {
-        String sqlInsert = "INSERT INTO `chat_message` (chat_uuid, sender_id, receiver_id, content) VALUES (:chat_uuid, :sender_id, :receiver_id, :content)";
+        String sqlInsert = "INSERT INTO `chat_messages` (chat_uuid, sender_id, receiver_id, content) " +
+                "VALUES (:chatUuid, :senderId, :receiverId, :content)";
+
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("chat_uuid", chatUuid)
-                .addValue("sender_id", senderId)
-                .addValue("receiver_id", receiverId)
+                .addValue("chatUuid", chatUuid)
+                .addValue("senderId", senderId)
+                .addValue("receiverId", receiverId)
                 .addValue("content", content);
 
-        template.update(sqlInsert, params);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        String sqlGetMessageId = "SELECT LAST_INSERT_ID()";
-        return template.queryForObject(sqlGetMessageId, params, Integer.class);
+        try {
+            template.update(sqlInsert, params, keyHolder, new String[]{"id"});
+            return keyHolder.getKey().intValue();
+        } catch (DataAccessException e) {
+            // 記錄詳細的錯誤信息
+            System.err.println("SQL Error: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save message", e);
+        }
     }
 
     public List<Map<String, Object>> getMessagesByChatUuid(String chatUuid) {
-        String sql = "SELECT id, sender_id, receiver_id, content, created_at FROM message WHERE chat_uuid = :chat_uuid ORDER BY created_at ASC";
+        String sql = "SELECT id, sender_id, receiver_id, content, created_at FROM `chat_messages` WHERE chat_uuid = :chat_uuid ORDER BY created_at ASC";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("chat_uuid", chatUuid);
 

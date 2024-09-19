@@ -5,6 +5,7 @@ import com.maxchauo.skillswapz.service.chat.ChatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -52,25 +53,38 @@ public class ChatController {
 
     @PostMapping("/sendMessage")
     public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
-        String chatUuid = (String) request.get("chat_uuid");
-        Integer senderId = (Integer) request.get("sender_id");
-        Integer receiverId = (Integer) request.get("receiver_id");
-        String content = (String) request.get("content");
+        try {
+            String chatUuid = (String) request.get("chat_uuid");
+            Integer senderId = Integer.valueOf(String.valueOf(request.get("sender_id")));
+            Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiver_id")));
+            String content = (String) request.get("content");
 
-        Integer messageId = chatService.sendMessage(chatUuid, senderId, receiverId, content);
-        Map<String, Object> response = new HashMap<>();
-        response.put("message_id", messageId);
-        response.put("status", "Message sent");
-        System.out.println(messageId);
-        System.out.println(response);
-        return ResponseEntity.ok(response);
+            if (chatUuid == null || senderId == null || receiverId == null || content == null) {
+                throw new IllegalArgumentException("Missing required fields");
+            }
+
+            Integer messageId = chatService.sendMessage(chatUuid, senderId, receiverId, content);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message_id", messageId);
+            response.put("status", "Message sent");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace(); // 打印堆疊跟蹤
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to send message: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
-
 
     @GetMapping("/messages")
     public ResponseEntity<List<Map<String, Object>>> getMessages(@RequestParam String chat_uuid) {
         List<Map<String, Object>> messages = chatService.getMessages(chat_uuid);
-        return ResponseEntity.ok(messages);
+        try{
+            return ResponseEntity.ok(messages);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @MessageMapping("/startChat")
