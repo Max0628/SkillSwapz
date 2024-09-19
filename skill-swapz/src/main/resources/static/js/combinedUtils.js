@@ -38,29 +38,6 @@ export function connectWebSocket(userId) {
     });
 }
 
-// //按下開始聊天按鈕
-// export async function startChat(receiverId, senderId) {
-//     try {
-//         const response = await fetch('/api/1.0/chat/channel', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
-//             credentials: 'include'
-//         });
-//
-//         const data = await response.json();
-//         if (response.ok && data.chat_uuid) {
-//             // 成功創建/獲取聊天室，跳轉到聊天頁面
-//             window.location.href = `/chat.html?chatUuid=${data.chat_uuid}&receiverId=${receiverId}`;
-//         } else {
-//             throw new Error('Failed to create chat channel: ' + data.message);
-//         }
-//     } catch (error) {
-//         console.error('Error starting chat:', error);
-//         alert('無法啟動聊天，請稍後再試。');
-//     }
-// }
-
 export async function startChat(receiverId, senderId) {
     try {
         const response = await fetch('/api/1.0/chat/channel', {
