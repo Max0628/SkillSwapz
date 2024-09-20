@@ -12,6 +12,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class ChatController {
     public ResponseEntity<Map<String, Object>> createOrGetChannel(@RequestBody Map<String, Integer> request) {
         Integer userId1 = request.get("user_id_1");
         Integer userId2 = request.get("user_id_2");
-
+        log.info("createOrGetChannel called with request: {}", request);
         String chatUuid = chatService.createOrGetChatChannel(userId1, userId2); // 創建user1 user2 共同為一聊天室uuid,
         Map<String, Object> response = new HashMap<>(); //把uuid放到response物件中
         response.put("chat_uuid", chatUuid);
@@ -45,8 +46,10 @@ public class ChatController {
         Map<String, Object> notification = new HashMap<>();
         notification.put("chatUuid", chatUuid);  //把uuid 還有信息發送者的資訊放入 notification 物件
         notification.put("sender", userId1);
+        log.info("Sending notification to user {}: {}", userId2, notification);
         messagingTemplate.convertAndSendToUser(
                 userId2.toString(), "/queue/subscribe", notification);//把創建好的房間uuid資訊跟發送者id送到對方的頻道
+        log.info("createOrGetChannel completed. Response: {}", response);
         return ResponseEntity.ok(response);
     }
 
@@ -54,7 +57,7 @@ public class ChatController {
     @PostMapping("/sendMessage")
     public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
         try {
-            String chatUuid = (String) request.get("chat_uuid");
+            String chatUuid = (String) request.get("chatUuid");
             Integer senderId = Integer.valueOf(String.valueOf(request.get("sender_id")));
             Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiver_id")));
             String content = (String) request.get("content");
@@ -90,15 +93,26 @@ public class ChatController {
     @MessageMapping("/startChat")
     public void startChat(@Payload ChatMessage chatMessage) {
         // 發送通知給接收者
+        log.info("startChat called with message: {}", chatMessage);
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "newChat");
         notification.put("senderId", chatMessage.getSender_id());
         notification.put("chatUuid", chatMessage.getChatUuid());
-
+        log.info("Sending newChat notification: {}", notification);
         messagingTemplate.convertAndSendToUser(
                 chatMessage.getReceiver_id().toString(),
                 "/queue/notifications",
                 notification
         );
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<Map<String, Object>>> getChatList(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Integer currentUserId = Integer.parseInt(principal.getName());
+        List<Map<String, Object>> chatList = chatService.getChatListForUser(currentUserId);
+        return ResponseEntity.ok(chatList);
     }
 }

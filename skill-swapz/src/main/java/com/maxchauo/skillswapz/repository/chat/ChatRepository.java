@@ -1,5 +1,6 @@
 package com.maxchauo.skillswapz.repository.chat;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
+@Log4j2
 @Repository
 public class ChatRepository {
 
@@ -24,7 +25,7 @@ public class ChatRepository {
     }
 
     public String createOrGetChatChannel(Integer userId1, Integer userId2) {
-
+        log.info("Repository: createOrGetChatChannel called for users {} and {}", userId1, userId2);
         String sqlCheck = "SELECT chat_uuid FROM chat_channel " +
                 "WHERE (user_id_1 = :user_id_1 AND user_id_2 = :user_id_2) " +
                 "OR (user_id_1 = :user_id_2 AND user_id_2 = :user_id_1)";
@@ -35,10 +36,13 @@ public class ChatRepository {
 
         List<String> results = template.queryForList(sqlCheck, params, String.class);
         if (!results.isEmpty()) {
+            log.info("Existing chat channel found: {}", results.get(0));
             return results.get(0);
         }
 
+
         String chatUuid = UUID.randomUUID().toString();
+        log.info("New chat channel created: {}", chatUuid);
         String sqlInsert = "INSERT INTO chat_channel (user_id_1, user_id_2, chat_uuid) " +
                 "VALUES (:user_id_1, :user_id_2, :chat_uuid)";
         params.addValue("chat_uuid", chatUuid);
@@ -86,5 +90,17 @@ public class ChatRepository {
             return message;
         });
     }
-}
 
+    public List<Map<String, Object>> getChatListForUser(Integer userId) {
+        String sql = "SELECT * FROM chat_channel WHERE user_id_1 = :userId OR user_id_2 = :userId";
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", userId);
+
+        return template.query(sql, params, (rs, rowNum) -> {
+            Map<String, Object> chat = new HashMap<>();
+            chat.put("chat_uuid", rs.getString("chat_uuid"));
+            chat.put("user_id_1", rs.getInt("user_id_1"));
+            chat.put("user_id_2", rs.getInt("user_id_2"));
+            return chat;
+        });
+    }
+}

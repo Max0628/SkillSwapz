@@ -1,3 +1,4 @@
+//chat.js
 import { getUserId, connectWebSocket, startChat } from './combinedUtils.js';
 
 let stompClient = null;
@@ -65,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function subscribeToNotifications() {
+        console.log('Subscribing to notifications, STOMP client status:', stompClient.connected);
         if (stompClient && stompClient.connected) {
             stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
             console.log('Subscribed to notifications');
@@ -74,7 +76,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function onNotificationReceived(notification) {
+        console.log('Received notification:', notification);
         const data = JSON.parse(notification.body);
+        console.log('Parsed notification data:', data);
         if (data.type === 'newChat') {
             addUserToList(data.senderId, `User ${data.senderId}`);
             showNotification(`New chat request from User ${data.senderId}`);
@@ -94,7 +98,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const messages = await response.json();
-            console.log(JSON.stringify(messages));
             chatContent.innerHTML = ''; // 清空現有的聊天內容
 
             messages.forEach(message => {
@@ -134,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function openChat(userId, chatUuid, username) {
+        console.log('Opening chat:', { userId, chatUuid, username });
         receiverId = userId;
         if (!chatUuid) {
             try {
@@ -189,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             sender_id: parseInt(currentUserId, 10),
             receiver_id: parseInt(receiverId, 10),
             content: messageText,
-            chat_uuid: currentChatUuid
+            chatUuid: currentChatUuid
         };
 
 
@@ -205,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log('Response status:', response.status);
             console.log('Response statusText:', response.statusText);
-            console.log("chatMessage.chat_uuid",chatMessage.chat_uuid)
+            console.log("chatMessage.chatUuid",chatMessage.chatUuid)
             const responseText = await response.text();
             console.log('Response text:', responseText);
 

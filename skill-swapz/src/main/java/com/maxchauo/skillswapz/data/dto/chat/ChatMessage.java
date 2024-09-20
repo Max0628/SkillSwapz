@@ -19,7 +19,6 @@ public class ChatMessage {
     private Integer sender_id;
     private Integer receiver_id;
     private String content;
-    @JsonProperty("chat_uuid")
     private String chatUuid;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
