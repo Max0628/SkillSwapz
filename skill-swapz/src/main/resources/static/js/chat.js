@@ -37,17 +37,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         openChat(receiverIdFromUrl, chatUuidFromUrl, usernameFromUrl);
     }
 
-    function addUserToList(userId, username) {
-        const existingUser = userList.querySelector(`[data-user-id="${userId}"]`);
-        if (existingUser) return;
-
+    function addUserToList(userId, username, chatUuid, lastMessage) {
         const userItem = document.createElement('li');
         userItem.classList.add('user-item');
         userItem.setAttribute('data-user-id', userId);
-        userItem.innerHTML = `<div class="user-details"><span class="username">${username}</span></div>`;
-        userItem.addEventListener('click', () => openChat(userId, null, username));
+        userItem.setAttribute('data-chat-uuid', chatUuid);
+        userItem.innerHTML = `
+        <div class="user-details">
+            <span class="username">${username}</span>
+            <span class="last-message">${lastMessage || ''}</span>
+        </div>
+    `;
+        userItem.addEventListener('click', () => openChat(userId, chatUuid, username));
         userList.appendChild(userItem);
     }
+
+    loadChatList();
 
     function subscribeToPrivateChat(chatUuid) {
         // 檢查是否已經訂閱該 chatUuid
@@ -141,14 +146,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         receiverId = userId;
         if (!chatUuid) {
             try {
-                chatUuid = await startChat(userId, currentUserId);
-                if (stompClient && stompClient.connected) {
-                    stompClient.send("/app/startChat", {}, JSON.stringify({
-                        sender_id: currentUserId,
-                        receiver_id: userId,
-                        chatUuid: chatUuid
-                    }));
-                }
+                const response = await fetch('/api/1.0/chat/channel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_id_1: currentUserId, user_id_2: userId }),
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                chatUuid = data.chat_uuid;
             } catch (error) {
                 console.error('Error starting new chat:', error);
                 return;
@@ -157,7 +164,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentChatUuid = chatUuid;
         history.pushState(null, '', `/chat.html?chatUuid=${chatUuid}&receiverId=${userId}&username=${encodeURIComponent(username)}`);
         document.querySelector('.chat-username').textContent = username;
-        addUserToList(userId, username);
         loadChatHistory(chatUuid);
         subscribeToPrivateChat(chatUuid);
 
@@ -240,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-// 輔助函數：創建消息元素
+
     function createMessageElement(text, type) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', type);
@@ -262,4 +268,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     }
+
+    async function loadChatList() {
+        try {
+            const response = await fetch(`/api/1.0/chat/list?userId=${currentUserId}`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const chatList = await response.json();
+            displayChatList(chatList);
+        } catch (error) {
+            console.error('Error loading chat list:', error);
+        }
+    }
+    function displayChatList(chatList) {
+        userList.innerHTML = ''; // 清空現有的用戶列表
+        chatList.forEach(chat => {
+            addUserToList(chat.other_user_id, `User ${chat.other_user_id}`, chat.chat_uuid, chat.last_message);
+        });
+    }
+
 });

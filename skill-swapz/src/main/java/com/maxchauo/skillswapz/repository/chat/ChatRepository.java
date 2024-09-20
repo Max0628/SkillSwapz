@@ -92,14 +92,23 @@ public class ChatRepository {
     }
 
     public List<Map<String, Object>> getChatListForUser(Integer userId) {
-        String sql = "SELECT * FROM chat_channel WHERE user_id_1 = :userId OR user_id_2 = :userId";
+        String sql = "SELECT cc.*, cm.content as last_message, cm.created_at as last_message_time, " +
+                "CASE WHEN cc.user_id_1 = :userId THEN cc.user_id_2 ELSE cc.user_id_1 END as other_user_id " +
+                "FROM chat_channel cc " +
+                "LEFT JOIN (SELECT chat_uuid, MAX(created_at) as max_created_at FROM chat_messages GROUP BY chat_uuid) latest " +
+                "ON cc.chat_uuid = latest.chat_uuid " +
+                "LEFT JOIN chat_messages cm ON latest.chat_uuid = cm.chat_uuid AND latest.max_created_at = cm.created_at " +
+                "WHERE cc.user_id_1 = :userId OR cc.user_id_2 = :userId " +
+                "ORDER BY cm.created_at DESC";
+
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", userId);
 
         return template.query(sql, params, (rs, rowNum) -> {
             Map<String, Object> chat = new HashMap<>();
             chat.put("chat_uuid", rs.getString("chat_uuid"));
-            chat.put("user_id_1", rs.getInt("user_id_1"));
-            chat.put("user_id_2", rs.getInt("user_id_2"));
+            chat.put("other_user_id", rs.getInt("other_user_id"));
+            chat.put("last_message", rs.getString("last_message"));
+            chat.put("last_message_time", rs.getTimestamp("last_message_time"));
             return chat;
         });
     }

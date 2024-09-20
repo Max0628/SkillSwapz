@@ -2,6 +2,7 @@ package com.maxchauo.skillswapz.controller.chat;
 
 import com.maxchauo.skillswapz.data.dto.chat.ChatMessage;
 import com.maxchauo.skillswapz.service.chat.ChatService;
+import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/1.0/chat")
@@ -107,12 +109,20 @@ public class ChatController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<Map<String, Object>>> getChatList(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<?> getChatList(@RequestParam Integer userId, Principal principal) {
+        try {
+            // 可選：驗證傳入的 userId 是否與當前登錄用戶匹配
+            if (principal != null && !userId.toString().equals(principal.getName())) {
+                log.warn("Attempted to access chat list with mismatched user ID");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+            }
+
+            log.info("Fetching chat list for user ID: {}", userId);
+            List<Map<String, Object>> chatList = chatService.getChatListForUser(userId);
+            return ResponseEntity.ok(chatList);
+        } catch (Exception e) {
+            log.error("Error fetching chat list: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while fetching the chat list");
         }
-        Integer currentUserId = Integer.parseInt(principal.getName());
-        List<Map<String, Object>> chatList = chatService.getChatListForUser(currentUserId);
-        return ResponseEntity.ok(chatList);
     }
 }
