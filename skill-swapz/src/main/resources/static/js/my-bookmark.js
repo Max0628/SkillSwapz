@@ -1,8 +1,7 @@
-import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, startChat, connectWebSocket } from './combinedUtils.js';
+import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, startChat, connectWebSocket, handleTagClick } from './combinedUtils.js';
 import { addNavbarStyles, createNavbar } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-
     // 生成導航欄
     const navbar = createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
@@ -21,6 +20,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 綁定搜尋框和側邊欄的搜尋邏輯
         setupSearchAndFilter(userId);
+
+        // 添加標籤搜索事件監聽器
+        window.addEventListener('tagSearch', (event) => {
+            const searchKeyword = event.detail.keyword;
+            filterBookmarkedPosts(searchKeyword);
+        });
     } else {
         console.log('User not logged in');
         return null;
@@ -48,124 +53,111 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 獲取並顯示書籤文章
-    // 改成這樣確保從 API 獲取到的是完整的文章數據
-    async function fetchAndDisplayBookmarkedPosts(userId) {
+    async function fetchAndDisplayBookmarkedPosts(userId, searchKeyword = null) {
         try {
             const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
             const postsList = document.getElementById('bookmarks-list');
             postsList.innerHTML = '';
 
-            const fullPosts = []; // 新增一个数组来保存完整的文章对象
+            const fullPosts = [];
 
             for (const postId of bookmarkedPosts) {
                 const response = await fetch(`/api/1.0/post/${postId}`, { credentials: 'include' });
                 const post = await response.json();
-                displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
-                fullPosts.push(post); // 將完整文章對象保存到 fullPosts
+                if (!searchKeyword || post.content.includes(searchKeyword) || post.tag.includes(searchKeyword)) {
+                    displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+                    fullPosts.push(post);
+                }
             }
 
-            // 確保綁定聊天按鈕時是使用完整的文章數據
-            document.querySelectorAll('.chat-btn').forEach(button => {
-                button.addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    const postId = event.target.id.split('-')[2];
-                    const post = fullPosts.find(p => p.id.toString() === postId.toString());  // 确保都转换为字符串
-                    if (post) {
-                        try {
-                            const chatUuid = await startChat(post.userId, userId);
-                            window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
-                        } catch (error) {
-                            console.error('Error starting chat:', error);
-                            alert('無法啟動聊天，請稍後再試。');
-                        }
-                    }
-                });
-            });
-
+            setupPostInteractions(fullPosts, userId, postsList);
         } catch (error) {
             console.error('Error fetching bookmarked posts:', error);
         }
     }
 
-    // async function fetchAndDisplayBookmarkedPosts(userId) {
-    //     try {
-    //         const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
-    //         const postsList = document.getElementById('bookmarks-list');
-    //         postsList.innerHTML = '';
-    //
-    //         for (const postId of bookmarkedPosts) {
-    //             const response = await fetch(`/api/1.0/post/${postId}`, { credentials: 'include' });
-    //             const post = await response.json();
-    //             displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
-    //         }
-    //
-    //         const bookmarkButtons = document.querySelectorAll('.bookmark-btn');
-    //         bookmarkButtons.forEach(button => {
-    //             button.addEventListener('click', async (event) => {
-    //                 const postId = event.target.id.split('-')[2];
-    //                 await handleBookmark(postId, userId);
-    //                 if (!event.target.classList.contains('bookmarked')) {
-    //                     postsList.removeChild(event.target.closest('.post'));
-    //                 }
-    //             });
-    //         });
-    //
-    //         // 綁定 "開始聊天" 按鈕事件
-    //         document.querySelectorAll('.chat-btn').forEach(button => {
-    //             button.addEventListener('click', async (event) => {
-    //                 event.preventDefault();
-    //                 const postId = event.target.id.split('-')[2];
-    //                 const post = bookmarkedPosts.find(p => p.id.toString() === postId);
-    //                 if (post) {
-    //                     try {
-    //                         const chatUuid = await startChat(post.userId, userId);
-    //                         window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
-    //                     } catch (error) {
-    //                         console.error('Error starting chat:', error);
-    //                         alert('無法啟動聊天，請稍後再試。');
-    //                     }
-    //                 }
-    //             });
-    //         });
-    //
-    //     } catch (error) {
-    //         console.error('Error fetching bookmarked posts:', error);
-    //     }
-    // }
-
-    // 綁定搜尋和篩選事件，加入防抖功能
-    function setupSearchAndFilter(userId) {
-        let debounceTimer;  // 防抖計時器
-
-        // 綁定搜尋框
-        const searchInput = document.querySelector('.search-input');
-        searchInput.addEventListener('input', (event) => {
-            const searchKeyword = event.target.value.trim();
-
-            // 清除之前的計時器
-            clearTimeout(debounceTimer);
-
-            // 設置防抖計時器，延遲500毫秒後執行搜尋
-            debounceTimer = setTimeout(() => {
-                updateURLAndRedirectToIndex(userId, searchKeyword);
-            }, 500);  // 500毫秒延遲
+    function setupPostInteractions(fullPosts, userId, postsList) {
+        // 綁定聊天按鈕事件
+        document.querySelectorAll('.chat-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const postId = event.target.id.split('-')[2];
+                const post = fullPosts.find(p => p.id.toString() === postId);
+                if (post) {
+                    try {
+                        const chatUuid = await startChat(post.userId, userId);
+                        window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
+                    } catch (error) {
+                        console.error('Error starting chat:', error);
+                        alert('無法啟動聊天，請稍後再試。');
+                    }
+                }
+            });
         });
 
-        // 綁定分類標籤
-        document.querySelectorAll('.popular-tags li').forEach(tag => {
-            tag.addEventListener('click', (event) => {
-                const searchKeyword = event.target.innerText.replace('#', '').trim();
-                updateURLAndRedirectToIndex(userId, searchKeyword);  // 點擊標籤時不需要防抖
+        // 綁定收藏按鈕事件
+        document.querySelectorAll('.bookmark-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const postId = event.target.id.split('-')[2];
+                await handleBookmark(postId, userId);
+                if (!event.target.classList.contains('bookmarked')) {
+                    postsList.removeChild(event.target.closest('.post'));
+                }
+            });
+        });
+
+        // 綁定標籤點擊事件
+        document.querySelectorAll('.tag-btn').forEach(tagBtn => {
+            tagBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                const tag = event.target.textContent;
+                handleTagClick(tag);
             });
         });
     }
 
-    // 更新 URL 並重定向到 index.html 進行搜尋
-    function updateURLAndRedirectToIndex(userId, searchKeyword = null) {
-        let newUrl = '/index.html';
+    // 綁定搜尋和篩選事件，加入防抖功能
+    function setupSearchAndFilter(userId) {
+        let debounceTimer;
+
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('input', (event) => {
+            const searchKeyword = event.target.value.trim();
+
+            clearTimeout(debounceTimer);
+
+            debounceTimer = setTimeout(() => {
+                filterBookmarkedPosts(searchKeyword);
+            }, 500);
+        });
+
+        document.querySelectorAll('.popular-tags li').forEach(tag => {
+            tag.addEventListener('click', (event) => {
+                const searchKeyword = event.target.innerText.replace('#', '').trim();
+                filterBookmarkedPosts(searchKeyword);
+            });
+        });
+    }
+
+    // 過濾書籤文章
+    function filterBookmarkedPosts(searchKeyword) {
+        const posts = document.querySelectorAll('.post');
+        posts.forEach(post => {
+            const postContent = post.textContent.toLowerCase();
+            const isVisible = postContent.includes(searchKeyword.toLowerCase());
+            post.style.display = isVisible ? 'block' : 'none';
+        });
+
+        updatePostsTitle(searchKeyword);
+    }
+
+    // 更新文章標題
+    function updatePostsTitle(searchKeyword) {
+        const postTitle = document.querySelector('#posts h2');
         if (searchKeyword) {
-            newUrl += `?search=${encodeURIComponent(searchKeyword)}`;
+            postTitle.textContent = `我的書籤搜索結果：${searchKeyword}`;
+        } else {
+            postTitle.textContent = '我的書籤';
         }
-        window.location.href = newUrl; // 重定向到 index.html
     }
 });
