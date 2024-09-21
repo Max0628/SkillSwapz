@@ -1,154 +1,188 @@
-/*chat.css*/
-/* 聊天主容器 */
-.chat-container {
-    display: flex;
-    height: 100vh;
-}
+    /*chat.css*/
 
-/* 左側使用者列表 */
-.user-list {
-    width: 30%;
-    background-color: #f5f5f5;
-    border-right: 1px solid #ccc;
-    padding: 20px;
-    overflow-y: auto;
-}
+    /* 確保 body 和 html 占滿整個視窗 */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-.user-list h2 {
-    font-size: 20px;
-    margin-bottom: 20px;
-}
+    /* 聊天主容器 */
+    .chat-container {
+        display: flex;
+        height: 100vh;
+    }
 
-.user-list ul {
-    list-style: none;
-    padding: 0;
-}
+    /* 左側使用者列表 */
+    .user-list {
+        width: 30%;
+        background-color: #f5f5f5;
+        border-right: 1px solid #ccc;
+        padding: 20px;
+        overflow-y: auto;
+    }
 
-.user-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #ddd;
-}
+    .user-list h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
 
-.user-item img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
+    .user-list ul {
+        list-style: none;
+        padding: 0;
+    }
 
-.user-details {
-    display: flex;
-    flex-direction: column;
-}
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #ddd;
+    }
 
-.username {
-    font-weight: bold;
-}
+    .user-item img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
 
-.last-message {
-    font-size: 12px;
-    color: #888;
-}
+    .user-details {
+        display: flex;
+        flex-direction: column;
+    }
 
-.user-item.active {
-    background-color: #e0e0e0;
-}
+    .username {
+        font-weight: bold;
+    }
 
-/* 右側聊天內容 */
-.chat-box {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background-color: #fff;
-}
+    .last-message {
+        font-size: 12px;
+        color: #888;
+    }
 
-.chat-header {
-    padding: 20px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-}
+    .user-item.active {
+        background-color: #e0e0e0;
+    }
 
-.chat-header img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
+    /* 右側聊天內容 */
+    .chat-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+    }
 
-.chat-username {
-    font-size: 18px;
-    font-weight: bold;
-}
+    .chat-header {
+        padding: 20px;
+        border-bottom: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+    }
 
-.chat-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
+    .chat-header img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
 
-.chat-message {
-    margin-bottom: 15px;
-}
+    .chat-username {
+        font-size: 18px;
+        font-weight: bold;
+    }
 
-.chat-message.sent {
-    text-align: right;
-}
+    .chat-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
 
-.chat-message.sent .message-text {
-    background-color: #d1e7dd;
-    display: inline-block;
-    padding: 10px;
-    border-radius: 10px;
-    color: #333;
-}
+    .chat-message {
+        margin-bottom: 15px;
+    }
 
-.chat-message.received .message-text {
-    background-color: #f8d7da;
-    display: inline-block;
-    padding: 10px;
-    border-radius: 10px;
-    color: #333;
-}
+    .chat-message.sent {
+        text-align: right;
+    }
 
-.message-time {
-    font-size: 12px;
-    color: #999;
-    display: block;
-    margin-top: 5px;
-}
+    .chat-message.sent .message-text {
+        background-color: #d1e7dd;
+        display: inline-block;
+        padding: 10px;
+        border-radius: 10px;
+        color: #333;
+    }
 
-.chat-input {
-    padding: 10px;
-    display: flex;
-    border-top: 1px solid #ccc;
-}
+    .chat-message.received .message-text {
+        background-color: #f8d7da;
+        display: inline-block;
+        padding: 10px;
+        border-radius: 10px;
+        color: #333;
+    }
 
-.chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-right: 10px;
-}
+    .message-time {
+        font-size: 12px;
+        color: #999;
+        display: block;
+        margin-top: 5px;
+    }
 
-.chat-input button {
-    padding: 10px 20px;
-    background-color: #000;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
+    .chat-input {
+        padding: 10px;
+        display: flex;
+        border-top: 1px solid #ccc;
+    }
 
-.user-item.active {
-    background-color: #e0e0e0; /* 高亮當前選中的使用者 */
-}
+    .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
 
-.user-item:hover {
-    background-color: #f0f0f0;
-    cursor: pointer;
-}
+    .chat-input button {
+        padding: 10px 20px;
+        background-color: #000;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .user-item.active {
+        background-color: #e0e0e0; /* 高亮當前選中的使用者 */
+    }
+
+    .user-item:hover {
+        background-color: #f0f0f0;
+        cursor: pointer;
+    }
+
+    /* 導航列樣式 */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 98%;
+        background-color: #e0e0e0 !important;
+        z-index: 1000; /* 確保它總是在最上面 */
+        padding: 10px 20px;
+        height: 3rem; /* 明確定義 navbar 的高度 */
+    }
+
+    /* 聊天室內容包裹層，確保不被 navbar 遮擋 */
+    .chat-wrapper {
+        margin-top: 60px; /* 根據 navbar 的高度進行調整 */
+        display: flex;
+        height: calc(100vh - 60px); /* 確保聊天室內容佔滿整個畫面高度 */
+    }
+
+    /* 調整 .chat-container 等現有的樣式以適應新結構 */
+    .chat-container {
+        display: flex;
+        flex: 1;
+    }

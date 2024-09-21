@@ -1,4 +1,3 @@
-<!--chat.html-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,49 +7,55 @@
     <link rel="stylesheet" href="css/chat.css">
 </head>
 <body>
-<div class="chat-container">
-    <!-- 左側使用者清單 -->
-    <div class="user-list">
-        <h2>聊天訊息</h2>
-        <ul id="user-list">
-            <!-- 示例的用户列表 -->
-            <li class="user-item active">
-                <div class="user-details">
-                    <span class="username"></span>
-                    <span class="last-message"></span>
+<!-- 導航列 -->
+<nav class="navbar"></nav>
+
+<!-- 聊天室內容的包裹層 -->
+<div class="chat-wrapper">
+    <div class="chat-container">
+        <!-- 左側使用者清單 -->
+        <div class="user-list">
+            <h2>聊天訊息</h2>
+            <ul id="user-list">
+                <!-- 示例的用户列表 -->
+                <li class="user-item active">
+                    <div class="user-details">
+                        <span class="username"></span>
+                        <span class="last-message"></span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 右側聊天區域 -->
+        <div class="chat-box">
+            <div class="chat-header">
+                <span class="chat-username"></span>
+            </div>
+            <div class="chat-content" id="chat-content">
+                <!-- 示例的聊天内容 -->
+                <div class="chat-message sent">
+                    <span class="message-text"></span>
+                    <span class="message-time"></span>
                 </div>
-            </li>
-            <!-- 更多用户项 -->
-        </ul>
-    </div>
-
-    <!-- 右側聊天區域 -->
-    <div class="chat-box">
-        <div class="chat-header">
-            <span class="chat-username"></span>
-        </div>
-        <div class="chat-content" id="chat-content">
-            <!-- 示例的聊天内容 -->
-            <div class="chat-message sent">
-                <span class="message-text"></span>
-                <span class="message-time"></span>
+                <div class="chat-message received">
+                    <span class="message-text"></span>
+                    <span class="message-time"></span>
+                </div>
             </div>
-            <div class="chat-message received">
-                <span class="message-text"></span>
-                <span class="message-time"></span>
-            </div>
-        </div>
 
-        <!-- 发送消息输入框 -->
-        <div class="chat-input">
-            <input type="text" id="message-input" placeholder="輸入訊息">
-            <button id="send-button">發送</button>
+            <!-- 發送訊息輸入框 -->
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="輸入訊息">
+                <button id="send-button">發送</button>
+            </div>
         </div>
     </div>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script type="module" src="js/chat.js"></script>
+<script type="module" src="js/navbar.js"></script>
 </body>
 </html>
-

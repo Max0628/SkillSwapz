@@ -1,9 +1,32 @@
-//explore.js
 document.addEventListener('DOMContentLoaded', async () => {
     const categoryContainer = document.getElementById('category-container');
     const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
+    let debounceTimer;  // 用於防抖的計時器
 
+    // 當用戶在搜尋框中輸入後，重定向到 index.html，並帶上搜尋參數
+    searchInput.addEventListener('input', function () {
+        const searchKeyword = this.value.trim();
+
+        // 如果計時器還在運行，則清除它（防止重複執行）
+        clearTimeout(debounceTimer);
+
+        // 設定防抖：當用戶停止輸入 500 毫秒後再執行搜尋
+        debounceTimer = setTimeout(() => {
+            if (searchKeyword) {
+                window.location.href = `/index.html?search=${encodeURIComponent(searchKeyword)}`;
+            }
+        }, 500);  // 延遲 500 毫秒
+    });
+
+    // 當用戶點擊標籤時，重定向到 index.html，並帶上該標籤作為搜尋參數
+    categoryContainer.addEventListener('click', (event) => {
+        if (event.target.classList.contains('tag')) {
+            const tagKeyword = event.target.textContent.replace('#', '').trim();
+            window.location.href = `/index.html?search=${encodeURIComponent(tagKeyword)}`;
+        }
+    });
+
+    // 模擬動態加載分類和標籤的邏輯（保持現有功能）
     async function fetchCategories() {
         try {
             const response = await fetch('/api/1.0/post/category');
@@ -31,7 +54,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const tagElement = document.createElement('span');
                 tagElement.classList.add('tag');
                 tagElement.textContent = `#${tag.tagName}`;
-                tagElement.addEventListener('click', () => searchByTag(tag.tagName));
                 tagList.appendChild(tagElement);
             });
 
@@ -39,50 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             categoryContainer.appendChild(categoryCard);
         });
     }
-
-    async function searchByTag(tagName) {
-        try {
-            const response = await fetch(`api/1.0/post?keyword=${encodeURIComponent(tagName)}`);
-            const results = await response.json();
-            displaySearchResults(results);
-        } catch (error) {
-            console.error('Error searching by tag:', error);
-        }
-    }
-
-    function displaySearchResults(results) {
-        searchResults.innerHTML = '';
-        if (results.length === 0) {
-            searchResults.innerHTML = '<p>No results found.</p>';
-            return;
-        }
-
-        results.forEach(post => {
-            const postElement = document.createElement('div');
-            postElement.classList.add('post');
-            postElement.innerHTML = `
-                <h3>${post.type} - ${post.location}</h3>
-                <p><strong>內容：</strong> ${post.content}</p>
-                <p><strong>發文者：</strong> User ${post.userId}</p>
-                <p><strong>喜歡數：</strong> ${post.likeCount}</p>
-            `;
-            searchResults.appendChild(postElement);
-        });
-    }
-
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        const allTags = document.querySelectorAll('.tag');
-
-        allTags.forEach(tag => {
-            const tagText = tag.textContent.toLowerCase();
-            if (tagText.includes(query)) {
-                tag.style.display = 'inline-block';
-            } else {
-                tag.style.display = 'none';
-            }
-        });
-    });
 
     await fetchCategories();
 });

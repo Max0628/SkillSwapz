@@ -1,4 +1,3 @@
-<!--index.html-->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -8,17 +7,44 @@
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
+
+<!-- 導航列 -->
+<nav class="navbar"></nav>
+
 <div class="container">
-    <!-- 貼文欄位 -->
-    <section id="posts" class="section">
-        <h2>所有文章</h2>
-        <div id="posts-list">
-            <!-- 文章將透過 JS 動態生成 -->
-        </div>
-    </section>
+    <div class="content-wrapper">
+        <!-- 貼文欄位 -->
+        <section id="posts" class="section">
+            <h2>所有文章</h2>
+            <div id="posts-list">
+                <!-- 文章將透過 JS 動態生成 -->
+            </div>
+        </section>
+
+        <!-- 搜索與熱門標籤欄 -->
+        <aside class="search-sidebar">
+            <!-- 添加的搜尋欄位 -->
+            <input type="text" placeholder="搜尋主題..." class="search-input">
+
+            <h3>熱門主題</h3>
+            <ul class="popular-tags">
+                <li>#英文</li>
+                <li>#python</li>
+                <li>#鋼琴</li>
+                <li>#日文</li>
+                <li>#健身</li>
+                <li>#攝影</li>
+                <li>#吉他</li>
+            </ul>
+            <a href="explore.html" class="explore-link">探索更多</a>
+        </aside>
+    </div>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script type="module" src="js/index.js"></script>
+<script type="module" src="js/navbar.js"></script>
+
 </body>
 </html>

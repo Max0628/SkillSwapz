@@ -37,6 +37,7 @@ export function connectWebSocket(userId) {
     });
 }
 
+//開始聊天按鈕
 export async function startChat(receiverId, senderId) {
     try {
         const response = await fetch('/api/1.0/chat/channel', {
@@ -99,20 +100,21 @@ export async function handleLike(postId, userId) {
 
         const result = await response.json();
         const likeButton = document.getElementById(`like-btn-${postId}`);
-        const likeCount = document.getElementById(`like-count-${postId}`);
+        const likeCount = likeButton.querySelector(`#like-count-${postId}`);
         let currentCount = parseInt(likeCount.textContent);
 
         if (result.message === "Like added successfully.") {
             likeButton.classList.add('liked');
-            likeCount.textContent = currentCount + 1;
+            likeCount.textContent = currentCount + 1;  // 增加讚數
         } else if (result.message === "Like removed successfully.") {
             likeButton.classList.remove('liked');
-            likeCount.textContent = currentCount - 1;
+            likeCount.textContent = currentCount - 1;  // 減少讚數
         }
     } catch (error) {
         console.error('Error liking post:', error);
     }
 }
+
 
 //處理收藏
 export async function handleBookmark(postId, userId) {
@@ -157,20 +159,24 @@ export async function handleComment(postId, userId) {
         console.error('Error commenting:', error);
     }
 }
-
-//展示PO文
 export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
 
+    // 發文者 ID 和文章類型
     let postContent = `
-    <h3>${post.type}</h3>
-    <p><strong>地點：</strong> ${post.location}</p>
-    <p><strong>發文者 ID：</strong> ${post.userId}</p>
-    <p><strong>內容：</strong> ${post.content}</p>
-    <p><strong>讚數：</strong> <span id="like-count-${post.id}">${post.likeCount}</span></p>
+    <div class="post-header">
+        <strong class="post-author">發文者 ID：${post.userId}</strong> <!-- 左上角的發文者ID -->
+        <div class="post-type">${post.type}</div> <!-- 右上角的文章類型 -->
+    </div>
     `;
 
+    // 顯示地點等其他資訊
+    postContent += `
+    <p><strong>地點：</strong> ${post.location}</p>
+    `;
+
+    // 根據文章類型顯示不同的欄位
     if (post.type === '找學生') {
         postContent += `
         <p><strong>技能提供：</strong> ${post.skillOffered}</p>
@@ -192,52 +198,82 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
         `;
     }
 
+    // 文章內容欄位，現在顯示在標籤的上方
+    postContent += `
+    <p><strong>內容：</strong> ${post.content}</p>
+    `;
+
+    // 標籤欄位，顯示在文章內容的下方
     if (post.tag && post.tag.length > 0) {
         const tags = post.tag.map(tag => `<span class="tag">${tag}</span>`).join(' ');
         postContent += `<p><strong>標籤：</strong> ${tags}</p>`;
     }
 
-    if (post.comments && post.comments.length > 0) {
-        const comments = post.comments.map(comment => `<p>${comment.content} - User ${comment.user_id}</p>`).join('');
-        postContent += `<div><strong>留言：</strong>${comments}</div>`;
-    }
-
-    // 新增開始聊天按鈕
+    // 動作按鈕區域：按讚、收藏、留言、開始聊天
     postContent += `
         <div class="action-buttons">
-            <button class="like-btn" id="like-btn-${post.id}"><i class="fas fa-thumbs-up"></i> 喜歡</button>
+            <button class="like-btn" id="like-btn-${post.id}">
+                <i class="fas fa-thumbs-up"></i> 喜歡 
+                <span id="like-count-${post.id}">${post.likeCount}</span>
+            </button>
             <button class="bookmark-btn" id="bookmark-btn-${post.id}"><i class="fas fa-bookmark"></i> 收藏</button>
+            <button class="comment-toggle-btn" id="comment-toggle-btn-${post.id}"><i class="fas fa-comment"></i> 留言 (${post.comments ? post.comments.length : 0})</button>
             <button class="chat-btn" id="chat-btn-${post.id}"><i class="fas fa-comments"></i> 開始聊天</button>
         </div>
-        <div class="comment-box">
-            <textarea id="comment-input-${post.id}" placeholder="輸入評論..."></textarea>
-            <button class="comment-btn" id="comment-btn-${post.id}">送出評論</button>
+    `;
+
+    // 留言區，初始狀態隱藏
+    let commentsHTML = '';
+    if (post.comments && post.comments.length > 0) {
+        commentsHTML = post.comments.map(comment => `<p>${comment.content} - User ${comment.user_id}</p>`).join('');
+    }
+
+    postContent += `
+        <div class="comment-section" id="comment-section-${post.id}" style="display: none;"> 
+            <div>${commentsHTML}</div>
+            <div class="comment-box">
+                <textarea id="comment-input-${post.id}" placeholder="輸入評論..."></textarea>
+                <button class="comment-btn" id="comment-btn-${post.id}">送出評論</button>
+            </div>
         </div>
     `;
 
     postDiv.innerHTML = postContent;
     postsList.appendChild(postDiv);
 
+    // 處理按讚邏輯
     if (likedPosts.includes(post.id)) {
         document.getElementById(`like-btn-${post.id}`).classList.add('liked');
     }
 
+    // 處理收藏邏輯
     if (bookmarkedPosts.includes(post.id)) {
         document.getElementById(`bookmark-btn-${post.id}`).classList.add('bookmarked');
     }
 
-    // 綁定按鈕事件
+    // 綁定按讚按鈕事件
     document.getElementById(`like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
+
+    // 綁定收藏按鈕事件
     document.getElementById(`bookmark-btn-${post.id}`).addEventListener('click', () => handleBookmark(post.id, userId));
+
+    // 綁定留言按鈕事件，控制留言區顯示或隱藏
+    document.getElementById(`comment-toggle-btn-${post.id}`).addEventListener('click', () => {
+        const commentSection = document.getElementById(`comment-section-${post.id}`);
+        commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // 綁定送出評論按鈕事件
     document.getElementById(`comment-btn-${post.id}`).addEventListener('click', () => handleComment(post.id, userId));
 
     // 綁定開始聊天按鈕事件
-    // document.getElementById(`chat-btn-${post.id}`).addEventListener('click', () => startChat(post.userId, userId));
     document.getElementById(`chat-btn-${post.id}`).addEventListener('click', (event) => {
-        event.preventDefault(); // 防止可能的表單提交
+        event.preventDefault();
         startChat(post.userId, userId);
     });
 }
+
+
 
 
 

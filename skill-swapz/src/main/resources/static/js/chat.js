@@ -1,5 +1,6 @@
 //chat.js
 import { getUserId, connectWebSocket, startChat } from './combinedUtils.js';
+import { createNavbar, addNavbarStyles } from './navbar.js';
 
 let stompClient = null;
 let currentUserId = null;
@@ -8,6 +9,11 @@ let receiverId = null;
 let subscribedChats = new Set();  // 新增：用來追蹤已訂閱的聊天
 
 document.addEventListener('DOMContentLoaded', async () => {
+
+    const navbarContainer = document.querySelector('.navbar');
+    navbarContainer.appendChild(createNavbar());
+    addNavbarStyles();
+
     currentUserId = await getUserId();
     if (!currentUserId) {
         console.log('User not logged in');

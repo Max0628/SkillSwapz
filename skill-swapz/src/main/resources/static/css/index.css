@@ -1,20 +1,27 @@
-/*index.css*/
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    margin: 0;
 }
 
 .container {
-    width: 80%;
+    width: 60%;
     margin: 20px auto;
 }
 
+.content-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* 貼文欄位樣式 */
 .section {
     background-color: #fff;
     padding: 20px;
-    margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    flex: 3; /* 占用大部分的寬度 */
 }
 
 h2 {
@@ -33,7 +40,6 @@ h2 {
     margin-bottom: 15px;
     border-radius: 8px;
     background-color: #fff;
-    position: relative;
 }
 
 .post img {
@@ -45,20 +51,28 @@ h2 {
 .post-header {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.post-author {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.post-type {
+    background-color: #000;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 20px; /* 這將會使背景變圓 */
+    font-size: 0.9em;
+    display: inline-block;
+    text-align: center;
 }
 
 .post-header .username {
     font-weight: bold;
     margin-left: 10px;
-}
-
-.post .tag {
-    background-color: #eee;
-    padding: 3px 8px;
-    margin-right: 5px;
-    border-radius: 5px;
-    font-size: 12px;
 }
 
 .post-footer {
@@ -68,12 +82,12 @@ h2 {
     margin-top: 20px;
 }
 
-/* 按讚/收藏按鈕 */
 .post-footer .actions {
     display: flex;
     gap: 10px;
 }
 
+/* 按讚按鈕 */
 .post-footer .actions button {
     background-color: transparent;
     border: none;
@@ -88,47 +102,51 @@ h2 {
     color: #000;
 }
 
-.post-footer .actions button .like-count,
-.post-footer .actions button .favorite-count {
+/* 搜索與熱門標籤欄樣式 */
+.search-sidebar {
+    flex: 1; /* 占用較小的空間 */
+    height: 30rem;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.popular-tags {
+    list-style-type: none;
+    padding: 0;
+}
+
+.popular-tags li {
+    padding: 10px 0;
+    color: #007bff;
+    cursor: pointer;
+}
+
+.popular-tags li:hover {
+    text-decoration: underline;
+}
+
+/*.liked {*/
+/*    background-color: #ffdf00; !* 當按下後，按讚按鈕的背景變成黃色 *!*/
+/*}*/
+
+.bookmarked {
+    background-color: #ffdf00; /* 收藏按鈕按下後，背景顏色變成黃色 */
+}
+
+.like-btn.liked {
+    background-color: #ffdf00; /* 當按讚後按鈕變色 */
+}
+
+.like-btn i {
+    margin-right: 5px;
+}
+.like-btn .like-count {
     margin-left: 5px;
-}
-
-/* 按讚和收藏按鈕的基礎樣式 */
-.like-btn, .bookmark-btn {
-    background-color: #f0f0f0;
-    border: none;
-    padding: 8px 12px;
-    margin-right: 8px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.like-btn.liked, .bookmark-btn.bookmarked {
-    background-color: #ffdf00;
-}
-
-.action-buttons {
-    margin-top: 10px;
-}
-
-.comment-box {
-    margin-top: 15px;
-}
-
-.comment-box textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.comment-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    margin-top: 8px;
-    cursor: pointer;
-    border-radius: 5px;
 }
