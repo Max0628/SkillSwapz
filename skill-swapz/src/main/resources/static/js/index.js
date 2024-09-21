@@ -1,3 +1,4 @@
+//index.js
 import { getUserId, fetchLikedAndBookmarkedPosts, displayPost, startChat, connectWebSocket } from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
 

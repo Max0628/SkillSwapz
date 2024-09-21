@@ -1,4 +1,5 @@
-import { getUserId, fetchLikedAndBookmarkedPosts, displayPost } from './combinedUtils.js';
+//my-post.js
+import { getUserId, fetchLikedAndBookmarkedPosts, displayPost, startChat, connectWebSocket } from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,6 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getUserId();
     if (userId) {
         console.log('Login User Id:', userId);
+
+        // 連接 WebSocket 並訂閱通知
+        const stompClient = await connectWebSocket(userId);
+        stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
+
         await fetchAndDisplayUserPosts(userId);
 
         // 綁定搜尋和分類篩選事件
@@ -19,6 +25,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         return null;
     }
 
+    // 接收 WebSocket 通知的函數
+    function onNotificationReceived(notification) {
+        const data = JSON.parse(notification.body);
+        if (data.type === 'newChat') {
+            showNotification(`New chat request from User ${data.senderId}`);
+        }
+    }
+
+    // 顯示通知
+    function showNotification(message) {
+        if (Notification.permission === "granted") {
+            new Notification(message);
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification(message);
+                }
+            });
+        }
+    }
+
+    // 獲取並顯示用戶的文章
     async function fetchAndDisplayUserPosts(userId) {
         try {
             const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
@@ -28,8 +56,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             postsList.innerHTML = '';
             console.log(posts);
             console.log(postsList);
+
             posts.forEach(post => {
                 displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+
+                // 綁定聊天按鈕事件
+                const chatBtn = document.querySelector(`#chat-btn-${post.id}`);
+                if (chatBtn) {
+                    chatBtn.addEventListener('click', async (event) => {
+                        event.preventDefault();
+                        try {
+                            const chatUuid = await startChat(post.userId, userId);
+                            window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
+                        } catch (error) {
+                            console.error('Error starting chat:', error);
+                            alert('無法啟動聊天，請稍後再試。');
+                        }
+                    });
+                }
             });
         } catch (error) {
             console.error('Error fetching user posts:', error);
