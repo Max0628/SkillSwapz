@@ -51,9 +51,12 @@ public class SecretsManagerUtil {
 
         String host = getTextOrThrow(jsonNode, "host");
         String port = getTextOrThrow(jsonNode, "port");
-        String dbname = getTextOrThrow(jsonNode, "dbname");
+        String dbname = jsonNode.has("dbname")
+                ? jsonNode.get("dbname").asText()
+                : jsonNode.get("dbInstanceIdentifier").asText(); // 使用 dbInstanceIdentifier 作為備選
         String username = getTextOrThrow(jsonNode, "username");
         String password = getTextOrThrow(jsonNode, "password");
+
 
         return new DatabaseConfig(host, port, dbname, username, password);
     }
