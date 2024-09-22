@@ -1,4 +1,4 @@
-//index.js
+// index.js
 import {
     getUserId,
     fetchLikedAndBookmarkedPosts,
@@ -6,7 +6,7 @@ import {
     startChat,
     connectWebSocket,
     handleTagClick,
-    handleDelete  // 新添加的導入
+    handleDelete
 } from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
 
@@ -29,6 +29,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             postTitle.textContent = '所有文章';
         }
 
+        const postsList = document.getElementById('posts-list');
+
+        // 使用事件委託處理聊天按鈕點擊
+        postsList.addEventListener('click', async (event) => {
+            if (event.target.classList.contains('chat-btn')) {
+                event.preventDefault();
+                console.log('Chat button clicked:', event.target.id);
+                const postId = event.target.id.split('-')[2];
+                const post = await fetchPostById(postId); // 假設有這個函數來獲取單個帖子信息
+                if (post) {
+                    try {
+                        const chatUuid = await startChat(post.userId, userId);
+                        console.log('index.js Chat UUID:', chatUuid);
+                        const redirectUrl = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
+                        console.log('Redirecting to:', redirectUrl);
+                        window.location.href = redirectUrl;
+                    } catch (error) {
+                        console.error('Error starting chat:', error);
+                        alert('無法啟動聊天，請稍後再試。');
+                    }
+                }
+            }
+        });
+
         await fetchAndDisplayPosts(userId, searchKeyword);
 
         const stompClient = await connectWebSocket(userId);
@@ -45,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return null;
     }
 
-    function onNotificationReceived(notification) {
+    async function onNotificationReceived(notification) {
         const data = JSON.parse(notification.body);
         if (data.type === 'newChat') {
             showNotification(`New chat request from User ${data.senderId}`);
@@ -81,27 +105,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             posts.forEach(post => {
                 displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
             });
-
-            document.querySelectorAll('.chat-btn').forEach(button => {
-                button.addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    const postId = event.target.id.split('-')[2];
-                    const post = posts.find(p => p.id.toString() === postId);
-                    if (post) {
-                        try {
-                            const chatUuid = await startChat(post.userId, userId);
-                            window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
-                        } catch (error) {
-                            console.error('Error starting chat:', error);
-                            alert('無法啟動聊天，請稍後再試。');
-                        }
-                    }
-                });
-            });
         } catch (error) {
             console.error('Error fetching posts:', error);
         }
     }
+
     function setupSearchAndFilter(userId) {
         const searchInput = document.querySelector('.search-input');
         searchInput.addEventListener('input', (event) => {
@@ -134,3 +142,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         fetchAndDisplayPosts(userId, searchKeyword);
     }
 });
+
+// 假設的函數，用於獲取單個帖子信息
+async function fetchPostById(postId) {
+    try {
+        const response = await fetch(`api/1.0/post/${postId}`, { credentials: 'include' });
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching post by ID:', error);
+        return null;
+    }
+}

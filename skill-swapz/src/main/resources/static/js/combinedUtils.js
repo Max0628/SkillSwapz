@@ -63,7 +63,6 @@ export async function startChat(receiverId, senderId) {
             body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
             credentials: 'include'
         });
-
         const data = await response.json();
         if (response.ok && data.chat_uuid) {
             return data.chat_uuid;
