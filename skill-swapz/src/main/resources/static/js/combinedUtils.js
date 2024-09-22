@@ -21,6 +21,25 @@ export async function getUserId() {
     }
 }
 
+
+export async function fetchUserDetails(userId) {
+    try {
+        const response = await fetch(`/api/1.0/user/profile?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user details');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        return null;
+    }
+}
+
 export function connectWebSocket(userId) {
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
     const stompClient = Stomp.over(socket);
@@ -153,17 +172,17 @@ export async function handleComment(postId, userId) {
     }
 }
 
-export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
+export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
     postDiv.id = `post-${post.id}`;
-    console.log('Post User ID:', post.userId);
-    console.log('Current User ID:', userId);
-    console.log('Is author:', post.userId.toString() === userId.toString());
+
+    const authorDetails = await fetchUserDetails(post.userId);
 
     let postContent = `
-    <div class="post-header">
-        <strong class="post-author">發文者 ID：${post.userId}</strong>
+   <div class="post-header">
+        <img src="${authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp'}" alt="User Avatar" class="post-avatar">
+        <strong class="post-author">${authorDetails?.username || 'Unknown User'}</strong>
         <div class="post-type">${post.type}</div>
     </div>
     <p><strong>地點：</strong> ${post.location}</p>
@@ -306,4 +325,5 @@ export async function handleDelete(postId, userId) {
         console.error('Error deleting post:', error);
         alert(`刪除貼文失敗: ${error.message}`);
     }
+
 }
