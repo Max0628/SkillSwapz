@@ -2,7 +2,6 @@ package com.maxchauo.skillswapz.controller.chat;
 
 import com.maxchauo.skillswapz.data.dto.chat.ChatMessage;
 import com.maxchauo.skillswapz.service.chat.ChatService;
-import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

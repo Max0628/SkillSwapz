@@ -9,24 +9,26 @@
 <body>
 <div class="container">
     <h1>個人資料</h1>
-    <form id="profile-form" enctype="multipart/form-data">
+    <form id="profileForm" enctype="multipart/form-data">
         <div class="profile-image">
             <img id="avatar" src="" alt="個人頭像">
-            <input type="file" id="avatar-upload" accept="image/*">
-            <label for="avatar-upload" class="upload-btn">上傳照片</label>
+            <input type="file" id="avatarUpload" accept="image/*">
+            <!-- 新增圖片上傳的按鈕 -->
+            <button type="button" id="uploadAvatarBtn" class="upload-btn">上傳照片</button>
         </div>
         <div class="form-group">
-            <label for="username">名稱</label>
-            <input type="text" id="username" name="username" placeholder="取一個很酷的名稱">
+            <label for="userName">名稱</label>
+            <input type="text" id="userName" name="userName" placeholder="取一個很酷的名稱">
         </div>
         <div class="form-group">
-            <label for="job-title">身份/職位</label>
-            <input type="text" id="job-title" name="job_title" placeholder="學生、工程師、設計師、上班族...">
+            <label for="jobTitle">身份/職位</label>
+            <input type="text" id="jobTitle" name="jobTitle" placeholder="學生、工程師、設計師、上班族...">
         </div>
         <div class="form-group">
             <label for="bio">自我介紹</label>
             <textarea id="bio" name="bio" placeholder="稍微介紹自己，讓其他人更認識你！"></textarea>
         </div>
+        <!-- 保留資料提交按鈕 -->
         <button type="submit" class="submit-btn">更新個人檔案</button>
     </form>
 </div>

@@ -14,9 +14,9 @@ public class UserRowMapper implements RowMapper<UserDto> {
         userDto.setEmail(rs.getString("email"));
         userDto.setPassword(rs.getString("password"));
         userDto.setUsername(rs.getString("username"));
-        userDto.setJob_title(rs.getNString("job_title"));
+        userDto.setJobTitle(rs.getNString("job_title"));
         userDto.setBio(rs.getString("bio"));
-        userDto.setAvatar_url(rs.getNString("avatar_url"));
+        userDto.setAvatarUrl(rs.getNString("avatar_url"));
         return userDto;
     }
 }

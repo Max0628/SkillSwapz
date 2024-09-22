@@ -6,7 +6,6 @@ import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
 import com.maxchauo.skillswapz.repository.auth.AuthRepository;
 import com.maxchauo.skillswapz.repository.user.UserRepository;
 import com.maxchauo.skillswapz.service.utils.S3Util;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,35 +62,58 @@ public class UserService {
         return userRepo.findById(userId);
     }
 
-    public UserDto updateUserProfile(Integer userId, String jobTitle, String bio, MultipartFile avatar) throws IOException {
-        UserDto user = userRepo.findById(userId);
+    public UserDto updateUserProfile(UserDto userDto) throws IOException {
+        UserDto user = userRepo.findById(userDto.getId());
 
-        if (jobTitle != null) {
-            user.setJob_title(jobTitle);
+        if (userDto.getUsername() != null) {
+            user.setUsername(userDto.getUsername());
         }
-        if (bio != null) {
-            user.setBio(bio);
+
+        if (userDto.getJobTitle() != null) {
+            user.setJobTitle(userDto.getJobTitle());
         }
-        if (avatar != null && !avatar.isEmpty()) {
-            String avatarUrl = s3Util.uploadFile(avatar);
-            user.setAvatar_url(avatarUrl);
+
+        if (userDto.getBio() != null) {
+            user.setBio(userDto.getBio());
         }
 
         userRepo.updateProfile(user);
         return convertToDto(user);
     }
 
-
-    private UserDto convertToDto(UserDto userDto) {
-        UserDto dto = new UserDto();
-        dto.setId(userDto.getId());
-        dto.setUsername(userDto.getUsername());
-        dto.setEmail(userDto.getEmail());
-        dto.setAvatar_url(userDto.getAvatar_url());
-        dto.setJob_title(userDto.getJob_title());
-        dto.setBio(userDto.getBio());
-        return dto;
+    private UserDto convertToDto(UserDto user) {
+        System.out.println(user);
+        return UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .jobTitle(user.getJobTitle())
+                .bio(user.getBio())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
     }
 
+    public UserDto uploadUserAvatar(Integer userId, MultipartFile avatar) throws IOException {
+        UserDto user = getUserProfile(userId);
 
+        // 刪除舊的頭像文件
+        if (user.getAvatarUrl() != null) {
+            s3Util.deleteFile(user.getAvatarUrl());
+        }
+
+        // 上傳新的頭像文件
+        String avatarUrl = s3Util.uploadFile(avatar);
+
+        // 更新資料庫
+        userRepo.updateAvatarUrl(userId, avatarUrl);
+
+        // 返回更新後的用戶資料
+        return getUserProfile(userId);
+    }
+
+    public String getUserAvatar(Integer userId) {
+        // 從資料庫中獲取用戶的頭像 URL
+        UserDto user = userRepo.findById(userId);
+        return user.getAvatarUrl(); // 返回頭像的 URL
+    }
 }

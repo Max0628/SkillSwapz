@@ -1,8 +1,9 @@
 package com.maxchauo.skillswapz.controller.user;
 
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
-import com.maxchauo.skillswapz.data.form.user.User;
 import com.maxchauo.skillswapz.service.user.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,17 +20,50 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public UserDto getUserProfile(@RequestAttribute("userId") Integer userId) {
+    public UserDto getUserProfile(@RequestParam("userId") Integer userId) {
         return userService.getUserProfile(userId);
     }
 
     @PatchMapping("/profile")
-    public UserDto updateUserProfile(
-            @RequestAttribute("userId") Integer userId,
-            @RequestParam(value = "job_title", required = false) String jobTitle,
-            @RequestParam(value = "bio", required = false) String bio,
-            @RequestParam(value = "avatar", required = false) MultipartFile avatar
-    ) throws IOException {
-        return userService.updateUserProfile(userId, jobTitle, bio, avatar);
+    public UserDto updateUserProfile(@RequestBody UserDto userDto) throws IOException {
+        return userService.updateUserProfile(userDto);
+    }
+
+    @PatchMapping("/upload-avatar")
+    public ResponseEntity<UserDto> uploadAvatar(
+            @RequestParam("userId") Integer userId,
+            @RequestPart("avatar") MultipartFile avatar) {
+        try {
+            // 檢查文件大小 (例如最大 5MB)
+            if (avatar.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.badRequest().body(null);
+            }
+
+            // 檢查文件類型
+            String contentType = avatar.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(null);
+            }
+
+            UserDto updatedUser = userService.uploadUserAvatar(userId, avatar);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/avatar")
+    public ResponseEntity<String> getUserAvatar(@RequestParam("userId") Integer userId) {
+        try {
+            // 調用服務層來獲取用戶的頭像 URL
+            String avatarUrl = userService.getUserAvatar(userId);
+            if (avatarUrl != null) {
+                return ResponseEntity.ok(avatarUrl);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Avatar not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }

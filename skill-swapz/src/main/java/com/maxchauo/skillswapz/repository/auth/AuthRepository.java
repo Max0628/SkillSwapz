@@ -3,7 +3,6 @@ package com.maxchauo.skillswapz.repository.auth;
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
 import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
 import com.maxchauo.skillswapz.rowmapper.UserRowMapper;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 
-@Log4j2
 @Repository
 public class AuthRepository {
     @Autowired
@@ -50,8 +48,8 @@ public class AuthRepository {
         params.addValue("username", user.getUsername())
                 .addValue("email", user.getEmail())
                 .addValue("password", user.getPassword())
-                .addValue("avatar_url", user.getAvatar_url())
-                .addValue("job_title", user.getJob_title())
+                .addValue("avatar_url", user.getAvatarUrl())
+                .addValue("job_title", user.getJobTitle())
                 .addValue("bio", user.getBio());
         return template.update(sql, params);
     }
