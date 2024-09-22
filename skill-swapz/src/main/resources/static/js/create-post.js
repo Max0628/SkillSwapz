@@ -28,11 +28,11 @@ const postTypes = {
     ]
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOMContentLoaded event fired');
 
     // 創建導航欄
-    const navbar = createNavbar();
+    const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
 
     // 添加導航欄樣式
