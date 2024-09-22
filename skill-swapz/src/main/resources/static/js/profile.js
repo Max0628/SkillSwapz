@@ -3,7 +3,7 @@ import { getUserId } from './combinedUtils.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     // 創建和添加導航欄
-    const navbar = createNavbar();
+    const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
@@ -45,8 +45,17 @@ async function loadUserProfile() {
         document.getElementById('jobTitle').value = userData.jobTitle || '';
         document.getElementById('bio').value = userData.bio || '';
 
+        const avatarElement = document.getElementById('avatar');
         if (userData.avatarUrl) {
-            document.getElementById('avatar').src = userData.avatarUrl;
+            avatarElement.src = userData.avatarUrl;
+
+            // 如果圖片加載失敗，設置onerror屬性來使用預設圖片
+            avatarElement.onerror = function () {
+                this.src = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
+            };
+        } else {
+            // 如果userData.avatarUrl為空，直接使用預設圖片
+            avatarElement.src = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
         }
 
     } catch (error) {
@@ -54,6 +63,7 @@ async function loadUserProfile() {
         alert('加載個人資料失敗，請稍後再試。');
     }
 }
+
 
 // 上傳頭像
 async function uploadAvatar() {

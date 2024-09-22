@@ -11,7 +11,7 @@ let subscribedChats = new Set();  // 新增：用來追蹤已訂閱的聊天
 document.addEventListener('DOMContentLoaded', async () => {
 
     const navbarContainer = document.querySelector('.navbar');
-    navbarContainer.appendChild(createNavbar());
+    await navbarContainer.appendChild(await createNavbar());
     addNavbarStyles();
 
     currentUserId = await getUserId();
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const usernameFromUrl = urlParams.get('username') || `User ${receiverIdFromUrl}`;
 
     if (receiverIdFromUrl && chatUuidFromUrl) {
-        openChat(receiverIdFromUrl, chatUuidFromUrl, usernameFromUrl);
+        await openChat(receiverIdFromUrl, chatUuidFromUrl, usernameFromUrl);
     }
 
     function addUserToList(userId, username, chatUuid, lastMessage) {
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         userList.appendChild(userItem);
     }
 
-    loadChatList();
+    await loadChatList();
 
     function subscribeToPrivateChat(chatUuid) {
         // 檢查是否已經訂閱該 chatUuid
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentChatUuid = chatUuid;
         history.pushState(null, '', `/chat.html?chatUuid=${chatUuid}&receiverId=${userId}&username=${encodeURIComponent(username)}`);
         document.querySelector('.chat-username').textContent = username;
-        loadChatHistory(chatUuid);
+        await loadChatHistory(chatUuid);
         subscribeToPrivateChat(chatUuid);
 
         // 激活當前聊天

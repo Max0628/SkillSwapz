@@ -58,9 +58,9 @@ public class UserService {
         return authRepo.getUserById(id);
     }
 
-    public UserDto getUserProfile(Integer userId) {
-        return userRepo.findById(userId);
-    }
+        public UserDto getUserProfile(Integer userId) {
+            return userRepo.findById(userId);
+        }
 
     public UserDto updateUserProfile(UserDto userDto) throws IOException {
         UserDto user = userRepo.findById(userDto.getId());

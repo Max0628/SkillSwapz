@@ -11,7 +11,7 @@ import {
 import { createNavbar, addNavbarStyles } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const navbar = createNavbar();
+    const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fetchAndDisplayPosts(userId, searchKeyword);
 
         const stompClient = await connectWebSocket(userId);
-        stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
+        await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
         setupSearchAndFilter(userId);
 

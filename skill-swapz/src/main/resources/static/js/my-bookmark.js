@@ -4,7 +4,7 @@ import { addNavbarStyles, createNavbar } from './navbar.js';
 document.addEventListener('DOMContentLoaded', async () => {
     // 生成導航欄
     const navbar = createNavbar();
-    document.body.insertBefore(navbar, document.body.firstChild);
+    await document.body.insertBefore(await navbar, document.body.firstChild);
     addNavbarStyles();
 
     // 獲取用戶 ID 並顯示書籤文章

@@ -10,9 +10,9 @@ import {
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async options => {
     // 添加導航欄
-    const navbar = createNavbar();
+    const navbar =await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
