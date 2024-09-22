@@ -1,7 +1,7 @@
 package com.maxchauo.skillswapz.repository.post;
 
 import com.maxchauo.skillswapz.data.form.post.PostForm;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -94,4 +94,31 @@ public class PostRepository {
 
         template.update(sql, params);
     }
+
+    public boolean deletePost(int postId, int userId) {
+        String sql = "DELETE FROM `post` WHERE id = :postId AND user_id = :userId";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("postId", postId)
+                .addValue("userId", userId);
+
+        try {
+            int rowsAffected = template.update(sql, params);
+            if (rowsAffected > 0) {
+                return true;
+            } else {
+                System.err.println("Failed to delete post: Post with id " + postId + " and user_id " + userId + " does not exist.");
+                return false;
+            }
+        } catch (DataAccessException e) {
+            System.err.println("Error occurred while deleting post with id " + postId + " and user_id " + userId);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            System.err.println("Unexpected error occurred while deleting post with id " + postId + " and user_id " + userId);
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

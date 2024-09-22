@@ -115,6 +115,21 @@ public class PostController {
         List<Integer> bookmarkedPosts = service.getBookmarkedPostsByUserId(userId);
         return ResponseEntity.ok(bookmarkedPosts);
     }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Map<String, String>> deletePost(@PathVariable int postId, @RequestParam int userId) {
+
+        boolean deleted = service.deletePost(postId, userId);
+        Map<String, String> response = new HashMap<>();
+        if (deleted) {
+            response.put("message", "Post deleted successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("message", "Failed to delete post");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }
+
 
 

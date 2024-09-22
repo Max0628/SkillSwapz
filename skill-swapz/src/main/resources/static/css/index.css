@@ -85,6 +85,8 @@ h2 {
 .post-footer .actions {
     display: flex;
     gap: 10px;
+    align-items: center;
+
 }
 
 /* 按讚按鈕 */
@@ -132,9 +134,9 @@ h3 {
     text-decoration: underline;
 }
 
-/*.liked {*/
-/*    background-color: #ffdf00; !* 當按下後，按讚按鈕的背景變成黃色 *!*/
-/*}*/
+.liked {
+    background-color: #ffdf00; /* 當按下後，按讚按鈕的背景變成黃色 */
+}
 
 .bookmarked {
     background-color: #ffdf00; /* 收藏按鈕按下後，背景顏色變成黃色 */
@@ -150,3 +152,4 @@ h3 {
 .like-btn .like-count {
     margin-left: 5px;
 }
+

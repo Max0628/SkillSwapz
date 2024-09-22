@@ -156,6 +156,10 @@ export async function handleComment(postId, userId) {
 export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
+    postDiv.id = `post-${post.id}`;
+    console.log('Post User ID:', post.userId);
+    console.log('Current User ID:', userId);
+    console.log('Is author:', post.userId.toString() === userId.toString());
 
     let postContent = `
     <div class="post-header">
@@ -221,6 +225,11 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
             </div>
         </div>
     `;
+    if (String(post.userId).trim() === String(userId).trim()) {
+        postContent += `<button class="delete-btn" id="delete-btn-${post.id}"><i class="fas fa-trash"></i> 刪除</button>`;
+    }
+    postContent += `</div>`;
+
 
     postDiv.innerHTML = postContent;
     postsList.appendChild(postDiv);
@@ -231,6 +240,9 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
 
     if (bookmarkedPosts.includes(post.id)) {
         document.getElementById(`bookmark-btn-${post.id}`).classList.add('bookmarked');
+    }
+    if (post.userId === userId) {
+        document.getElementById(`delete-btn-${post.id}`).addEventListener('click', () => handleDelete(post.id, userId));
     }
 
     document.getElementById(`like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
@@ -244,6 +256,12 @@ export function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts
         event.preventDefault();
         startChat(post.userId, userId);
     });
+    if (String(post.userId).trim() === String(userId).trim()) {
+        const deleteButton = document.getElementById(`delete-btn-${post.id}`);
+        if (deleteButton) {
+            deleteButton.addEventListener('click', () => handleDelete(post.id, userId));
+        }
+    }
 
     postDiv.querySelectorAll('.tag-btn').forEach(tagBtn => {
         tagBtn.addEventListener('click', (event) => {
@@ -261,4 +279,31 @@ export function handleTagClick(tag) {
 
     const event = new CustomEvent('tagSearch', { detail: { keyword: tag } });
     window.dispatchEvent(event);
+}
+export async function handleDelete(postId, userId) {
+    console.log('Delete function called for post:', postId, 'by user:', userId);
+    if (!confirm('確定要刪除這篇貼文嗎？此操作不可逆。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/1.0/post/${postId}?userId=${userId}`, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            const postElement = document.getElementById(`post-${postId}`);
+            postElement.remove();
+            alert(data.message || '貼文已成功刪除');
+        } else {
+            throw new Error(data.message || '刪除貼文失敗');
+        }
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        alert(`刪除貼文失敗: ${error.message}`);
+    }
 }

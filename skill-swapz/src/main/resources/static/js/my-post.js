@@ -1,6 +1,14 @@
 //my-post.js
-import { getUserId, fetchLikedAndBookmarkedPosts, displayPost, startChat, connectWebSocket, handleTagClick } from './combinedUtils.js';
-import { createNavbar, addNavbarStyles } from './navbar.js';
+import {
+    connectWebSocket,
+    displayPost,
+    fetchLikedAndBookmarkedPosts,
+    getUserId,
+    handleTagClick,
+    startChat,
+    handleDelete
+} from './combinedUtils.js';
+import {addNavbarStyles, createNavbar} from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 添加導航欄

@@ -1,5 +1,13 @@
 //index.js
-import { getUserId, fetchLikedAndBookmarkedPosts, displayPost, startChat, connectWebSocket, handleTagClick } from './combinedUtils.js';
+import {
+    getUserId,
+    fetchLikedAndBookmarkedPosts,
+    displayPost,
+    startChat,
+    connectWebSocket,
+    handleTagClick,
+    handleDelete  // 新添加的導入
+} from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {

@@ -132,5 +132,10 @@ public class PostService {
     public List<Integer> getLikedPostsByUserId(Integer userId) {
         return likeRepository.findLikedPostIdsByUserId(userId);
     }
+
+    public boolean deletePost(int postId, int userId) {
+        // 這裡可以添加額外的業務邏輯，例如檢查用戶權限
+        return postRepo.deletePost(postId, userId);
+    }
 }
 

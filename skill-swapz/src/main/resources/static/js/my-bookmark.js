@@ -1,4 +1,4 @@
-import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, startChat, connectWebSocket, handleTagClick } from './combinedUtils.js';
+import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, startChat, connectWebSocket, handleTagClick,handleDelete } from './combinedUtils.js';
 import { addNavbarStyles, createNavbar } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
