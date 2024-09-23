@@ -166,11 +166,14 @@ export async function handleComment(postId, userId) {
             const newComment = await createCommentElement(commentData, userId);
             commentSection.insertBefore(newComment, commentSection.firstChild);
             commentInput.value = '';
+            window.location.reload()
         } else {
             console.error('Error commenting on post');
+            window.location.reload()
         }
     } catch (error) {
         console.error('Error commenting:', error);
+        window.location.reload()
     }
 }
 
