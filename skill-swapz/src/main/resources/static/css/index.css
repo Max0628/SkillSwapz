@@ -224,3 +224,76 @@ h3 {
 
 
 
+/*留言相關*/
+.comment-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.comment-avatar {
+        width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.comment-content {
+    flex-grow: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
+}
+
+.comment-username {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.comment-time {
+    font-size: 12px;
+    color: #888;
+}
+
+.comment-text {
+    font-size: 14px;
+    margin: 0;
+    word-wrap: break-word;
+}
+
+.comment-box textarea {
+    width: 100%;  /* 讓輸入框佔滿可用寬度 */
+    padding: 10px;  /* 讓內部的文字與邊緣有間距 */
+    border: 1px solid #ccc;  /* 給輸入框添加邊框 */
+    border-radius: 5px;  /* 讓邊角變圓 */
+    resize: none;  /* 禁止手動調整輸入框大小 */
+    font-size: 14px;  /* 調整字體大小 */
+    box-sizing: border-box;  /* 確保內邊距不會影響寬度計算 */
+}
+
+
+.comment-box .comment-btn {
+    background-color: transparent;  /* 讓背景透明 */
+    border: 1px solid #ccc;  /* 添加邊框 */
+    padding: 8px 12px;  /* 讓按鈕有內邊距 */
+    border-radius: 5px;  /* 圓角邊框 */
+    display: flex;  /* 使用 flex 來對齊圖標和文字 */
+    align-items: center;  /* 垂直居中 */
+    cursor: pointer;  /* 讓按鈕有點擊手感 */
+    font-size: 14px;  /* 調整字體大小 */
+    transition: background-color 0.3s ease, color 0.3s ease;  /* 平滑的過渡效果 */
+}
+
+.comment-box .comment-btn i {
+    margin-right: 5px;  /* 讓圖標和文字有一些間距 */
+}
+
+.comment-box .comment-btn:hover {
+    background-color: #007bff;  /* hover 時變成藍色 */
+    color: white;  /* 讓字體變成白色 */
+    border-color: #007bff;  /* 邊框也變成藍色 */
+}

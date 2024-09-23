@@ -21,10 +21,9 @@ export async function getUserId() {
     }
 }
 
-
 export async function fetchUserDetails(userId) {
     try {
-        const response = await fetch(`/api/1.0/user/profile?userId=${userId}`, {
+        const response = await fetch(`api/1.0/user/profile?userId=${userId}`, {
             method: 'GET',
             credentials: 'include'
         });
@@ -162,7 +161,10 @@ export async function handleComment(postId, userId) {
         });
 
         if (response.ok) {
-            alert('評論已送出！');
+            const commentData = await response.json();
+            const commentSection = document.getElementById(`comment-section-${postId}`);
+            const newComment = await createCommentElement(commentData, userId);
+            commentSection.insertBefore(newComment, commentSection.firstChild);
             commentInput.value = '';
         } else {
             console.error('Error commenting on post');
@@ -170,6 +172,36 @@ export async function handleComment(postId, userId) {
     } catch (error) {
         console.error('Error commenting:', error);
     }
+}
+
+async function createCommentElement(comment, currentUserId) {
+    const commentElement = document.createElement('div');
+    commentElement.classList.add('comment');
+
+    const userDetails = await fetchUserDetails(comment.user_id);
+    const avatarUrl = userDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
+    const username = userDetails?.username || 'Unknown User';
+
+    commentElement.innerHTML = `
+        <div class="comment-container">
+            <img src="${avatarUrl}" alt="${username}" class="comment-avatar">
+            <div class="comment-content">
+                <div class="comment-header">
+                    <span class="comment-username">${username}</span>
+                </div>
+                <p class="comment-text">${comment.content}</p>
+            </div>
+        </div>
+    `;
+
+    // 獲取剛剛插入的 img 元素，然後動態設置樣式
+    const avatarImg = commentElement.querySelector('.comment-avatar');
+    avatarImg.style.width = '30px';  // 設置寬度
+    avatarImg.style.height = '30px'; // 設置高度
+    avatarImg.style.borderRadius = '50%'; // 確保圖片為圓形
+    avatarImg.style.objectFit = 'cover';  // 確保圖片不變形
+
+    return commentElement;
 }
 
 export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
@@ -234,31 +266,25 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         <button class="action-btn chat-btn" id="chat-btn-${post.id}">
             <i class="fa-regular fa-envelope"></i>
         </button>
-        ${String(post.userId).trim() === String(userId).trim() ? `
-            <button class="action-btn delete-btn" id="delete-btn-${post.id}">
+        ${String(post.userId).trim() === String(userId).trim() ?
+        `<button class="action-btn delete-btn" id="delete-btn-${post.id}">
                 <i class="fa-regular fa-trash-can"></i>
-            </button>
-        ` : ''}
+            </button>`
+        : ''}
     </div>
-`;
-
-
-    let commentsHTML = '';
-    if (post.comments && post.comments.length > 0) {
-        commentsHTML = post.comments.map(comment => `<p>${comment.content} - User ${comment.user_id}</p>`).join('');
-    }
-
-    postContent += `
-        <div class="comment-section" id="comment-section-${post.id}" style="display: none;"> 
-            <div>${commentsHTML}</div>
-            <div class="comment-box">
-                <textarea id="comment-input-${post.id}" placeholder="輸入評論..."></textarea>
-                <button class="comment-btn" id="comment-btn-${post.id}">送出評論</button>
-            </div>
-        </div>
     `;
 
-    postContent += `</div>`;
+    postContent += `
+    <div class="comment-section" id="comment-section-${post.id}" style="display: none;"> 
+        <div class="comments-container"></div>
+        <div class="comment-box">
+            <textarea id="comment-input-${post.id}" placeholder="輸入評論..."></textarea>
+            <button class="comment-btn" id="comment-btn-${post.id}">
+                <i class="fa-regular fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+`;
 
 
     postDiv.innerHTML = postContent;
@@ -271,10 +297,17 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     if (bookmarkedPosts.includes(post.id)) {
         document.getElementById(`bookmark-btn-${post.id}`).classList.add('bookmarked');
     }
-    if (post.userId === userId) {
-        document.getElementById(`delete-btn-${post.id}`).addEventListener('click', () => handleDelete(post.id, userId));
+
+    // 加載評論
+    const commentsContainer = postDiv.querySelector('.comments-container');
+    if (post.comments && post.comments.length > 0) {
+        for (const comment of post.comments) {
+            const commentElement = await createCommentElement(comment, userId);
+            commentsContainer.appendChild(commentElement);
+        }
     }
 
+    // 事件監聽器
     document.getElementById(`like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
     document.getElementById(`bookmark-btn-${post.id}`).addEventListener('click', () => handleBookmark(post.id, userId));
     document.getElementById(`comment-toggle-btn-${post.id}`).addEventListener('click', () => {
@@ -315,8 +348,6 @@ export function handleTagClick(tag) {
     window.dispatchEvent(event);
 }
 
-
-
 export async function handleDelete(postId, userId) {
     console.log('Delete function called for post:', postId, 'by user:', userId);
     if (!confirm('確定要刪除這篇貼文嗎？此操作不可逆。')) {
@@ -343,5 +374,37 @@ export async function handleDelete(postId, userId) {
         console.error('Error deleting post:', error);
         alert(`刪除貼文失敗: ${error.message}`);
     }
+}
 
+// 新增的函數，用於獲取單個帖子信息
+export async function fetchPostById(postId) {
+    try {
+        const response = await fetch(`api/1.0/post/${postId}`, { credentials: 'include' });
+        if (!response.ok) {
+            throw new Error('Failed to fetch post');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching post by ID:', error);
+        return null;
+    }
+}
+
+// 新增的函數，用於更新評論計數
+export function updateCommentCount(postId, increment = true) {
+    const commentToggleBtn = document.getElementById(`comment-toggle-btn-${postId}`);
+    const countSpan = commentToggleBtn.querySelector('span');
+    let currentCount = parseInt(countSpan.textContent);
+    currentCount = increment ? currentCount + 1 : currentCount - 1;
+    countSpan.textContent = currentCount.toString();
+}
+
+// 可能需要的輔助函數，用於轉義HTML字符
+export function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }

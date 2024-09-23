@@ -119,6 +119,7 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<Map<String, String>> deletePost(@PathVariable int postId, @RequestParam int userId) {
 
+
         boolean deleted = service.deletePost(postId, userId);
         Map<String, String> response = new HashMap<>();
         if (deleted) {
