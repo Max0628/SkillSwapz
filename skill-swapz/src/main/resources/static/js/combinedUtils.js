@@ -41,6 +41,7 @@ export async function fetchUserDetails(userId) {
 }
 
 export function connectWebSocket(userId) {
+    console.log('WebSocket connected. Client timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
     const stompClient = Stomp.over(socket);
 

@@ -1,15 +1,22 @@
 //chat.js
 import { getUserId, connectWebSocket, startChat } from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
+const localTime = new Date();
+console.log(localTime);  // 會顯示當前本地時區的時間
+const utcTime = new Date().toISOString();
+console.log(utcTime);  // 會顯示UTC時間，比如：2024-09-23T08:12:32.122Z
+
 
 let stompClient = null;
 let currentUserId = null;
 let currentChatUuid = null;
 let receiverId = null;
-let subscribedChats = new Set();  // 新增：用來追蹤已訂閱的聊天
+let subscribedChats = new Set();
+let userCache = new Map();
+const DEFAULT_AVATAR_URL = "https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp";
 
 document.addEventListener('DOMContentLoaded', async () => {
-
+    console.log('Page loaded at:', new Date().toISOString(), 'Local timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const navbarContainer = document.querySelector('.navbar');
     await navbarContainer.appendChild(await createNavbar());
     addNavbarStyles();
@@ -25,7 +32,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const messageInput = document.getElementById('message-input');
     const userList = document.getElementById('user-list');
 
-    // 初始化 WebSocket 連接
     try {
         stompClient = await connectWebSocket(currentUserId);
         subscribeToNotifications();
@@ -33,7 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Failed to connect WebSocket:', error);
     }
 
-    // 檢查 URL 中是否有 chatUuid、receiverId 和 username
     const urlParams = new URLSearchParams(window.location.search);
     const chatUuidFromUrl = urlParams.get('chatUuid');
     const receiverIdFromUrl = urlParams.get('receiverId');
@@ -43,12 +48,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         await openChat(receiverIdFromUrl, chatUuidFromUrl, usernameFromUrl);
     }
 
-    function addUserToList(userId, username, chatUuid, lastMessage) {
+    function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl) {
+        if (userId.toString() === currentUserId.toString()) {
+            return;
+        }
         const userItem = document.createElement('li');
         userItem.classList.add('user-item');
         userItem.setAttribute('data-user-id', userId);
         userItem.setAttribute('data-chat-uuid', chatUuid);
         userItem.innerHTML = `
+        <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
         <div class="user-details">
             <span class="username">${username}</span>
             <span class="last-message">${lastMessage || ''}</span>
@@ -61,7 +70,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadChatList();
 
     function subscribeToPrivateChat(chatUuid) {
-        // 檢查是否已經訂閱該 chatUuid
         if (subscribedChats.has(chatUuid)) {
             console.log(`Already subscribed to private chat: ${chatUuid}`);
             return;
@@ -69,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (stompClient && stompClient.connected) {
             stompClient.subscribe(`/user/queue/private/${chatUuid}`, onMessageReceived);
-            subscribedChats.add(chatUuid);  // 訂閱後將 chatUuid 加入集合
+            subscribedChats.add(chatUuid);
             console.log(`Subscribed to private chat: ${chatUuid}`);
         } else {
             console.error('STOMP client is not connected');
@@ -86,15 +94,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function onNotificationReceived(notification) {
+    async function onNotificationReceived(notification) {
         console.log('Received notification:', notification);
         const data = JSON.parse(notification.body);
         console.log('Parsed notification data:', data);
-        if (data.type === 'newChat') {
-            addUserToList(data.senderId, `User ${data.senderId}`);
-            showNotification(`New chat request from User ${data.senderId}`);
-            // 自動打開新的聊天窗口
-            openChat(data.senderId, data.chatUuid, `User ${data.senderId}`);
+        if (data.type === 'newChat' && data.senderId.toString() !== currentUserId.toString()) {
+            const userInfo = await fetchUserDetails(data.senderId);
+            addUserToList(data.senderId, userInfo.username, data.chatUuid, '', userInfo.avatarUrl);
+            showNotification(`New chat request from ${userInfo.username}`);
+            await openChat(data.senderId, data.chatUuid, userInfo.username);
         }
     }
 
@@ -109,14 +117,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const messages = await response.json();
-            chatContent.innerHTML = ''; // 清空現有的聊天內容
+            chatContent.innerHTML = '';
 
             messages.forEach(message => {
                 const type = message.sender_id.toString() === currentUserId ? 'sent' : 'received';
-                const messageElement = createMessageElement(message.content, type);
+                const messageElement = createMessageElement(message.content, type, message.created_at, false);
                 chatContent.appendChild(messageElement);
             });
-
             chatContent.scrollTop = chatContent.scrollHeight;
         } catch (error) {
             console.error('Error loading chat history:', error);
@@ -124,27 +131,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-
-    function onMessageReceived(message) {
+    async function onMessageReceived(message) {
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.content && parsedMessage.sender_id.toString() !== currentUserId) {
-            const messageElement = createMessageElement(parsedMessage.content, 'received');
+            const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at, false);
             chatContent.appendChild(messageElement);
             chatContent.scrollTop = chatContent.scrollHeight;
 
-            // 如果是新的聊天，添加發送者到用戶列表
-            addUserToList(parsedMessage.sender_id, `User ${parsedMessage.sender_id}`);
+            const userInfo = await fetchUserDetails(parsedMessage.sender_id);
+            updateLastMessage(parsedMessage.sender_id, parsedMessage.content, userInfo.username, userInfo.avatarUrl);
         }
     }
 
-    function createMessageElement(text, messageType) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('chat-message', messageType);
-        messageElement.innerHTML = `
-            <span class="message-text">${text}</span>
-            <span class="message-time">${new Date().toLocaleString()}</span>
-        `;
-        return messageElement;
+    function updateLastMessage(userId, lastMessage, username, avatarUrl) {
+        if (userId.toString() === currentUserId.toString()) {
+            return;
+        }
+        const userItem = userList.querySelector(`[data-user-id="${userId}"]`);
+        if (userItem) {
+            userItem.querySelector('.last-message').textContent = lastMessage;
+            userItem.querySelector('.user-avatar').src = avatarUrl || DEFAULT_AVATAR_URL;
+        } else {
+            addUserToList(userId, username, '', lastMessage, avatarUrl);
+        }
     }
 
     async function openChat(userId, chatUuid, username) {
@@ -173,7 +182,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadChatHistory(chatUuid);
         subscribeToPrivateChat(chatUuid);
 
-        // 激活當前聊天
         const userItems = userList.querySelectorAll('.user-item');
         userItems.forEach(item => item.classList.remove('active'));
         const currentUserItem = userList.querySelector(`[data-user-id="${userId}"]`);
@@ -181,10 +189,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentUserItem.classList.add('active');
         }
     }
-
-
-
-
 
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
@@ -200,14 +204,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('請輸入訊息');
             return;
         }
-
+        const localTimestamp = new Date();  // 使用本地時間
         const chatMessage = {
             sender_id: parseInt(currentUserId, 10),
             receiver_id: parseInt(receiverId, 10),
             content: messageText,
-            chatUuid: currentChatUuid
+            chatUuid: currentChatUuid,
+            created_at: localTimestamp  // 使用本地時間而非 UTC
         };
 
+        console.log('Chat message object:', chatMessage);
+
+        // 在聊天界面上顯示新發送的消息（使用本地時間戳）
+        // const messageElement = createMessageElement(messageText, 'sent', localTimestamp, true);
+        const messageElement = createMessageElement(messageText, 'sent', chatMessage.created_at, false);  // isLocal 設為 false
+        chatContent.appendChild(messageElement);
+        messageInput.value = '';
+        chatContent.scrollTop = chatContent.scrollHeight;
 
         try {
             const response = await fetch('/api/1.0/chat/sendMessage', {
@@ -219,29 +232,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 credentials: 'include'
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response statusText:', response.statusText);
-            console.log("chatMessage.chatUuid",chatMessage.chatUuid)
-            const responseText = await response.text();
-            console.log('Response text:', responseText);
-
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = JSON.parse(responseText);
+            const data = await response.json();
             console.log('Message saved:', data);
-
-            // 在聊天界面上顯示新發送的消息
-            const messageElement = createMessageElement(messageText, 'sent');
-            chatContent.appendChild(messageElement);
-            messageInput.value = '';
-            chatContent.scrollTop = chatContent.scrollHeight;
 
             // WebSocket 發送邏輯
             if (stompClient && stompClient.connected) {
                 stompClient.send("/app/sendMessage", {}, JSON.stringify(chatMessage));
-                console.log(JSON.stringify(chatMessage));
             } else {
                 console.warn('WebSocket is not connected. Message sent via HTTP only.');
             }
@@ -252,16 +252,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-
-    function createMessageElement(text, type) {
+    function createMessageElement(text, messageType, createdAt, isLocal = false) {
+        console.log('Creating message element with time:', createdAt, 'isLocal:', isLocal);
         const messageElement = document.createElement('div');
-        messageElement.classList.add('chat-message', type);
+        messageElement.classList.add('chat-message', messageType);
         messageElement.innerHTML = `
         <span class="message-text">${text}</span>
-        <span class="message-time">${new Date().toLocaleTimeString()}</span>
+        <span class="message-time">${formatTime(createdAt, isLocal)}</span>
     `;
         return messageElement;
     }
+
+    function formatTime(timeString) {
+        const date = new Date(timeString);
+        const options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false  // 使用 24 小時制
+        };
+        return new Intl.DateTimeFormat('zh-TW', options).format(date);
+    }
+
+
 
     function showNotification(message) {
         if (Notification.permission === "granted") {
@@ -275,6 +290,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function fetchUserDetails(userId) {
+        if (userCache.has(userId)) {
+            return userCache.get(userId);
+        }
+        try {
+            const response = await fetch(`/api/1.0/user/profile?userId=${userId}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const userInfo = await response.json();
+            userInfo.avatarUrl = userInfo.avatarUrl || DEFAULT_AVATAR_URL;
+            userCache.set(userId, userInfo);
+            return userInfo;
+        } catch (error) {
+            console.error(`Error fetching user details for ID ${userId}:`, error);
+            return { username: `User ${userId}`, avatarUrl: DEFAULT_AVATAR_URL };
+        }
+    }
+
     async function loadChatList() {
         try {
             const response = await fetch(`/api/1.0/chat/list?userId=${currentUserId}`, {
@@ -285,16 +322,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const chatList = await response.json();
-            displayChatList(chatList);
+            await Promise.all(chatList.map(async (chat) => {
+                const userInfo = await fetchUserDetails(chat.other_user_id);
+                chat.username = userInfo.username;
+                chat.avatarUrl = userInfo.avatarUrl;
+            }));
+            const filteredChatList = chatList.filter(chat => chat.other_user_id.toString() !== currentUserId.toString());
+            displayChatList(filteredChatList);
         } catch (error) {
             console.error('Error loading chat list:', error);
         }
     }
+
     function displayChatList(chatList) {
-        userList.innerHTML = ''; // 清空現有的用戶列表
+        userList.innerHTML = '';
         chatList.forEach(chat => {
-            addUserToList(chat.other_user_id, `User ${chat.other_user_id}`, chat.chat_uuid, chat.last_message);
+            addUserToList(chat.other_user_id, chat.username, chat.chat_uuid, chat.last_message, chat.avatarUrl);
         });
     }
-
 });
