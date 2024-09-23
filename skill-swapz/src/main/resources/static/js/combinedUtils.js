@@ -214,21 +214,34 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     `;
 
     if (post.tag && post.tag.length > 0) {
-        const tags = post.tag.map(tag => `<button class="tag-btn">${tag}</button>`).join(' ');
+        const tags = post.tag.map(tag => `<button class="tag-btn"># ${tag}</button>`).join(' ');
         postContent += `<p><strong>標籤：</strong> ${tags}</p>`;
     }
 
     postContent += `
-        <div class="action-buttons">
-            <button class="like-btn" id="like-btn-${post.id}">
-                <i class="fas fa-thumbs-up"></i> 喜歡 
-                <span id="like-count-${post.id}">${post.likeCount}</span>
+    <div class="action-buttons">
+        <button class="action-btn like-btn" id="like-btn-${post.id}">
+            <i class="fa-regular fa-heart"></i> 
+            <span id="like-count-${post.id}">${post.likeCount}</span>
+        </button>
+        <button class="action-btn bookmark-btn" id="bookmark-btn-${post.id}">
+            <i class="fa-regular fa-bookmark"></i>
+        </button>
+        <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${post.id}">
+            <i class="fa-regular fa-comment"></i> 
+            <span>${post.comments ? post.comments.length : 0}</span>
+        </button>
+        <button class="action-btn chat-btn" id="chat-btn-${post.id}">
+            <i class="fa-regular fa-envelope"></i>
+        </button>
+        ${String(post.userId).trim() === String(userId).trim() ? `
+            <button class="action-btn delete-btn" id="delete-btn-${post.id}">
+                <i class="fa-regular fa-trash-can"></i>
             </button>
-            <button class="bookmark-btn" id="bookmark-btn-${post.id}"><i class="fas fa-bookmark"></i> 收藏</button>
-            <button class="comment-toggle-btn" id="comment-toggle-btn-${post.id}"><i class="fas fa-comment"></i> 留言 (${post.comments ? post.comments.length : 0})</button>
-            <button class="chat-btn" id="chat-btn-${post.id}"><i class="fas fa-comments"></i> 開始聊天</button>
-        </div>
-    `;
+        ` : ''}
+    </div>
+`;
+
 
     let commentsHTML = '';
     if (post.comments && post.comments.length > 0) {
@@ -244,9 +257,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             </div>
         </div>
     `;
-    if (String(post.userId).trim() === String(userId).trim()) {
-        postContent += `<button class="delete-btn" id="delete-btn-${post.id}"><i class="fas fa-trash"></i> 刪除</button>`;
-    }
+
     postContent += `</div>`;
 
 
@@ -292,13 +303,20 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 }
 
 export function handleTagClick(tag) {
-    const searchKeyword = encodeURIComponent(tag);
+    // 移除 tag 前的 # 符號並去掉前後的空格
+    const cleanTag = tag.replace(/^#/, '').trim();
+
+    // 將不含 # 和多餘空格的標籤傳遞給搜尋
+    const searchKeyword = encodeURIComponent(cleanTag);
     const newUrl = `/index.html?search=${searchKeyword}`;
     window.history.pushState({}, '', newUrl);
 
-    const event = new CustomEvent('tagSearch', { detail: { keyword: tag } });
+    const event = new CustomEvent('tagSearch', { detail: { keyword: cleanTag } });
     window.dispatchEvent(event);
 }
+
+
+
 export async function handleDelete(postId, userId) {
     console.log('Delete function called for post:', postId, 'by user:', userId);
     if (!confirm('確定要刪除這篇貼文嗎？此操作不可逆。')) {

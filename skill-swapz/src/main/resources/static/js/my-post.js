@@ -5,7 +5,8 @@ import {
     fetchLikedAndBookmarkedPosts,
     getUserId,
     handleTagClick,
-    startChat
+    startChat,
+    handleDelete
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 

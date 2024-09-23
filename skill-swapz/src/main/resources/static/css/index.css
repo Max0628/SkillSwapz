@@ -1,6 +1,25 @@
+/* --- 全局樣式 --- */
+:root {
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --link-color: #007bff;
+    --border-color: #ddd;
+    --box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    --padding: 20px;
+    --radius: 8px;
+    --button-hover-color: #000;
+    --button-color: #666;
+    --button-padding: 3px 1px;
+    --icon-size: 18px;
+    --icon-spacing: 2px;
+    --liked-color: #ff4500;
+    --bookmarked-color: #FFD700;
+    --delete-color: #28a745;
+}
+
+/* 基本樣式和全局佈局 */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: var(--bg-color);
     margin: 0;
 }
 
@@ -15,12 +34,12 @@ body {
     gap: 20px;
 }
 
-/* 貼文欄位樣式 */
+/* --- 文章樣式 --- */
 .section {
     background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: var(--padding);
+    border-radius: var(--radius);
+    box-shadow: var(--box-shadow);
     flex: 3; /* 占用大部分的寬度 */
 }
 
@@ -33,15 +52,15 @@ h2 {
     flex-direction: column;
 }
 
-/* 貼文樣式 */
 .post {
-    border: 1px solid #ddd;
-    padding: 20px;
+    border: 1px solid var(--border-color);
+    padding: var(--padding);
     margin-bottom: 15px;
-    border-radius: 8px;
+    border-radius: var(--radius);
     background-color: #fff;
 }
 
+/* 圖片與頭部樣式 */
 .post img {
     border-radius: 50%;
     width: 50px;
@@ -64,54 +83,82 @@ h2 {
     background-color: #000;
     color: #fff;
     padding: 5px 10px;
-    border-radius: 20px; /* 這將會使背景變圓 */
+    border-radius: 20px; /* 使背景變圓 */
     font-size: 0.9em;
-    display: inline-block;
     text-align: center;
 }
 
-.post-header .username {
-    font-weight: bold;
-    margin-left: 10px;
-}
-
-.post-footer {
+/* --- 操作按鈕樣式 --- */
+.action-buttons {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.post-footer .actions {
-    display: flex;
+    justify-content: flex-start;
     gap: 10px;
-    align-items: center;
-
+    margin-top: 1rem;
+    padding: 0;
 }
 
-/* 按讚按鈕 */
-.post-footer .actions button {
+.action-btn {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    font-size: 18px;
-    color: #888;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    padding: var(--button-padding);
+    font-size: 16px;
+    color: var(--button-color);
+    transition: color 0.3s ease;
 }
 
-.post-footer .actions button:hover {
-    color: #000;
+.action-btn i {
+    font-size: var(--icon-size);
+    margin-right: var(--icon-spacing); /* 圖標與數字保持距離 */
+    font-family: 'FontAwesome';
 }
 
-/* 搜索與熱門標籤欄樣式 */
+.action-btn span {
+    font-size: 14px;
+}
+
+/* 按鈕 hover 狀態 */
+.action-btn:hover {
+    color: var(--button-hover-color);
+}
+
+/* 按讚、收藏、刪除的特殊狀態 */
+.like-btn.liked {
+    color: var(--liked-color); /* 按讚後變紅色 */
+}
+
+.bookmark-btn.bookmarked {
+    color: var(--bookmarked-color); /* 收藏後變黃色 */
+}
+
+.delete-btn.clicked {
+    color: var(--delete-color); /* 刪除後變綠色 */
+}
+
+/* 各種按鈕的 hover 顏色 */
+.like-btn:hover {
+    color: var(--liked-color); /* 滑過按讚按鈕時 */
+}
+
+.bookmark-btn:hover {
+    color: var(--bookmarked-color); /* 滑過收藏按鈕時 */
+}
+
+.delete-btn:hover {
+    color: var(--delete-color); /* 滑過刪除按鈕時 */
+}
+
+/* --- 搜索與熱門標籤欄樣式 --- */
 .search-sidebar {
-    flex: 1; /* 占用較小的空間 */
+    flex: 1;
     height: 30rem;
-    padding: 20px;
+    padding: var(--padding);
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius);
+    box-shadow: var(--box-shadow);
 }
 
 h3 {
@@ -126,7 +173,7 @@ h3 {
 
 .popular-tags li {
     padding: 10px 0;
-    color: #007bff;
+    color: var(--link-color);
     cursor: pointer;
 }
 
@@ -134,22 +181,12 @@ h3 {
     text-decoration: underline;
 }
 
-.liked {
-    background-color: #ffdf00; /* 當按下後，按讚按鈕的背景變成黃色 */
+/* --- 標籤按鈕樣式 --- */
+.tag-btn {
+    display: inline-block;
+    border: none;
+    border-radius: 12px;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    cursor: pointer;
 }
-
-.bookmarked {
-    background-color: #ffdf00; /* 收藏按鈕按下後，背景顏色變成黃色 */
-}
-
-.like-btn.liked {
-    background-color: #ffdf00; /* 當按讚後按鈕變色 */
-}
-
-.like-btn i {
-    margin-right: 5px;
-}
-.like-btn .like-count {
-    margin-left: 5px;
-}
-

@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             messages.forEach(message => {
                 const type = message.sender_id.toString() === currentUserId ? 'sent' : 'received';
-                const messageElement = createMessageElement(message.content, type, message.created_at, false);
+                const messageElement = createMessageElement(message.content, type, message.created_at);
                 chatContent.appendChild(messageElement);
             });
             chatContent.scrollTop = chatContent.scrollHeight;
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function onMessageReceived(message) {
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.content && parsedMessage.sender_id.toString() !== currentUserId) {
-            const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at, false);
+            const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at);
             chatContent.appendChild(messageElement);
             chatContent.scrollTop = chatContent.scrollHeight;
 
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             receiver_id: parseInt(receiverId, 10),
             content: messageText,
             chatUuid: currentChatUuid,
-            created_at: localTimestamp  // 使用本地時間而非 UTC
+            created_at: new Date().toISOString()  // 使用 UTC 時間並添加 'Z' 後綴
         };
 
         console.log('Chat message object:', chatMessage);
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         messageElement.classList.add('chat-message', messageType);
         messageElement.innerHTML = `
         <span class="message-text">${text}</span>
-        <span class="message-time">${formatTime(createdAt, isLocal)}</span>
+        <span class="message-time">${formatTime(createdAt)}</span>
     `;
         return messageElement;
     }
@@ -271,7 +271,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: false  // 使用 24 小時制
+            hour12: false,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone  // 使用用戶的本地時區
         };
         return new Intl.DateTimeFormat('zh-TW', options).format(date);
     }
