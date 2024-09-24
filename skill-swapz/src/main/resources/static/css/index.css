@@ -5,9 +5,18 @@ body {
 }
 
 .container {
-    width: 60%;
+    width: 90%;
     margin: 20px auto;
+    transition: width 0.5s ease; /* 設置動畫過渡時間 */
 }
+
+/* 當螢幕寬度大於 1024px 時，將寬度變為 75% */
+@media (min-width: 1024px) {
+    .container {
+        width: 75%;
+    }
+}
+
 
 .content-wrapper {
     display: flex;
