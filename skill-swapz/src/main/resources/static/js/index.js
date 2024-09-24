@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts) {
         for (const post of posts) {
-            console.log(post.id);
             await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
         }
     }

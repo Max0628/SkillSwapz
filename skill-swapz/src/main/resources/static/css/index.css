@@ -116,11 +116,26 @@ h2 {
 /* 搜索與熱門標籤欄樣式 */
 .search-sidebar {
     flex: 1; /* 占用較小的空間 */
-    height: 30rem;
+    color: black;
+    height: 35rem;
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-input{
+    width: 60%;
+    padding: 8px; /* 縮小padding */
+    margin-bottom: 15px; /* 縮小margin */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px; /* 縮小搜尋欄字體 */
+}
+
+a.explore-link{
+    color: black;
+    text-decoration: none;
 }
 
 h3 {
@@ -135,7 +150,7 @@ h3 {
 
 .popular-tags li {
     padding: 10px 0;
-    color: #007bff;
+    color: black;
     cursor: pointer;
 }
 
