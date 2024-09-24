@@ -1,7 +1,14 @@
+import { createNavbar, addNavbarStyles } from './navbar.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     const categoryContainer = document.getElementById('category-container');
     const searchInput = document.getElementById('search-input');
     let debounceTimer;  // 用於防抖的計時器
+
+
+    const navbar = await createNavbar();
+    document.body.insertBefore(navbar, document.body.firstChild);
+    addNavbarStyles();
 
     // 當用戶在搜尋框中輸入後，重定向到 index.html，並帶上搜尋參數
     searchInput.addEventListener('input', function () {

@@ -105,9 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (response.ok) {
                 alert('文章發表成功！');
-                postForm.reset();
-                typeSelect.value = "交換技能";
-                renderFieldsForType("交換技能");
+                window.location.href = "index.html";
             } else {
                 const errorText = await response.text();
                 console.error('Error creating post:', errorText);
