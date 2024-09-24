@@ -90,25 +90,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchAndDisplayPosts(userId, searchKeyword = null) {
         try {
-            const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
-
             let apiUrl = 'api/1.0/post';
             if (searchKeyword) {
                 apiUrl += `?keyword=${encodeURIComponent(searchKeyword)}`;
             }
 
-            const response = await fetch(apiUrl, { credentials: 'include' });
-            const posts = await response.json();
+            // 使用 Promise.all() 同時執行獲取喜歡和收藏的貼文以及獲取所有貼文的請求
+            const [likedAndBookmarkedData, postResponse] = await Promise.all([
+                fetchLikedAndBookmarkedPosts(userId),
+                fetch(apiUrl, { credentials: 'include' })
+            ]);
+
+            const posts = await postResponse.json();
+            const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
+
+            // 確保在資料完全準備好後再進行渲染
             const postsList = document.getElementById('posts-list');
             postsList.innerHTML = '';
 
             posts.forEach(post => {
+                console.log(post.id)
                 displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
             });
         } catch (error) {
             console.error('Error fetching posts:', error);
         }
     }
+
 
     function setupSearchAndFilter(userId) {
         const searchInput = document.querySelector('.search-input');
