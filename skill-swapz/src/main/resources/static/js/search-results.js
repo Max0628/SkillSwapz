@@ -4,6 +4,7 @@ import { getUserId, fetchLikedAndBookmarkedPosts, displayPost } from './combined
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getUserId();
     if (!userId) {
+        window.location.href = "auth.html";
         console.log('User not logged in');
         return;
     }

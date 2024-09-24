@@ -12,6 +12,7 @@ export async function getUserId() {
         if (response.ok) {
             return data.user_id;
         } else {
+            window.location.href = "auth.html";
             console.error('Error fetching user ID:', data.message);
             return null;
         }

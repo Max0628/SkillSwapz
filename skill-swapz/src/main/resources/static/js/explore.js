@@ -1,10 +1,16 @@
 import { createNavbar, addNavbarStyles } from './navbar.js';
-
+import { getUserId} from './combinedUtils.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const categoryContainer = document.getElementById('category-container');
     const searchInput = document.getElementById('search-input');
     let debounceTimer;  // 用於防抖的計時器
 
+    const currentUserId = await getUserId();
+    if (!currentUserId) {
+        window.location.href = "auth.html";
+        console.log('User not logged in');
+        return;
+    }
 
     const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);

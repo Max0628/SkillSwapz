@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userId = await getUserId();
 
         if (!userId) {
+            window.location.href = "auth.html";
             console.error('Unable to get user ID');
             alert('無法獲取用戶信息，請登入後再試');
             return;

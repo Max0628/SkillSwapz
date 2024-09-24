@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     currentUserId = await getUserId();
     if (!currentUserId) {
+        window.location.href = "auth.html";
         console.log('User not logged in');
         return;
     }

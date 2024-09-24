@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateURLAndFetchPosts(userId, searchKeyword);
         });
     } else {
+        window.location.href = "auth.html";
         console.log('User not logged in');
         return null;
     }

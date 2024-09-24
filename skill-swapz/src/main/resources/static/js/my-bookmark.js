@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterBookmarkedPosts(searchKeyword);
         });
     } else {
+        window.location.href = "auth.html";
         console.log('User not logged in');
         return null;
     }
