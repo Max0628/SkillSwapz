@@ -88,6 +88,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts) {
+        for (const post of posts) {
+            console.log(post.id);
+            await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+        }
+    }
+
     async function fetchAndDisplayPosts(userId, searchKeyword = null) {
         try {
             let apiUrl = 'api/1.0/post';
@@ -108,10 +115,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const postsList = document.getElementById('posts-list');
             postsList.innerHTML = '';
 
-            posts.forEach(post => {
-                console.log(post.id)
-                displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
-            });
+            renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
+
         } catch (error) {
             console.error('Error fetching posts:', error);
         }
