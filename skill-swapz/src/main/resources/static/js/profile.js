@@ -105,7 +105,7 @@ async function uploadAvatar() {
 
     } catch (error) {
         console.error('Error uploading avatar:', error);
-        alert('照片上傳失敗，請稍後再試。');
+        // alert('照片上傳失敗，請稍後再試。');
     }
 }
 
