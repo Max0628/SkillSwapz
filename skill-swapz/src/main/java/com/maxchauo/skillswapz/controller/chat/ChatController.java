@@ -2,6 +2,10 @@ package com.maxchauo.skillswapz.controller.chat;
 
 import com.maxchauo.skillswapz.data.dto.chat.ChatMessage;
 import com.maxchauo.skillswapz.service.chat.ChatService;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +15,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/1.0/chat")
