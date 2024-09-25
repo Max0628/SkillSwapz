@@ -3,7 +3,7 @@ import { getUserId} from './combinedUtils.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const categoryContainer = document.getElementById('category-container');
     const searchInput = document.getElementById('search-input');
-    let debounceTimer;  // 用於防抖的計時器
+    let debounceTimer;
 
     const currentUserId = await getUserId();
     if (!currentUserId) {
@@ -16,22 +16,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
-    // 當用戶在搜尋框中輸入後，重定向到 index.html，並帶上搜尋參數
     searchInput.addEventListener('input', function () {
         const searchKeyword = this.value.trim();
 
-        // 如果計時器還在運行，則清除它（防止重複執行）
         clearTimeout(debounceTimer);
 
-        // 設定防抖：當用戶停止輸入 500 毫秒後再執行搜尋
         debounceTimer = setTimeout(() => {
             if (searchKeyword) {
                 window.location.href = `/index.html?search=${encodeURIComponent(searchKeyword)}`;
             }
-        }, 500);  // 延遲 500 毫秒
+        }, 500);
     });
 
-    // 當用戶點擊標籤時，重定向到 index.html，並帶上該標籤作為搜尋參數
     categoryContainer.addEventListener('click', (event) => {
         if (event.target.classList.contains('tag')) {
             const tagKeyword = event.target.textContent.replace('#', '').trim();
@@ -39,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 模擬動態加載分類和標籤的邏輯（保持現有功能）
     async function fetchCategories() {
         try {
             const response = await fetch('/api/1.0/post/category');

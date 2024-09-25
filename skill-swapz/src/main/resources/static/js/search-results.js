@@ -11,15 +11,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     console.log('Login User Id:', userId);
 
-    // 獲取按讚和收藏過的貼文，並渲染按鈕顏色
     try {
         const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
-        await fetchPosts(userId, likedPosts, bookmarkedPosts);  // 獲取並顯示貼文
+        await fetchPosts(userId, likedPosts, bookmarkedPosts);
     } catch (error) {
         console.error('Error fetching liked or bookmarked posts:', error);
     }
 
-    // 獲取所有貼文數據並動態生成貼文列表
     async function fetchPosts(userId, likedPosts = [], bookmarkedPosts = []) {
         try {
             const response = await fetch('/api/1.0/post', { credentials: 'include' });

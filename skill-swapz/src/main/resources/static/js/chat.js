@@ -2,10 +2,9 @@
 import { getUserId, connectWebSocket, startChat } from './combinedUtils.js';
 import { createNavbar, addNavbarStyles } from './navbar.js';
 const localTime = new Date();
-console.log(localTime);  // 會顯示當前本地時區的時間
+console.log(localTime);
 const utcTime = new Date().toISOString();
-console.log(utcTime);  // 會顯示UTC時間，比如：2024-09-23T08:12:32.122Z
-
+console.log(utcTime);
 
 let stompClient = null;
 let currentUserId = null;
@@ -205,19 +204,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('請輸入訊息');
             return;
         }
-        const localTimestamp = new Date();  // 使用本地時間
+        const localTimestamp = new Date();
         const chatMessage = {
             sender_id: parseInt(currentUserId, 10),
             receiver_id: parseInt(receiverId, 10),
             content: messageText,
             chatUuid: currentChatUuid,
-            created_at: new Date().toISOString()  // 使用 UTC 時間並添加 'Z' 後綴
+            created_at: new Date().toISOString()
         };
 
         console.log('Chat message object:', chatMessage);
 
-        // 在聊天界面上顯示新發送的消息（使用本地時間戳）
-        // const messageElement = createMessageElement(messageText, 'sent', localTimestamp, true);
         const messageElement = createMessageElement(messageText, 'sent', chatMessage.created_at, false);  // isLocal 設為 false
         chatContent.appendChild(messageElement);
         messageInput.value = '';
@@ -240,7 +237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await response.json();
             console.log('Message saved:', data);
 
-            // WebSocket 發送邏輯
             if (stompClient && stompClient.connected) {
                 stompClient.send("/app/sendMessage", {}, JSON.stringify(chatMessage));
             } else {
@@ -273,12 +269,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone  // 使用用戶的本地時區
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
         };
         return new Intl.DateTimeFormat('zh-TW', options).format(date);
     }
-
-
 
     function showNotification(message) {
         if (Notification.permission === "granted") {

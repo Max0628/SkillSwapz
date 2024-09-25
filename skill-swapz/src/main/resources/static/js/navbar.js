@@ -4,35 +4,29 @@ export async function createNavbar() {
     const navbar = document.createElement('nav');
     navbar.className = 'navbar';
 
-    // 左邊的技能交換 LOGO
     const logo = document.createElement('a');
     logo.href = '/';
     logo.className = 'navbar-logo';
     logo.textContent = '技能交換';
 
-    // 右邊的按鈕容器
     const rightContainer = document.createElement('div');
     rightContainer.className = 'navbar-right';
 
-    // 發布文章按鈕
     const createPostButton = document.createElement('button');
     createPostButton.textContent = '發布文章';
     createPostButton.className = 'navbar-create-post';
     createPostButton.onclick = () => window.location.href = '/create-post.html';
 
-    // 獲取用戶數據
     try {
         const userId = await getUserId();
         if (userId) {
             const userData = await fetchUserProfile(userId);
             if (userData) {
-                // 創建用戶頭像
                 const avatar = document.createElement('img');
                 avatar.className = 'navbar-avatar';
                 avatar.src = userData.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
                 avatar.alt = 'User Avatar';
 
-                // 創建用戶名稱
                 const userName = document.createElement('span');
                 userName.className = 'navbar-username';
                 userName.textContent = userData.username || 'User';
@@ -45,7 +39,6 @@ export async function createNavbar() {
         console.error('Error loading user data:', error);
     }
 
-    // 選單按鈕和下拉選單
     const userMenu = document.createElement('div');
     userMenu.className = 'navbar-user-menu';
 
@@ -74,11 +67,9 @@ export async function createNavbar() {
 
     userMenu.appendChild(dropdownContent);
 
-    // 將發布文章按鈕和選單包裹到右側容器
     rightContainer.appendChild(createPostButton);
     rightContainer.appendChild(userMenu);
 
-    // 將 LOGO 和右側按鈕容器添加到導航欄
     navbar.appendChild(logo);
     navbar.appendChild(rightContainer);
 

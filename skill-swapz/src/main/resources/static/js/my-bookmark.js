@@ -2,26 +2,21 @@ import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, s
 import { addNavbarStyles, createNavbar } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 生成導航欄
     const navbar = createNavbar();
     await document.body.insertBefore(await navbar, document.body.firstChild);
     addNavbarStyles();
 
-    // 獲取用戶 ID 並顯示書籤文章
     const userId = await getUserId();
     if (userId) {
         console.log('Login User Id:', userId);
 
-        // 連接 WebSocket 並訂閱通知
         const stompClient = await connectWebSocket(userId);
         stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
         await fetchAndDisplayBookmarkedPosts(userId);
 
-        // 綁定搜尋框和側邊欄的搜尋邏輯
         setupSearchAndFilter(userId);
 
-        // 添加標籤搜索事件監聽器
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
             filterBookmarkedPosts(searchKeyword);
@@ -32,7 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return null;
     }
 
-    // 處理 WebSocket 接收的通知
     function onNotificationReceived(notification) {
         const data = JSON.parse(notification.body);
         if (data.type === 'newChat') {
@@ -40,7 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 顯示桌面通知
     function showNotification(message) {
         if (Notification.permission === "granted") {
             new Notification(message);
@@ -53,7 +46,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 獲取並顯示書籤文章
     async function fetchAndDisplayBookmarkedPosts(userId, searchKeyword = null) {
         try {
             const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
@@ -78,7 +70,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function setupPostInteractions(fullPosts, userId, postsList) {
-        // 綁定聊天按鈕事件
         document.querySelectorAll('.chat-btn').forEach(button => {
             button.addEventListener('click', async (event) => {
                 event.preventDefault();
@@ -96,7 +87,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
-        // 綁定收藏按鈕事件
         document.querySelectorAll('.bookmark-btn').forEach(button => {
             button.addEventListener('click', async (event) => {
                 const postId = event.target.id.split('-')[2];
@@ -107,7 +97,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
-        // 綁定標籤點擊事件
         document.querySelectorAll('.tag-btn').forEach(tagBtn => {
             tagBtn.addEventListener('click', (event) => {
                 event.preventDefault();
@@ -117,7 +106,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // 綁定搜尋和篩選事件，加入防抖功能
     function setupSearchAndFilter(userId) {
         let debounceTimer;
 
@@ -140,7 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // 過濾書籤文章
     function filterBookmarkedPosts(searchKeyword) {
         const posts = document.querySelectorAll('.post');
         posts.forEach(post => {
@@ -152,7 +139,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         updatePostsTitle(searchKeyword);
     }
 
-    // 更新文章標題
     function updatePostsTitle(searchKeyword) {
         const postTitle = document.querySelector('#posts h2');
         if (searchKeyword) {

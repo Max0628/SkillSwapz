@@ -26,17 +26,14 @@ public class S3Util {
 
     @PostConstruct
     public void init() {
-        // 打印注入的值，确保在 @PostConstruct 阶段注入已经完成
         System.out.println("S3 Bucket Name: " + bucketName);
         System.out.println("S3 Region: " + region);
 
-        // 初始化 S3 客户端
         this.s3Client = AmazonS3ClientBuilder.standard()
-                .withRegion(region)  // 使用注入的區域
+                .withRegion(region)
                 .build();
     }
 
-    // 上傳文件到 S3 並返回文件的 URL
     public String uploadFile(MultipartFile file) throws IOException {
         String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
         ObjectMetadata metadata = new ObjectMetadata();
@@ -45,7 +42,6 @@ public class S3Util {
 
         try {
             s3Client.putObject(bucketName, fileName, file.getInputStream(), metadata);
-            // 返回圖片的 URL
             return s3Client.getUrl(bucketName, fileName).toString();
         } catch (AmazonServiceException e) {
             System.err.println("Amazon S3 upload failed: " + e.getErrorMessage());
@@ -53,7 +49,6 @@ public class S3Util {
         }
     }
 
-    // 刪除 S3 中的文件
     public void deleteFile(String fileUrl) {
         if (bucketName == null || bucketName.isEmpty()) {
             System.err.println("Bucket name is not specified. Please check S3_BUCKET_NAME environment variable.");
@@ -62,7 +57,7 @@ public class S3Util {
 
         try {
             URL url = new URL(fileUrl);
-            String key = url.getPath().substring(1); // 移除開頭的 '/'
+            String key = url.getPath().substring(1);
             s3Client.deleteObject(bucketName, key);
             System.out.println("File deleted successfully from S3: " + key);
         } catch (Exception e) {

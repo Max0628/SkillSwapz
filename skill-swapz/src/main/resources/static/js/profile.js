@@ -2,24 +2,20 @@ import { createNavbar, addNavbarStyles } from './navbar.js';
 import { getUserId } from './combinedUtils.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // 創建和添加導航欄
     const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
-    // 綁定基本資料提交
     const form = document.getElementById('profileForm');
     form.addEventListener('submit', function(event) {
         event.preventDefault();
         updateBasicProfile();
     });
 
-    // 綁定圖片上傳按鈕
     document.getElementById('uploadAvatarBtn').addEventListener('click', function() {
         uploadAvatar();
     });
 
-    // 加載用戶資料
     await loadUserProfile();
 });
 
@@ -50,12 +46,10 @@ async function loadUserProfile() {
         if (userData.avatarUrl) {
             avatarElement.src = userData.avatarUrl;
 
-            // 如果圖片加載失敗，設置onerror屬性來使用預設圖片
             avatarElement.onerror = function () {
                 this.src = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
             };
         } else {
-            // 如果userData.avatarUrl為空，直接使用預設圖片
             avatarElement.src = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
         }
 
@@ -65,8 +59,6 @@ async function loadUserProfile() {
     }
 }
 
-
-// 上傳頭像
 async function uploadAvatar() {
     try {
         const userId = await getUserId();
@@ -93,7 +85,7 @@ async function uploadAvatar() {
         if (!response.ok) throw new Error('Failed to upload avatar');
 
         alert('照片上傳成功！');
-        // 只更新頭像
+
         const avatarResponse = await fetch(`/api/1.0/user/avatar?userId=${userId}`, {
             method: 'GET',
             credentials: 'include'
@@ -105,11 +97,9 @@ async function uploadAvatar() {
 
     } catch (error) {
         console.error('Error uploading avatar:', error);
-        // alert('照片上傳失敗，請稍後再試。');
     }
 }
 
-// 更新基本資料
 async function updateBasicProfile() {
     try {
         const userId = await getUserId();
@@ -142,7 +132,6 @@ async function updateBasicProfile() {
     }
 }
 
-// 頭像預覽
 document.getElementById('avatarUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {

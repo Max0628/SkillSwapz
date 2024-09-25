@@ -31,13 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const postsList = document.getElementById('posts-list');
 
-        // 使用事件委託處理聊天按鈕點擊
         postsList.addEventListener('click', async (event) => {
             if (event.target.classList.contains('chat-btn')) {
                 event.preventDefault();
                 console.log('Chat button clicked:', event.target.id);
                 const postId = event.target.id.split('-')[2];
-                const post = await fetchPostById(postId); // 假設有這個函數來獲取單個帖子信息
+                const post = await fetchPostById(postId);
                 if (post) {
                     try {
                         const chatUuid = await startChat(post.userId, userId);
@@ -102,7 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 apiUrl += `?keyword=${encodeURIComponent(searchKeyword)}`;
             }
 
-            // 使用 Promise.all() 同時執行獲取喜歡和收藏的貼文以及獲取所有貼文的請求
             const [likedAndBookmarkedData, postResponse] = await Promise.all([
                 fetchLikedAndBookmarkedPosts(userId),
                 fetch(apiUrl, { credentials: 'include' })
@@ -111,7 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const posts = await postResponse.json();
             const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
 
-            // 確保在資料完全準備好後再進行渲染
             const postsList = document.getElementById('posts-list');
             postsList.innerHTML = '';
 
@@ -156,7 +153,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// 假設的函數，用於獲取單個帖子信息
 async function fetchPostById(postId) {
     try {
         const response = await fetch(`api/1.0/post/${postId}`, { credentials: 'include' });

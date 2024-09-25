@@ -3,7 +3,7 @@ package com.maxchauo.skillswapz.repository.auth;
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
 import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
 import com.maxchauo.skillswapz.rowmapper.UserRowMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -16,11 +16,14 @@ import java.util.Collections;
 
 @Repository
 public class AuthRepository {
-    @Autowired
-    private NamedParameterJdbcTemplate template;
+    private final NamedParameterJdbcTemplate template;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private final JwtTokenUtil jwtTokenUtil;
+
+    public AuthRepository(NamedParameterJdbcTemplate template, JwtTokenUtil jwtTokenUtil) {
+        this.template = template;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     public UserDto getUserByEmail(String email) {
         String sql = "SELECT * FROM `user` WHERE email=:email";

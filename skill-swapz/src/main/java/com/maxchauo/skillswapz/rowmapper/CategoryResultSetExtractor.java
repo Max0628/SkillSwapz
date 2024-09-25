@@ -27,7 +27,7 @@ public class CategoryResultSetExtractor implements ResultSetExtractor<List<Categ
                 categoryMap.put(categoryId, categoryDto);
             }
 
-            Integer tagId = rs.getInt("tag_id");
+            int tagId = rs.getInt("tag_id");
             String tagName = rs.getString("tag_name");
             if (tagId != 0 && tagName != null) {
                 TagDto tagDto = new TagDto(tagId, tagName);

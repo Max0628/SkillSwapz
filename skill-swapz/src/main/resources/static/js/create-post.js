@@ -31,11 +31,9 @@ const postTypes = {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOMContentLoaded event fired');
 
-    // 創建導航欄
     const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
 
-    // 添加導航欄樣式
     addNavbarStyles();
 
     const typeSelect = document.getElementById('type');
@@ -47,10 +45,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // 當類型變化時動態生成表單字段
     typeSelect.addEventListener('change', () => renderFieldsForType(typeSelect.value));
 
-    // 初始化時立即渲染字段（預設為交換技能）
     typeSelect.value = "交換技能";
     renderFieldsForType("交換技能");
 

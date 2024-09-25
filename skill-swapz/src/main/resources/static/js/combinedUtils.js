@@ -246,7 +246,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     }
 
     postContent += `
-    <p><strong>內容：</strong> ${post.content}</p>
+    <p><strong><內容></內容>：</strong> ${post.content}</p>
     `;
 
     if (post.tag && post.tag.length > 0) {
