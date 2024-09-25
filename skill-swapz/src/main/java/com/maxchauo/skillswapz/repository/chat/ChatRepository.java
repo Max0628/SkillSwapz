@@ -1,6 +1,7 @@
 package com.maxchauo.skillswapz.repository.chat;
 
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 @Log4j2
 @Repository
 public class ChatRepository {
@@ -39,8 +41,7 @@ public class ChatRepository {
             log.info("Existing chat channel found: {}", results.get(0));
             return results.get(0);
         }
-
-
+        
         String chatUuid = UUID.randomUUID().toString();
         log.info("New chat channel created: {}", chatUuid);
         String sqlInsert = "INSERT INTO chat_channel (user_id_1, user_id_2, chat_uuid) " +
@@ -53,8 +54,9 @@ public class ChatRepository {
 
 
     public Integer saveMessage(String chatUuid, Integer senderId, Integer receiverId, String content) {
-        String sqlInsert = "INSERT INTO `chat_messages` (chat_uuid, sender_id, receiver_id, content) " +
-                "VALUES (:chat_uuid, :sender_id, :receiver_id, :content)"   ;
+        String sqlInsert =
+                "INSERT INTO `chat_messages` (chat_uuid, sender_id, receiver_id, content) "
+                        + "VALUES (:chat_uuid, :sender_id, :receiver_id, :content)";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("chat_uuid", chatUuid)
@@ -68,7 +70,6 @@ public class ChatRepository {
             template.update(sqlInsert, params, keyHolder, new String[]{"id"});
             return keyHolder.getKey().intValue();
         } catch (DataAccessException e) {
-            // 記錄詳細的錯誤信息
             System.err.println("SQL Error: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to save message", e);

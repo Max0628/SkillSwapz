@@ -42,7 +42,6 @@ public class PostController {
     @PostMapping("/comment")
     public void insertComment(@RequestBody CommentForm commentForm) {
         service.insertComment(commentForm);
-//        return ResponseEntity.ok().body("Comment created successfully.");
     }
 
 
