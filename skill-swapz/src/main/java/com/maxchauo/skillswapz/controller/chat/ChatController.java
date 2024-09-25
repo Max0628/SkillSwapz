@@ -56,8 +56,8 @@ public class ChatController {
     public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
         try {
             String chatUuid = (String) request.get("chatUuid");
-            Integer senderId = Integer.valueOf(String.valueOf(request.get("receiverId")));
-            Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiverId")));
+            Integer senderId = Integer.valueOf(String.valueOf(request.get("sender_id")));
+            Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiver_id")));
             String content = (String) request.get("content");
 
             if (chatUuid == null || senderId == null || receiverId == null || content == null) {
@@ -66,7 +66,7 @@ public class ChatController {
 
             Integer messageId = chatService.sendMessage(chatUuid, senderId, receiverId, content);
             Map<String, Object> response = new HashMap<>();
-            response.put("messageId", messageId);
+            response.put("message_id", messageId);
             response.put("status", "Message sent");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -94,12 +94,12 @@ public class ChatController {
 
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "newChat");
-        notification.put("senderId", chatMessage.getSenderId());
+        notification.put("senderId", chatMessage.getSender_id());
         notification.put("chatUuid", chatMessage.getChatUuid());
         log.info("Sending newChat notification: {}", notification);
 
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getReceiverId().toString(), "/queue/notifications", notification);
+                chatMessage.getReceiver_id().toString(), "/queue/notifications", notification);
     }
 
     @GetMapping("/list")

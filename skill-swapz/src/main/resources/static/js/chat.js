@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             chatContent.innerHTML = '';
 
             messages.forEach(message => {
-                const type = message.senderId.toString() === currentUserId ? 'sent' : 'received';
-                const messageElement = createMessageElement(message.content, type, message.createdAt);
+                const type = message.sender_id.toString() === currentUserId ? 'sent' : 'received';
+                const messageElement = createMessageElement(message.content, type, message.created_at);
                 chatContent.appendChild(messageElement);
             });
             chatContent.scrollTop = chatContent.scrollHeight;
@@ -134,13 +134,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function onMessageReceived(message) {
         const parsedMessage = JSON.parse(message.body);
-        if (parsedMessage.content && parsedMessage.senderId.toString() !== currentUserId) {
-            const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.createdAt);
+        if (parsedMessage.content && parsedMessage.sender_id.toString() !== currentUserId) {
+            const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at);
             chatContent.appendChild(messageElement);
             chatContent.scrollTop = chatContent.scrollHeight;
 
-            const userInfo = await fetchUserDetails(parsedMessage.senderId);
-            updateLastMessage(parsedMessage.senderId, parsedMessage.content, userInfo.username, userInfo.avatarUrl);
+            const userInfo = await fetchUserDetails(parsedMessage.sender_id);
+            updateLastMessage(parsedMessage.sender_id, parsedMessage.content, userInfo.username, userInfo.avatarUrl);
         }
     }
 
@@ -205,18 +205,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('請輸入訊息');
             return;
         }
-        const localTimestamp = new Date();
+        const localTimestamp = new Date();  // 使用本地時間
         const chatMessage = {
-            senderId: parseInt(currentUserId, 10),
-            receiverId: parseInt(receiverId, 10),
+            sender_id: parseInt(currentUserId, 10),
+            receiver_id: parseInt(receiverId, 10),
             content: messageText,
             chatUuid: currentChatUuid,
-            createdAt: new Date().toISOString()  // 使用 UTC 時間並添加 'Z' 後綴
+            created_at: new Date().toISOString()  // 使用 UTC 時間並添加 'Z' 後綴
         };
 
         console.log('Chat message object:', chatMessage);
 
-        const messageElement = createMessageElement(messageText, 'sent', chatMessage.createdAt, false);  // isLocal 設為 false
+        // 在聊天界面上顯示新發送的消息（使用本地時間戳）
+        // const messageElement = createMessageElement(messageText, 'sent', localTimestamp, true);
+        const messageElement = createMessageElement(messageText, 'sent', chatMessage.created_at, false);  // isLocal 設為 false
         chatContent.appendChild(messageElement);
         messageInput.value = '';
         chatContent.scrollTop = chatContent.scrollHeight;
