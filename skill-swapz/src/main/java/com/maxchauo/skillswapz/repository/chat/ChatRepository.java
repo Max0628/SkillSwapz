@@ -54,12 +54,12 @@ public class ChatRepository {
 
     public Integer saveMessage(String chatUuid, Integer senderId, Integer receiverId, String content) {
         String sqlInsert = "INSERT INTO `chat_messages` (chat_uuid, sender_id, receiver_id, content) " +
-                "VALUES (:chatUuid, :senderId, :receiverId, :content)";
+                "VALUES (:chat_uuid, :sender_id, :receiver_id, :content)"   ;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("chatUuid", chatUuid)
-                .addValue("senderId", senderId)
-                .addValue("receiverId", receiverId)
+                .addValue("chat_uuid", chatUuid)
+                .addValue("sender_id", senderId)
+                .addValue("receiver_id", receiverId)
                 .addValue("content", content);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -83,10 +83,10 @@ public class ChatRepository {
         return template.query(sql, params, (rs, rowNum) -> {
             Map<String, Object> message = new HashMap<>();
             message.put("id", rs.getInt("id"));
-            message.put("sender_id", rs.getInt("sender_id"));
-            message.put("receiver_id", rs.getInt("receiver_id"));
+            message.put("senderId", rs.getInt("sender_id"));
+            message.put("receiverId", rs.getInt("receiver_id"));
             message.put("content", rs.getString("content"));
-            message.put("created_at", rs.getTimestamp("created_at").toString());
+            message.put("createdAt", rs.getTimestamp("created_at").toString());
             return message;
         });
     }

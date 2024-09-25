@@ -16,10 +16,9 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatMessage {
     private Integer id;
-    private Integer sender_id;
-    private Integer receiver_id;
+    private Integer senderId;
+    private Integer receiverId;
     private String content;
     private String chatUuid;
-    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 }
