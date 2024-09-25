@@ -1,14 +1,13 @@
 // index.js
 import {
-    getUserId,
-    fetchLikedAndBookmarkedPosts,
-    displayPost,
-    startChat,
     connectWebSocket,
-    handleTagClick,
-    handleDelete
+    displayPost,
+    fetchLikedAndBookmarkedPosts,
+    getUserId,
+    startChat,
+    subscribeToNewPosts
 } from './combinedUtils.js';
-import { createNavbar, addNavbarStyles } from './navbar.js';
+import {addNavbarStyles, createNavbar} from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const navbar = await createNavbar();
@@ -52,12 +51,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        await fetchAndDisplayPosts(userId, searchKeyword);
 
         const stompClient = await connectWebSocket(userId);
         await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
         setupSearchAndFilter(userId);
+
+        const result = await fetchAndDisplayPosts(userId, searchKeyword);
+        const likedPosts = result?.likedPosts || [];
+        const bookmarkedPosts = result?.bookmarkedPosts || [];
+
+
+        subscribeToNewPosts(stompClient, async (newPost) => {
+            console.log('New post received:', newPost);
+            requestAnimationFrame(() => {
+                const postsList = document.getElementById('posts-list');
+                displayPost(newPost, userId, postsList, likedPosts, bookmarkedPosts, true);
+            });
+        });
+
+
 
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
@@ -89,6 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts) {
+
         for (const post of posts) {
             await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
         }
@@ -112,7 +126,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const postsList = document.getElementById('posts-list');
             postsList.innerHTML = '';
 
-            renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
+            await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
+            return {likedPosts, bookmarkedPosts};
 
         } catch (error) {
             console.error('Error fetching posts:', error);

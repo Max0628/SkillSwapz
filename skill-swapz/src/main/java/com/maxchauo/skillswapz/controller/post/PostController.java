@@ -7,8 +7,11 @@ import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import com.maxchauo.skillswapz.repository.post.LikeRepository;
 import com.maxchauo.skillswapz.service.post.PostService;
+
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -20,20 +23,24 @@ import java.util.Map;
 @RestController
 @RequestMapping("api/1.0/post")
 public class PostController {
-
     private final PostService service;
-
     private final LikeRepository likeRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public PostController(PostService service, LikeRepository likeRepository) {
+    public PostController(
+            PostService service,
+            LikeRepository likeRepository,
+            SimpMessagingTemplate messagingTemplate) {
         this.service = service;
         this.likeRepository = likeRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
 
     @PostMapping
     public ResponseEntity<?> insertPost(@ModelAttribute PostForm postForm) {
         Integer postId = service.getPostId(postForm);
+        messagingTemplate.convertAndSend("/topic/newPosts", postForm);
         return ResponseEntity.ok().body("Post created successfully with ID: " + postId);
     }
 

@@ -41,21 +41,52 @@ export async function fetchUserDetails(userId) {
 }
 
 export function connectWebSocket(userId) {
-    console.log('WebSocket connected. Client timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log('WebSocket connecting. Client timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
     const stompClient = Stomp.over(socket);
 
-    return new Promise((resolve, reject) => {
-        stompClient.connect({}, () => {
-            console.log(`Connected to WebSocket for user: ${userId}`);
-            resolve(stompClient);
-        }, (error) => {
-            console.error('WebSocket connection error:', error);
-            reject(error);
-        });
-    });
-}
+    // 配置選項
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000; // 3秒
+    let reconnectAttempts = 0;
 
+    function connect() {
+        return new Promise((resolve, reject) => {
+            stompClient.connect({},
+                frame => {
+                    console.log(`Connected to WebSocket for user: ${userId}`);
+                    reconnectAttempts = 0; // 重置重連次數
+                    resolve(stompClient);
+                },
+                error => {
+                    console.error('WebSocket connection error:', error);
+                    reconnect(resolve, reject);
+                }
+            );
+        });
+    }
+
+    function reconnect(resolve, reject) {
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+            setTimeout(() => {
+                connect().then(resolve).catch(reject);
+            }, reconnectDelay);
+        } else {
+            console.error('Max reconnect attempts reached. Giving up.');
+            reject(new Error('Failed to connect after multiple attempts'));
+        }
+    }
+
+    // 添加斷線重連監聽器
+    stompClient.ws.onclose = () => {
+        console.log('WebSocket connection closed. Attempting to reconnect...');
+        reconnect(() => {}, console.error);
+    };
+
+    return connect();
+}
 export async function startChat(receiverId, senderId) {
     try {
         const response = await fetch('/api/1.0/chat/channel', {
@@ -65,6 +96,7 @@ export async function startChat(receiverId, senderId) {
             credentials: 'include'
         });
         const data = await response.json();
+        console.log(data.chat_uuid)
         if (response.ok && data.chat_uuid) {
             return data.chat_uuid;
         } else {
@@ -208,7 +240,7 @@ async function createCommentElement(comment, currentUserId) {
     return commentElement;
 }
 
-export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts) {
+export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false) {
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
     postDiv.id = `post-${post.id}`;
@@ -246,7 +278,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     }
 
     postContent += `
-    <p><strong><內容></內容>：</strong> ${post.content}</p>
+    <p><strong>內容：</strong> ${post.content}</p>
     `;
 
     if (post.tag && post.tag.length > 0) {
@@ -294,6 +326,8 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     postDiv.innerHTML = postContent;
     postsList.appendChild(postDiv);
 
+
+
     if (likedPosts.includes(post.id)) {
         document.getElementById(`like-btn-${post.id}`).classList.add('liked');
     }
@@ -337,6 +371,13 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             handleTagClick(tag);
         });
     });
+
+    if (isNewPost) {
+        postsList.insertBefore(postDiv, postsList.firstChild);
+    } else {
+        postsList.appendChild(postDiv);
+    }
+
 }
 
 export function handleTagClick(tag) {
@@ -411,4 +452,16 @@ export function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+export function subscribeToNewPosts(stompClient, callback) {
+    stompClient.subscribe('/topic/newPosts', function(message) {
+        try {
+            const newPost = JSON.parse(message.body);
+            callback(newPost);
+        } catch (error) {
+            console.error('Error parsing new post message:', error);
+        }
+    });
+
 }
