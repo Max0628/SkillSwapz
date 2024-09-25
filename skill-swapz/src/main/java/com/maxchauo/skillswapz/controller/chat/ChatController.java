@@ -77,7 +77,6 @@ public class ChatController {
         }
     }
 
-    //@RequestMapping("/api/1.0/chat")
     @GetMapping("/messages")
     public ResponseEntity<List<Map<String, Object>>> getMessages(@RequestParam String chat_uuid) {
         List<Map<String, Object>> messages = chatService.getMessages(chat_uuid);

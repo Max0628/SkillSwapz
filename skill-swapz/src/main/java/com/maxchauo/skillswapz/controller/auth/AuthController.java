@@ -3,13 +3,16 @@ package com.maxchauo.skillswapz.controller.auth;
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
 import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
 import com.maxchauo.skillswapz.service.user.UserService;
+
 import io.jsonwebtoken.Claims;
-import java.util.Map;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/1.0/auth")
@@ -50,7 +53,6 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(Map.of("message", "登入成功"));
-
     }
 
     @PostMapping("/me")
@@ -67,5 +69,4 @@ public class AuthController {
         String userId = claims.get("user_id", String.class);
         return ResponseEntity.ok(Map.of("user_id", userId));
     }
-
 }
