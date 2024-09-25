@@ -4,23 +4,23 @@ import com.maxchauo.skillswapz.data.form.auth.UserDto;
 import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
 import com.maxchauo.skillswapz.service.user.UserService;
 import io.jsonwebtoken.Claims;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("api/1.0/auth")
 public class AuthController {
-    @Autowired
-    private UserService userService;
+  private final UserService userService;
+  private final JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    JwtTokenUtil jwtTokenUtil;
+  public AuthController(UserService userService, JwtTokenUtil jwtTokenUtil) {
+    this.userService = userService;
+    this.jwtTokenUtil = jwtTokenUtil;
+  }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {

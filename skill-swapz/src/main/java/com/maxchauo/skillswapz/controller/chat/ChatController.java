@@ -2,12 +2,9 @@ package com.maxchauo.skillswapz.controller.chat;
 
 import com.maxchauo.skillswapz.data.dto.chat.ChatMessage;
 import com.maxchauo.skillswapz.service.chat.ChatService;
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,20 +13,23 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Log4j2
 @RestController
 @RequestMapping("/api/1.0/chat")
 public class ChatController {
-    private static final Logger log = LoggerFactory.getLogger(ChatController.class);
-    @Autowired
+
     private final ChatService chatService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
-
-    @Autowired
-    public ChatController(ChatService chatService) {
+    public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
         this.chatService = chatService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/channel")
@@ -37,17 +37,16 @@ public class ChatController {
         Integer userId1 = request.get("user_id_1");
         Integer userId2 = request.get("user_id_2");
         log.info("createOrGetChannel called with request: {}", request);
-        String chatUuid = chatService.createOrGetChatChannel(userId1, userId2); // 創建user1 user2 共同為一聊天室uuid,
-        Map<String, Object> response = new HashMap<>(); //把uuid放到response物件中
+        String chatUuid = chatService.createOrGetChatChannel(userId1, userId2);
+        Map<String, Object> response = new HashMap<>();
         response.put("chat_uuid", chatUuid);
 
-        // 推送事件給 B，讓 B 知道有新的聊天
         Map<String, Object> notification = new HashMap<>();
-        notification.put("chatUuid", chatUuid);  //把uuid 還有信息發送者的資訊放入 notification 物件
+        notification.put("chatUuid", chatUuid);
         notification.put("sender", userId1);
         log.info("Sending notification to user {}: {}", userId2, notification);
         messagingTemplate.convertAndSendToUser(
-                userId2.toString(), "/queue/subscribe", notification);//把創建好的房間uuid資訊跟發送者id送到對方的頻道
+                userId2.toString(), "/queue/subscribe", notification);
         log.info("createOrGetChannel completed. Response: {}", response);
         return ResponseEntity.ok(response);
     }
@@ -71,7 +70,7 @@ public class ChatController {
             response.put("status", "Message sent");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace(); // 打印堆疊跟蹤
+            e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to send message: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -92,24 +91,21 @@ public class ChatController {
 
     @MessageMapping("/startChat")
     public void startChat(@Payload ChatMessage chatMessage) {
-        // 發送通知給接收者
         log.info("startChat called with message: {}", chatMessage);
+
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "newChat");
         notification.put("senderId", chatMessage.getSender_id());
         notification.put("chatUuid", chatMessage.getChatUuid());
         log.info("Sending newChat notification: {}", notification);
+
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getReceiver_id().toString(),
-                "/queue/notifications",
-                notification
-        );
+                chatMessage.getReceiver_id().toString(), "/queue/notifications", notification);
     }
 
     @GetMapping("/list")
     public ResponseEntity<?> getChatList(@RequestParam Integer userId, Principal principal) {
         try {
-            // 可選：驗證傳入的 userId 是否與當前登錄用戶匹配
             if (principal != null && !userId.toString().equals(principal.getName())) {
                 log.warn("Attempted to access chat list with mismatched user ID");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
