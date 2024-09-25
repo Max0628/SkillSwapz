@@ -7,9 +7,8 @@ import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import com.maxchauo.skillswapz.repository.post.LikeRepository;
 import com.maxchauo.skillswapz.service.post.PostService;
-
 import lombok.extern.log4j.Log4j2;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -90,6 +89,7 @@ public class PostController {
     public ResponseEntity<List<PostForm>> getBookmarkedPostsByUserId(@PathVariable Integer userId) {
 
         List<Integer> bookmarkedPostIds = service.getBookmarkedPostsByUserId(userId);
+
         List<PostForm> bookmarkedPosts = service.getPostsByIds(bookmarkedPostIds);
 
         return ResponseEntity.ok(bookmarkedPosts);

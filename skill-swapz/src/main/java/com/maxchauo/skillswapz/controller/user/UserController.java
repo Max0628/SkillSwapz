@@ -2,7 +2,6 @@ package com.maxchauo.skillswapz.controller.user;
 
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
 import com.maxchauo.skillswapz.service.user.UserService;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,10 +34,12 @@ public class UserController {
             @RequestParam("userId") Integer userId,
             @RequestPart("avatar") MultipartFile avatar) {
         try {
+            // 檢查文件大小 (例如最大 5MB)
             if (avatar.getSize() > 5 * 1024 * 1024) {
                 return ResponseEntity.badRequest().body(null);
             }
 
+            // 檢查文件類型
             String contentType = avatar.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 return ResponseEntity.badRequest().body(null);
@@ -54,6 +55,7 @@ public class UserController {
     @GetMapping("/avatar")
     public ResponseEntity<String> getUserAvatar(@RequestParam("userId") Integer userId) {
         try {
+            // 調用服務層來獲取用戶的頭像 URL
             String avatarUrl = userService.getUserAvatar(userId);
             if (avatarUrl != null) {
                 return ResponseEntity.ok(avatarUrl);
