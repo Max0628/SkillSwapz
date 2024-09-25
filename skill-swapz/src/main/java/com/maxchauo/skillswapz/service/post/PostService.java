@@ -6,9 +6,7 @@ import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
 import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import com.maxchauo.skillswapz.repository.post.*;
-
 import lombok.extern.log4j.Log4j2;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -71,6 +69,7 @@ public class PostService {
         commentRepo.insertComment(commentForm);
     }
 
+
     public String toggleBookMark(PostBookmarkForm bookmark) {
         if (bookMarkRepo.isBookMark(bookmark)) {
 
@@ -95,9 +94,11 @@ public class PostService {
         }
     }
 
+
     public List<PostForm> searchPost(String keyword, String sortType) {
         return searchRepo.searchPost(keyword, sortType);
     }
+
 
     public List<PostForm> getPostsByIds(List<Integer> postIds) {
         return searchRepo.findPostsByIds(postIds);
@@ -126,12 +127,14 @@ public class PostService {
     public List<Integer> getBookmarkedPostsByUserId(Integer userId) {
         return bookMarkRepository.findBookmarkedPostIdsByUserId(userId);
     }
-    
+
+
     public List<Integer> getLikedPostsByUserId(Integer userId) {
         return likeRepository.findLikedPostIdsByUserId(userId);
     }
 
     public boolean deletePost(int postId, int userId) {
+        // 這裡可以添加額外的業務邏輯，例如檢查用戶權限
         return postRepo.deletePost(postId, userId);
     }
 }
