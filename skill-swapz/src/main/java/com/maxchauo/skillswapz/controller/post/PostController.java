@@ -39,9 +39,37 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<?> insertPost(@ModelAttribute PostForm postForm) {
-        Integer postId = service.getPostId(postForm);
-        messagingTemplate.convertAndSend("/topic/newPosts", postForm);
-        return ResponseEntity.ok().body("Post created successfully with ID: " + postId);
+        try {
+            Integer postId = service.getPostId(postForm);
+            postForm.setPostId(postId);
+            Map<String, Object> message = Map.of("type", "CREATE_POST", "post", postForm);
+            messagingTemplate.convertAndSend("/topic/post", message);
+            return ResponseEntity.ok(
+                    Map.of(
+                            "message",
+                            "Post created successfully",
+                            "postId",
+                            String.valueOf(postId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Map<String, String>> deletePost(
+            @PathVariable int postId, @RequestParam int userId) {
+        try {
+            boolean deleted = service.deletePost(postId, userId);
+            if (deleted) {
+                messagingTemplate.convertAndSend(
+                        "/topic/post", Map.of("type", "DELETE_POST", "postId", postId));
+                return ResponseEntity.ok(Map.of("message", "Post deleted successfully"));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PostMapping("/comment")
@@ -122,21 +150,4 @@ public class PostController {
         return ResponseEntity.ok(bookmarkedPosts);
     }
 
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Map<String, String>> deletePost(@PathVariable int postId, @RequestParam int userId) {
-
-
-        boolean deleted = service.deletePost(postId, userId);
-        Map<String, String> response = new HashMap<>();
-        if (deleted) {
-            response.put("message", "Post deleted successfully");
-            return ResponseEntity.ok(response);
-        } else {
-            response.put("message", "Failed to delete post");
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
 }
-
-
-

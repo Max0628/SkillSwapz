@@ -1,6 +1,6 @@
 // create-post.js
-import { getUserId } from './combinedUtils.js';
-import { createNavbar, addNavbarStyles } from './navbar.js';
+import {getUserId} from './combinedUtils.js';
+import {addNavbarStyles, createNavbar} from './navbar.js';
 
 const postTypes = {
     "交換技能": [
@@ -101,6 +101,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (response.ok) {
+                const responseData = await response.json();
+                const postId = responseData.postId;
+
+                console.log("Post ID:", postId);
                 alert('文章發表成功！');
                 window.location.href = "index.html";
             } else {

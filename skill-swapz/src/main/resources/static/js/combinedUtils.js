@@ -12,12 +12,11 @@ export async function getUserId() {
         if (response.ok) {
             return data.user_id;
         } else {
-            window.location.href = "auth.html";
-            console.error('Error fetching user ID:', data.message);
-            return null;
+            throw new Error(data.message || 'Failed to fetch user ID');
         }
     } catch (error) {
         console.error('Error fetching user ID:', error);
+        window.location.href = "auth.html";
         return null;
     }
 }
@@ -30,36 +29,47 @@ export async function fetchUserDetails(userId) {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to fetch user details');
+            throw new Error(`Failed to fetch user details for userId: ${userId}`);
         }
 
         return await response.json();
     } catch (error) {
         console.error('Error fetching user details:', error);
-        return null;
+        return {
+            username: 'Unknown User',
+            avatarUrl: 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp'
+        };
     }
 }
 
 export function connectWebSocket(userId) {
-    console.log('WebSocket connecting. Client timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
     const stompClient = Stomp.over(socket);
 
-    // 配置選項
     const maxReconnectAttempts = 5;
-    const reconnectDelay = 3000; // 3秒
+    const baseDelay = 3000;
     let reconnectAttempts = 0;
+    let isConnecting = false;
 
     function connect() {
         return new Promise((resolve, reject) => {
-            stompClient.connect({},
+            if (isConnecting) {
+                console.log('Connection attempt already in progress, skipping.');
+                return;
+            }
+            isConnecting = true;
+
+            stompClient.connect(
+                {userId: userId},
                 frame => {
-                    console.log(`Connected to WebSocket for user: ${userId}`);
-                    reconnectAttempts = 0; // 重置重連次數
+                    console.log(`Successfully connected to WebSocket, User ID: ${userId}`);
+                    reconnectAttempts = 0;
+                    isConnecting = false;
                     resolve(stompClient);
                 },
                 error => {
                     console.error('WebSocket connection error:', error);
+                    isConnecting = false;
                     reconnect(resolve, reject);
                 }
             );
@@ -67,26 +77,35 @@ export function connectWebSocket(userId) {
     }
 
     function reconnect(resolve, reject) {
-        if (reconnectAttempts < maxReconnectAttempts) {
-            reconnectAttempts++;
-            console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
-            setTimeout(() => {
-                connect().then(resolve).catch(reject);
-            }, reconnectDelay);
-        } else {
-            console.error('Max reconnect attempts reached. Giving up.');
-            reject(new Error('Failed to connect after multiple attempts'));
+        if (reconnectAttempts >= maxReconnectAttempts) {
+            console.error('Maximum reconnection attempts reached. Giving up.');
+            reject(new Error('Unable to connect after multiple attempts'));
+            return;
         }
+
+        reconnectAttempts++;
+        const delay = baseDelay * Math.pow(2, reconnectAttempts - 1);
+        console.log(`Preparing reconnection attempt ${reconnectAttempts}, retrying in ${delay}ms...`);
+
+        setTimeout(() => {
+            console.log(`Starting reconnection attempt ${reconnectAttempts}`);
+            connect().then(resolve).catch(() => {
+                reconnect(resolve, reject);
+            });
+        }, delay);
     }
 
-    // 添加斷線重連監聽器
-    stompClient.ws.onclose = () => {
-        console.log('WebSocket connection closed. Attempting to reconnect...');
-        reconnect(() => {}, console.error);
+    stompClient.ws.onclose = (event) => {
+        console.log('WebSocket connection closed. Reason:', event.reason);
+        if (!isConnecting) {
+            reconnect(() => {
+            }, console.error);
+        }
     };
 
     return connect();
 }
+
 export async function startChat(receiverId, senderId) {
     try {
         const response = await fetch('/api/1.0/chat/channel', {
@@ -96,7 +115,6 @@ export async function startChat(receiverId, senderId) {
             credentials: 'include'
         });
         const data = await response.json();
-        console.log(data.chat_uuid)
         if (response.ok && data.chat_uuid) {
             return data.chat_uuid;
         } else {
@@ -147,14 +165,14 @@ export async function handleLike(postId, userId) {
         const result = await response.json();
         const likeButton = document.getElementById(`like-btn-${postId}`);
         const likeCount = likeButton.querySelector(`#like-count-${postId}`);
-        let currentCount = parseInt(likeCount.textContent);
+        let currentCount = parseInt(likeCount.textContent) || 0;
 
         if (result.message === "Like added successfully.") {
             likeButton.classList.add('liked');
-            likeCount.textContent = currentCount + 1;
+            likeCount.textContent = result.likeCount || (currentCount + 1);
         } else if (result.message === "Like removed successfully.") {
             likeButton.classList.remove('liked');
-            likeCount.textContent = currentCount - 1;
+            likeCount.textContent = result.likeCount || (currentCount - 1);
         }
     } catch (error) {
         console.error('Error liking post:', error);
@@ -199,14 +217,13 @@ export async function handleComment(postId, userId) {
             const newComment = await createCommentElement(commentData, userId);
             commentSection.insertBefore(newComment, commentSection.firstChild);
             commentInput.value = '';
-            window.location.reload()
+            updateCommentCount(postId, true);
         } else {
-            console.error('Error commenting on post');
-            window.location.reload()
+            throw new Error('Error commenting on post');
         }
     } catch (error) {
         console.error('Error commenting:', error);
-        window.location.reload()
+        alert('發表評論失敗，請稍後再試。');
     }
 }
 
@@ -220,22 +237,21 @@ async function createCommentElement(comment, currentUserId) {
 
     commentElement.innerHTML = `
         <div class="comment-container">
-            <img src="${avatarUrl}" alt="${username}" class="comment-avatar">
+            <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(username)}" class="comment-avatar">
             <div class="comment-content">
                 <div class="comment-header">
-                    <span class="comment-username">${username}</span>
+                    <span class="comment-username">${escapeHtml(username)}</span>
                 </div>
-                <p class="comment-text">${comment.content}</p>
+                <p class="comment-text">${escapeHtml(comment.content)}</p>
             </div>
         </div>
     `;
 
-    // 獲取剛剛插入的 img 元素，然後動態設置樣式
     const avatarImg = commentElement.querySelector('.comment-avatar');
-    avatarImg.style.width = '30px';  // 設置寬度
-    avatarImg.style.height = '30px'; // 設置高度
-    avatarImg.style.borderRadius = '50%'; // 確保圖片為圓形
-    avatarImg.style.objectFit = 'cover';  // 確保圖片不變形
+    avatarImg.style.width = '30px';
+    avatarImg.style.height = '30px';
+    avatarImg.style.borderRadius = '50%';
+    avatarImg.style.objectFit = 'cover';
 
     return commentElement;
 }
@@ -244,45 +260,44 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
     postDiv.id = `post-${post.id}`;
-
     const authorDetails = await fetchUserDetails(post.userId);
 
     let postContent = `
    <div class="post-header">
-        <img src="${authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp'}" alt="User Avatar" class="post-avatar">
-        <strong class="post-author">${authorDetails?.username || 'Unknown User'}</strong>
-        <div class="post-type">${post.type}</div>
+        <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar">
+        <strong class="post-author">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
+        <div class="post-type">${escapeHtml(post.type)}</div>
     </div>
-    <p><strong>地點：</strong> ${post.location}</p>
+    <p><strong>地點：</strong> ${escapeHtml(post.location)}</p>
     `;
 
     if (post.type === '找學生') {
         postContent += `
-        <p><strong>技能提供：</strong> ${post.skillOffered}</p>
-        <p><strong>薪資：</strong> ${post.salary}</p>
+        <p><strong>技能提供：</strong> ${escapeHtml(post.skillOffered)}</p>
+        <p><strong>薪資：</strong> ${escapeHtml(post.salary)}</p>
         `;
     } else if (post.type === '找老師') {
         postContent += `
-        <p><strong>需要的技能：</strong> ${post.skillWanted}</p>
-        <p><strong>薪資：</strong> ${post.salary}</p>
+        <p><strong>需要的技能：</strong> ${escapeHtml(post.skillWanted)}</p>
+        <p><strong>薪資：</strong> ${escapeHtml(post.salary)}</p>
         `;
     } else if (post.type === '交換技能') {
         postContent += `
-        <p><strong>提供的技能：</strong> ${post.skillOffered}</p>
-        <p><strong>想要的技能：</strong> ${post.skillWanted}</p>
+        <p><strong>提供的技能：</strong> ${escapeHtml(post.skillOffered)}</p>
+        <p><strong>想要的技能：</strong> ${escapeHtml(post.skillWanted)}</p>
         `;
     } else if (post.type === '讀書會') {
         postContent += `
-        <p><strong>讀書會目的：</strong> ${post.bookClubPurpose || post.skillOffered}</p>
+        <p><strong>讀書會目的：</strong> ${escapeHtml(post.bookClubPurpose || post.skillOffered)}</p>
         `;
     }
 
     postContent += `
-    <p><strong>內容：</strong> ${post.content}</p>
+    <p><strong>內容：</strong> ${escapeHtml(post.content)}</p>
     `;
 
     if (post.tag && post.tag.length > 0) {
-        const tags = post.tag.map(tag => `<button class="tag-btn"># ${tag}</button>`).join(' ');
+        const tags = post.tag.map(tag => `<button class="tag-btn"># ${escapeHtml(tag)}</button>`).join(' ');
         postContent += `<p><strong>標籤：</strong> ${tags}</p>`;
     }
 
@@ -290,7 +305,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     <div class="action-buttons">
         <button class="action-btn like-btn" id="like-btn-${post.id}">
             <i class="fa-regular fa-heart"></i> 
-            <span id="like-count-${post.id}">${post.likeCount}</span>
+            <span id="like-count-${post.id}">${post.likeCount || 0}</span>
         </button>
         <button class="action-btn bookmark-btn" id="bookmark-btn-${post.id}">
             <i class="fa-regular fa-bookmark"></i>
@@ -320,23 +335,18 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             </button>
         </div>
     </div>
-`;
-
+    `;
 
     postDiv.innerHTML = postContent;
-    postsList.appendChild(postDiv);
-
-
 
     if (likedPosts.includes(post.id)) {
-        document.getElementById(`like-btn-${post.id}`).classList.add('liked');
+        postDiv.querySelector(`#like-btn-${post.id}`).classList.add('liked');
     }
 
     if (bookmarkedPosts.includes(post.id)) {
-        document.getElementById(`bookmark-btn-${post.id}`).classList.add('bookmarked');
+        postDiv.querySelector(`#bookmark-btn-${post.id}`).classList.add('bookmarked');
     }
 
-    // 加載評論
     const commentsContainer = postDiv.querySelector('.comments-container');
     if (post.comments && post.comments.length > 0) {
         for (const comment of post.comments) {
@@ -345,20 +355,19 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         }
     }
 
-    // 事件監聽器
-    document.getElementById(`like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
-    document.getElementById(`bookmark-btn-${post.id}`).addEventListener('click', () => handleBookmark(post.id, userId));
-    document.getElementById(`comment-toggle-btn-${post.id}`).addEventListener('click', () => {
-        const commentSection = document.getElementById(`comment-section-${post.id}`);
+    postDiv.querySelector(`#like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
+    postDiv.querySelector(`#bookmark-btn-${post.id}`).addEventListener('click', () => handleBookmark(post.id, userId));
+    postDiv.querySelector(`#comment-toggle-btn-${post.id}`).addEventListener('click', () => {
+        const commentSection = postDiv.querySelector(`#comment-section-${post.id}`);
         commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
     });
-    document.getElementById(`comment-btn-${post.id}`).addEventListener('click', () => handleComment(post.id, userId));
-    document.getElementById(`chat-btn-${post.id}`).addEventListener('click', (event) => {
+    postDiv.querySelector(`#comment-btn-${post.id}`).addEventListener('click', () => handleComment(post.id, userId));
+    postDiv.querySelector(`#chat-btn-${post.id}`).addEventListener('click', (event) => {
         event.preventDefault();
         startChat(post.userId, userId);
     });
     if (String(post.userId).trim() === String(userId).trim()) {
-        const deleteButton = document.getElementById(`delete-btn-${post.id}`);
+        const deleteButton = postDiv.querySelector(`#delete-btn-${post.id}`);
         if (deleteButton) {
             deleteButton.addEventListener('click', () => handleDelete(post.id, userId));
         }
@@ -377,24 +386,22 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     } else {
         postsList.appendChild(postDiv);
     }
-
 }
 
 export function handleTagClick(tag) {
-    // 移除 tag 前的 # 符號並去掉前後的空格
     const cleanTag = tag.replace(/^#/, '').trim();
-
-    // 將不含 # 和多餘空格的標籤傳遞給搜尋
     const searchKeyword = encodeURIComponent(cleanTag);
     const newUrl = `/index.html?search=${searchKeyword}`;
     window.history.pushState({}, '', newUrl);
-
     const event = new CustomEvent('tagSearch', { detail: { keyword: cleanTag } });
     window.dispatchEvent(event);
 }
 
 export async function handleDelete(postId, userId) {
-    console.log('Delete function called for post:', postId, 'by user:', userId);
+    if (isNaN(postId) || isNaN(userId)) {
+        console.error('Invalid postId or userId');
+        return;
+    }
     if (!confirm('確定要刪除這篇貼文嗎？此操作不可逆。')) {
         return;
     }
@@ -410,8 +417,10 @@ export async function handleDelete(postId, userId) {
 
         if (response.ok) {
             const postElement = document.getElementById(`post-${postId}`);
-            postElement.remove();
-            alert(data.message || '貼文已成功刪除');
+            if (postElement) {
+                postElement.remove();
+            }
+            alert('貼文已成功刪除');
         } else {
             throw new Error(data.message || '刪除貼文失敗');
         }
@@ -421,7 +430,6 @@ export async function handleDelete(postId, userId) {
     }
 }
 
-// 新增的函數，用於獲取單個帖子信息
 export async function fetchPostById(postId) {
     try {
         const response = await fetch(`api/1.0/post/${postId}`, { credentials: 'include' });
@@ -435,16 +443,16 @@ export async function fetchPostById(postId) {
     }
 }
 
-// 新增的函數，用於更新評論計數
 export function updateCommentCount(postId, increment = true) {
     const commentToggleBtn = document.getElementById(`comment-toggle-btn-${postId}`);
-    const countSpan = commentToggleBtn.querySelector('span');
-    let currentCount = parseInt(countSpan.textContent);
-    currentCount = increment ? currentCount + 1 : currentCount - 1;
-    countSpan.textContent = currentCount.toString();
+    if (commentToggleBtn) {
+        const countSpan = commentToggleBtn.querySelector('span');
+        let currentCount = parseInt(countSpan.textContent);
+        currentCount = increment ? currentCount + 1 : currentCount - 1;
+        countSpan.textContent = currentCount.toString();
+    }
 }
 
-// 可能需要的輔助函數，用於轉義HTML字符
 export function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")
@@ -455,13 +463,37 @@ export function escapeHtml(unsafe) {
 }
 
 export function subscribeToNewPosts(stompClient, callback) {
-    stompClient.subscribe('/topic/newPosts', function(message) {
+    stompClient.subscribe('/topic/post', function (message) {
         try {
-            const newPost = JSON.parse(message.body);
-            callback(newPost);
+            const newPostMessage = JSON.parse(message.body);
+            if (newPostMessage.type === 'CREATE_POST') {
+                newPostMessage.id = newPostMessage.post.postId;
+                callback(newPostMessage);
+            } else {
+                console.log('Received non-new-post message:', newPostMessage);
+            }
         } catch (error) {
             console.error('Error parsing new post message:', error);
         }
     });
+}
 
+export function subscribeToPostUpdates(stompClient, callback) {
+    stompClient.subscribe('/topic/post', function (message) {
+        try {
+            const updateMessage = JSON.parse(message.body);
+            switch (updateMessage.type) {
+                case 'CREATE_POST':
+                    callback(updateMessage.post);
+                    break;
+                case 'DELETE_POST':
+                    callback(updateMessage);
+                    break;
+                default:
+                    console.log('Received unknown message type:', updateMessage.type);
+            }
+        } catch (error) {
+            console.error('Error parsing post update message:', error);
+        }
+    });
 }

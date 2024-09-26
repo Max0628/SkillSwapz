@@ -14,6 +14,7 @@ import java.util.List;
 public class PostForm {
     private Integer id;
     private Integer userId;
+    private Integer postId;
     private String type;
     private String location;
     private String skillOffered;
