@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,19 +81,35 @@ public class PostController {
         String message = service.toggleBookMark(bookmark);
         return ResponseEntity.ok().body(message);
     }
+
     @PostMapping("/like")
     public ResponseEntity<Map<String, Object>> toggleLike(@RequestBody PostLikeForm likeForm) {
-        boolean isLiked = service.toggleLike(likeForm);
-        int likeCount = likeRepository.getLikeCount(likeForm.getPostId());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", isLiked ? "Like added successfully." : "Like removed successfully.");
-        response.put("liked", isLiked);
-        response.put("likeCount", likeCount);
-
-        return ResponseEntity.ok().body(response);
+        try {
+            boolean isLiked = service.toggleLike(likeForm);
+            int likeCount = likeRepository.getLikeCount(likeForm.getPostId());
+            Map<String, Object> message;
+            if (isLiked) {
+                message =
+                        Map.of(
+                                "type",
+                                "LIKE_POST",
+                                "content",
+                                Map.of("postId", likeForm.getPostId(), "likeCount", likeCount));
+            } else {
+                message =
+                        Map.of(
+                                "type",
+                                "UNLIKE_POST",
+                                "content",
+                                Map.of("postId", likeForm.getPostId(), "likeCount", likeCount));
+            }
+            messagingTemplate.convertAndSend("/topic/post", message);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            Map<String, Object> errorMessage = Map.of("type", "ERROR", "content", e.getMessage());
+            return ResponseEntity.badRequest().body(errorMessage);
+        }
     }
-
 
     @GetMapping
     public ResponseEntity<List<PostForm>> getPosts(

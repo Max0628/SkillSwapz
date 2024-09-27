@@ -98,8 +98,7 @@ export function connectWebSocket(userId) {
     stompClient.ws.onclose = (event) => {
         console.log('WebSocket connection closed. Reason:', event.reason);
         if (!isConnecting) {
-            reconnect(() => {
-            }, console.error);
+            reconnect(() => {}, console.error);
         }
     };
 
@@ -153,8 +152,31 @@ export async function fetchLikedAndBookmarkedPosts(userId) {
     }
 }
 
-export async function handleLike(postId, userId) {
+export async function handleLike(postId, userId, stompClient) {
+    const likeButton = document.getElementById(`like-btn-${postId}`);
+    if (!likeButton) {
+        console.error(`Like button not found for post ${postId}`);
+        return;
+    }
+
+    const likeCount = likeButton.querySelector(`#like-count-${postId}`);
+    const heartIcon = likeButton.querySelector('i');
+    const isCurrentlyLiked = likeButton.classList.contains('liked');
+
     try {
+        // 立即更新本地UI狀態
+        if (isCurrentlyLiked) {
+            likeButton.classList.remove('liked');
+            heartIcon.classList.replace('fa-solid', 'fa-regular');
+            console.log(likeCount.textContent);
+            likeCount.textContent = parseInt(likeCount.textContent) - 1;
+        } else {
+            likeButton.classList.add('liked');
+            heartIcon.classList.replace('fa-regular', 'fa-solid');
+            likeCount.textContent = parseInt(likeCount.textContent) + 1;
+        }
+
+        // 發送請求到服務器
         const response = await fetch('/api/1.0/post/like', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -163,19 +185,40 @@ export async function handleLike(postId, userId) {
         });
 
         const result = await response.json();
-        const likeButton = document.getElementById(`like-btn-${postId}`);
-        const likeCount = likeButton.querySelector(`#like-count-${postId}`);
-        let currentCount = parseInt(likeCount.textContent) || 0;
 
-        if (result.message === "Like added successfully.") {
-            likeButton.classList.add('liked');
-            likeCount.textContent = result.likeCount || (currentCount + 1);
-        } else if (result.message === "Like removed successfully.") {
-            likeButton.classList.remove('liked');
-            likeCount.textContent = result.likeCount || (currentCount - 1);
+        // 如果服務器響應與本地狀態不一致，則回滾本地狀態
+        if ((result.message === "Like added successfully." && isCurrentlyLiked) ||
+            (result.message === "Like removed successfully." && !isCurrentlyLiked)) {
+            // 回滾狀態
+            likeButton.classList.toggle('liked');
+            heartIcon.classList.toggle('fa-solid');
+            heartIcon.classList.toggle('fa-regular');
+            likeCount.textContent = result.likeCount;
+        }
+
+        // 更新全局按讚數
+        likeCount.textContent = result.likeCount;
+
+        // 發送WebSocket消息
+        if (stompClient && stompClient.connected) {
+            stompClient.send('/app/post/like', {}, JSON.stringify({
+                type: isCurrentlyLiked ? 'UNLIKE_POST' : 'LIKE_POST',
+                content: {
+                    postId: postId,
+                    likeCount: result.likeCount,
+                    userId: userId
+                }
+            }));
+        } else {
+            console.warn('WebSocket not connected. Unable to send real-time update.');
         }
     } catch (error) {
         console.error('Error liking post:', error);
+        // 如果出錯，回滾到原始狀態
+        likeButton.classList.toggle('liked');
+        heartIcon.classList.toggle('fa-solid');
+        heartIcon.classList.toggle('fa-regular');
+        likeCount.textContent = parseInt(likeCount.textContent) + (isCurrentlyLiked ? 1 : -1);
     }
 }
 
@@ -254,9 +297,10 @@ async function createCommentElement(comment, currentUserId) {
     avatarImg.style.objectFit = 'cover';
 
     return commentElement;
-}export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false) {
-    const postId = post.postId || post.id; // Use postId if available, otherwise fallback to id
-    console.log("post.id:" + postId);
+}
+
+export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false, stompClient) {
+    const postId = post.postId || post.id;
 
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
@@ -265,7 +309,7 @@ async function createCommentElement(comment, currentUserId) {
     const authorDetails = await fetchUserDetails(post.userId);
 
     let postContent = `
-   <div class="post-header">
+    <div class="post-header">
         <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar">
         <strong class="post-author">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
         <div class="post-type">${escapeHtml(post.type)}</div>
@@ -303,10 +347,11 @@ async function createCommentElement(comment, currentUserId) {
         postContent += `<p><strong>標籤：</strong> ${tags}</p>`;
     }
 
+    // 插入新的 action buttons HTML
     postContent += `
     <div class="action-buttons">
-        <button class="action-btn like-btn" id="like-btn-${postId}">
-            <i class="fa-regular fa-heart"></i> 
+        <button class="action-btn like-btn" id="like-btn-${postId}" data-liked="${likedPosts.includes(postId)}">
+            <i class="fa-${likedPosts.includes(postId) ? 'solid' : 'regular'} fa-heart"></i> 
             <span id="like-count-${postId}">${post.likeCount || 0}</span>
         </button>
         <button class="action-btn bookmark-btn" id="bookmark-btn-${postId}">
@@ -341,23 +386,8 @@ async function createCommentElement(comment, currentUserId) {
 
     postDiv.innerHTML = postContent;
 
-    if (likedPosts.includes(postId)) {
-        postDiv.querySelector(`#like-btn-${postId}`).classList.add('liked');
-    }
-
-    if (bookmarkedPosts.includes(postId)) {
-        postDiv.querySelector(`#bookmark-btn-${postId}`).classList.add('bookmarked');
-    }
-
-    const commentsContainer = postDiv.querySelector('.comments-container');
-    if (post.comments && post.comments.length > 0) {
-        for (const comment of post.comments) {
-            const commentElement = await createCommentElement(comment, userId);
-            commentsContainer.appendChild(commentElement);
-        }
-    }
-
-    postDiv.querySelector(`#like-btn-${postId}`).addEventListener('click', () => handleLike(postId, userId));
+    // 設置事件監聽器
+    postDiv.querySelector(`#like-btn-${postId}`).addEventListener('click', () => handleLike(postId, userId, stompClient));
     postDiv.querySelector(`#bookmark-btn-${postId}`).addEventListener('click', () => handleBookmark(postId, userId));
     postDiv.querySelector(`#comment-toggle-btn-${postId}`).addEventListener('click', () => {
         const commentSection = postDiv.querySelector(`#comment-section-${postId}`);
@@ -366,7 +396,7 @@ async function createCommentElement(comment, currentUserId) {
     postDiv.querySelector(`#comment-btn-${postId}`).addEventListener('click', () => handleComment(postId, userId));
     postDiv.querySelector(`#chat-btn-${postId}`).addEventListener('click', (event) => {
         event.preventDefault();
-        startChat(postId, userId);
+        startChat(post.userId, userId);
     });
     if (String(post.userId).trim() === String(userId).trim()) {
         const deleteButton = postDiv.querySelector(`#delete-btn-${postId}`);
@@ -382,6 +412,26 @@ async function createCommentElement(comment, currentUserId) {
             handleTagClick(tag);
         });
     });
+
+    // 設置初始狀態
+    const likeButton = postDiv.querySelector(`#like-btn-${postId}`);
+    if (likedPosts.includes(postId)) {
+        likeButton.classList.add('liked');
+        likeButton.querySelector('i').classList.replace('fa-regular', 'fa-solid');
+    }
+
+    if (bookmarkedPosts.includes(postId)) {
+        postDiv.querySelector(`#bookmark-btn-${postId}`).classList.add('bookmarked');
+    }
+
+    // 添加評論
+    const commentsContainer = postDiv.querySelector('.comments-container');
+    if (post.comments && post.comments.length > 0) {
+        for (const comment of post.comments) {
+            const commentElement = await createCommentElement(comment, userId);
+            commentsContainer.appendChild(commentElement);
+        }
+    }
 
     if (isNewPost) {
         postsList.insertBefore(postDiv, postsList.firstChild);
@@ -463,11 +513,26 @@ export function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-
 export function subscribeToPostEvents(stompClient, callback) {
     stompClient.subscribe('/topic/post', function (message) {
         const postEvent = JSON.parse(message.body);
         console.log("Received postEvent:", postEvent);
-        callback(postEvent);
+
+        if (postEvent.type === 'LIKE_POST' || postEvent.type === 'UNLIKE_POST') {
+            const likedPostId = postEvent.content.postId;
+            const likeCount = postEvent.content.likeCount;
+            updateLikeCount(likedPostId, likeCount);
+        } else {
+            callback(postEvent);
+        }
     });
+}
+
+function updateLikeCount(postId, count) {
+    const likeCountElement = document.querySelector(`#like-count-${postId}`);
+    if (likeCountElement) {
+        likeCountElement.textContent = count;
+    } else {
+        console.warn(`Like count element not found for postId: ${postId}`);
+    }
 }

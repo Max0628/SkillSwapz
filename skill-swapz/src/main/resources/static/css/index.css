@@ -194,9 +194,7 @@ h3 {
 
 /* 按下後顏色變化的樣式 */
 .like-btn.liked {
-    /*background-color: #ffe6e6;*/
     color: #ff4500;
-    /*border-color: #ff4500;  !* 按讚後變紅色 *!*/
 }
 
 .bookmark-btn.bookmarked {
@@ -321,3 +319,4 @@ h3 {
     color: white;  /* 讓字體變成白色 */
     border-color: #007bff;  /* 邊框也變成藍色 */
 }
+

@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const postsList = document.getElementById('posts-list');
         const stompClient = await connectWebSocket(userId);
 
+        await setupWebSocketSubscriptions(stompClient, userId);
+        await fetchAndDisplayPosts(userId, searchKeyword, stompClient);
+
         setupPostListeners(postsList, userId);
         await setupWebSocketSubscriptions(stompClient, userId);
         setupSearchAndFilter(userId);
@@ -73,7 +76,6 @@ function setupPostListeners(postsList, userId) {
     });
 }
 
-
 async function setupWebSocketSubscriptions(stompClient, userId) {
     await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
@@ -93,14 +95,28 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 console.log("Deleting post with ID:", postId);
                 removePostFromUI(postId);
                 break;
+            case 'LIKE_POST':
+            case 'UNLIKE_POST':
+                const likedPostId = postEvent.content.postId;
+                const likeCount = postEvent.content.likeCount;
+                updateLikeCount(likedPostId, likeCount);
+                break;
             case 'ERROR':
                 console.error('Error event received:', postEvent.content);
-                // 可以在這裡添加錯誤處理邏輯
                 break;
             default:
                 console.log('Received unknown post event type:', postEvent.type);
         }
     });
+}
+
+function updateLikeCount(postId, count) {
+    const likeCountElement = document.querySelector(`#like-count-${postId}`);
+    if (likeCountElement) {
+        likeCountElement.textContent = count;
+    } else {
+        console.warn(`Like count element not found for postId: ${postId}`);
+    }
 }
 
 
@@ -147,7 +163,10 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null) {
         const postsList = document.getElementById('posts-list');
         postsList.innerHTML = '';
 
-        await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
+        for (const post of posts) {
+            await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+        }
+
         return { likedPosts, bookmarkedPosts };
 
     } catch (error) {
