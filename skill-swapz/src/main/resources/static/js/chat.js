@@ -250,7 +250,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function createMessageElement(text, messageType, createdAt, isLocal = false) {
-        console.log('Creating message element with time:', createdAt, 'isLocal:', isLocal);
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', messageType);
         messageElement.innerHTML = `

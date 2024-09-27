@@ -254,12 +254,14 @@ async function createCommentElement(comment, currentUserId) {
     avatarImg.style.objectFit = 'cover';
 
     return commentElement;
-}
+}export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false) {
+    const postId = post.postId || post.id; // Use postId if available, otherwise fallback to id
+    console.log("post.id:" + postId);
 
-export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false) {
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
-    postDiv.id = `post-${post.id}`;
+    postDiv.id = `post-${postId}`;
+
     const authorDetails = await fetchUserDetails(post.userId);
 
     let postContent = `
@@ -303,22 +305,22 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     postContent += `
     <div class="action-buttons">
-        <button class="action-btn like-btn" id="like-btn-${post.id}">
+        <button class="action-btn like-btn" id="like-btn-${postId}">
             <i class="fa-regular fa-heart"></i> 
-            <span id="like-count-${post.id}">${post.likeCount || 0}</span>
+            <span id="like-count-${postId}">${post.likeCount || 0}</span>
         </button>
-        <button class="action-btn bookmark-btn" id="bookmark-btn-${post.id}">
+        <button class="action-btn bookmark-btn" id="bookmark-btn-${postId}">
             <i class="fa-regular fa-bookmark"></i>
         </button>
-        <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${post.id}">
+        <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${postId}">
             <i class="fa-regular fa-comment"></i> 
             <span>${post.comments ? post.comments.length : 0}</span>
         </button>
-        <button class="action-btn chat-btn" id="chat-btn-${post.id}">
+        <button class="action-btn chat-btn" id="chat-btn-${postId}">
             <i class="fa-regular fa-envelope"></i>
         </button>
         ${String(post.userId).trim() === String(userId).trim() ?
-        `<button class="action-btn delete-btn" id="delete-btn-${post.id}">
+        `<button class="action-btn delete-btn" id="delete-btn-${postId}">
                 <i class="fa-regular fa-trash-can"></i>
             </button>`
         : ''}
@@ -326,11 +328,11 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     `;
 
     postContent += `
-    <div class="comment-section" id="comment-section-${post.id}" style="display: none;"> 
+    <div class="comment-section" id="comment-section-${postId}" style="display: none;"> 
         <div class="comments-container"></div>
         <div class="comment-box">
-            <textarea id="comment-input-${post.id}" placeholder="輸入評論..."></textarea>
-            <button class="comment-btn" id="comment-btn-${post.id}">
+            <textarea id="comment-input-${postId}" placeholder="輸入評論..."></textarea>
+            <button class="comment-btn" id="comment-btn-${postId}">
                 <i class="fa-regular fa-paper-plane"></i>
             </button>
         </div>
@@ -339,12 +341,12 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     postDiv.innerHTML = postContent;
 
-    if (likedPosts.includes(post.id)) {
-        postDiv.querySelector(`#like-btn-${post.id}`).classList.add('liked');
+    if (likedPosts.includes(postId)) {
+        postDiv.querySelector(`#like-btn-${postId}`).classList.add('liked');
     }
 
-    if (bookmarkedPosts.includes(post.id)) {
-        postDiv.querySelector(`#bookmark-btn-${post.id}`).classList.add('bookmarked');
+    if (bookmarkedPosts.includes(postId)) {
+        postDiv.querySelector(`#bookmark-btn-${postId}`).classList.add('bookmarked');
     }
 
     const commentsContainer = postDiv.querySelector('.comments-container');
@@ -355,28 +357,28 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         }
     }
 
-    postDiv.querySelector(`#like-btn-${post.id}`).addEventListener('click', () => handleLike(post.id, userId));
-    postDiv.querySelector(`#bookmark-btn-${post.id}`).addEventListener('click', () => handleBookmark(post.id, userId));
-    postDiv.querySelector(`#comment-toggle-btn-${post.id}`).addEventListener('click', () => {
-        const commentSection = postDiv.querySelector(`#comment-section-${post.id}`);
+    postDiv.querySelector(`#like-btn-${postId}`).addEventListener('click', () => handleLike(postId, userId));
+    postDiv.querySelector(`#bookmark-btn-${postId}`).addEventListener('click', () => handleBookmark(postId, userId));
+    postDiv.querySelector(`#comment-toggle-btn-${postId}`).addEventListener('click', () => {
+        const commentSection = postDiv.querySelector(`#comment-section-${postId}`);
         commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
     });
-    postDiv.querySelector(`#comment-btn-${post.id}`).addEventListener('click', () => handleComment(post.id, userId));
-    postDiv.querySelector(`#chat-btn-${post.id}`).addEventListener('click', (event) => {
+    postDiv.querySelector(`#comment-btn-${postId}`).addEventListener('click', () => handleComment(postId, userId));
+    postDiv.querySelector(`#chat-btn-${postId}`).addEventListener('click', (event) => {
         event.preventDefault();
-        startChat(post.userId, userId);
+        startChat(postId, userId);
     });
     if (String(post.userId).trim() === String(userId).trim()) {
-        const deleteButton = postDiv.querySelector(`#delete-btn-${post.id}`);
+        const deleteButton = postDiv.querySelector(`#delete-btn-${postId}`);
         if (deleteButton) {
-            deleteButton.addEventListener('click', () => handleDelete(post.id, userId));
+            deleteButton.addEventListener('click', () => handleDelete(postId, userId));
         }
     }
 
     postDiv.querySelectorAll('.tag-btn').forEach(tagBtn => {
         tagBtn.addEventListener('click', (event) => {
             event.preventDefault();
-            const tag = event.target.textContent;
+            const tag = event.target.textContent.trim();
             handleTagClick(tag);
         });
     });
@@ -413,17 +415,16 @@ export async function handleDelete(postId, userId) {
             credentials: 'include'
         });
 
-        const data = await response.json();
-
-        if (response.ok) {
-            const postElement = document.getElementById(`post-${postId}`);
-            if (postElement) {
-                postElement.remove();
-            }
-            alert('貼文已成功刪除');
-        } else {
+        if (!response.ok) {
+            const data = await response.json();
             throw new Error(data.message || '刪除貼文失敗');
         }
+
+        const postElement = document.getElementById(`post-${postId}`);
+        if (postElement) {
+            postElement.remove();
+        }
+        alert('貼文已成功刪除');
     } catch (error) {
         console.error('Error deleting post:', error);
         alert(`刪除貼文失敗: ${error.message}`);
@@ -462,38 +463,11 @@ export function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-export function subscribeToNewPosts(stompClient, callback) {
-    stompClient.subscribe('/topic/post', function (message) {
-        try {
-            const newPostMessage = JSON.parse(message.body);
-            if (newPostMessage.type === 'CREATE_POST') {
-                newPostMessage.id = newPostMessage.post.postId;
-                callback(newPostMessage);
-            } else {
-                console.log('Received non-new-post message:', newPostMessage);
-            }
-        } catch (error) {
-            console.error('Error parsing new post message:', error);
-        }
-    });
-}
 
-export function subscribeToPostUpdates(stompClient, callback) {
+export function subscribeToPostEvents(stompClient, callback) {
     stompClient.subscribe('/topic/post', function (message) {
-        try {
-            const updateMessage = JSON.parse(message.body);
-            switch (updateMessage.type) {
-                case 'CREATE_POST':
-                    callback(updateMessage.post);
-                    break;
-                case 'DELETE_POST':
-                    callback(updateMessage);
-                    break;
-                default:
-                    console.log('Received unknown message type:', updateMessage.type);
-            }
-        } catch (error) {
-            console.error('Error parsing post update message:', error);
-        }
+        const postEvent = JSON.parse(message.body);
+        console.log("Received postEvent:", postEvent);
+        callback(postEvent);
     });
 }

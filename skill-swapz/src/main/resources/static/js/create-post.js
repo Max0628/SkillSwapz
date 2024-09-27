@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (response.ok) {
                 const responseData = await response.json();
-                const postId = responseData.postId;
+                const postId = responseData.content.postId;  // 從 content 中提取 postId
 
                 console.log("Post ID:", postId);
                 alert('文章發表成功！');

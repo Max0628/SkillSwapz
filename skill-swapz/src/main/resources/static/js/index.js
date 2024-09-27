@@ -6,8 +6,7 @@ import {
     fetchPostById,
     getUserId,
     startChat,
-    subscribeToNewPosts,
-    subscribeToPostUpdates
+    subscribeToPostEvents
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
@@ -52,6 +51,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+
+
 function setupPostListeners(postsList, userId) {
     postsList.addEventListener('click', async (event) => {
         if (event.target.classList.contains('chat-btn')) {
@@ -72,28 +73,36 @@ function setupPostListeners(postsList, userId) {
     });
 }
 
+
 async function setupWebSocketSubscriptions(stompClient, userId) {
     await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
-    subscribeToNewPosts(stompClient, async (newPost) => {
-        console.log('New post received:', newPost);
-        newPost.likeCount = newPost.likeCount || 0;
-        requestAnimationFrame(() => {
-            const postsList = document.getElementById('posts-list');
-            displayPost(newPost, userId, postsList, [], [], true);
-        });
-    });
+    subscribeToPostEvents(stompClient, (postEvent) => {
+        console.log('Post event received:', postEvent);
+        const postsList = document.getElementById('posts-list');
 
-    subscribeToPostUpdates(stompClient, (updateMessage) => {
-        console.log('Post update received:', updateMessage);
-        if (updateMessage.type === 'DELETE_POST') {
-            removePostFromUI(updateMessage.postId);
-        } else if (updateMessage.type === 'CREATE_POST') {
-            const postsList = document.getElementById('posts-list');
-            displayPost(updateMessage, userId, postsList, [], [], true);
+        switch(postEvent.type) {
+            case 'CREATE_POST':
+                const newPost = postEvent.content;
+                console.log("New post:", newPost.postId);
+                newPost.likeCount = 0;
+                displayPost(newPost, userId, postsList, [], [], true);
+                break;
+            case 'DELETE_POST':
+                const postId = postEvent.content.postId;
+                console.log("Deleting post with ID:", postId);
+                removePostFromUI(postId);
+                break;
+            case 'ERROR':
+                console.error('Error event received:', postEvent.content);
+                // 可以在這裡添加錯誤處理邏輯
+                break;
+            default:
+                console.log('Received unknown post event type:', postEvent.type);
         }
     });
 }
+
 
 function onNotificationReceived(notification) {
     const data = JSON.parse(notification.body);
@@ -176,11 +185,17 @@ function updateURLAndFetchPosts(userId, searchKeyword = null) {
     fetchAndDisplayPosts(userId, searchKeyword);
 }
 
-function removePostFromUI(postId) {
+export function removePostFromUI(postId) {
+    if (!postId) {
+        console.error('Invalid postId provided to removePostFromUI');
+        return;
+    }
+
     const postElement = document.getElementById(`post-${postId}`);
     if (postElement) {
         postElement.remove();
+        console.log(`Post with ID ${postId} successfully removed from UI`);
     } else {
-        console.warn(`Post element with id ${postId} not found`);
+        console.warn(`Post element with ID ${postId} not found in the DOM`);
     }
 }

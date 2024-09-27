@@ -42,33 +42,31 @@ public class PostController {
         try {
             Integer postId = service.getPostId(postForm);
             postForm.setPostId(postId);
-            Map<String, Object> message = Map.of("type", "CREATE_POST", "post", postForm);
+            System.out.println(postForm.getPostId());
+            Map<String, Object> message = Map.of("type", "CREATE_POST", "content", postForm);
             messagingTemplate.convertAndSend("/topic/post", message);
-            return ResponseEntity.ok(
-                    Map.of(
-                            "message",
-                            "Post created successfully",
-                            "postId",
-                            String.valueOf(postId)));
+            return ResponseEntity.ok(message);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("type", "ERROR", "content", e.getMessage()));
         }
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Map<String, String>> deletePost(
-            @PathVariable int postId, @RequestParam int userId) {
+    public ResponseEntity<?> deletePost(@PathVariable int postId, @RequestParam int userId) {
         try {
             boolean deleted = service.deletePost(postId, userId);
             if (deleted) {
-                messagingTemplate.convertAndSend(
-                        "/topic/post", Map.of("type", "DELETE_POST", "postId", postId));
-                return ResponseEntity.ok(Map.of("message", "Post deleted successfully"));
+                Map<String, Object> message =
+                        Map.of("type", "DELETE_POST", "content", Map.of("postId", postId));
+                messagingTemplate.convertAndSend("/topic/post", message);
+                return ResponseEntity.ok(message);
             } else {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("type", "ERROR", "content", e.getMessage()));
         }
     }
 
