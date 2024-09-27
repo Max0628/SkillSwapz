@@ -164,11 +164,10 @@ export async function handleLike(postId, userId, stompClient) {
     const isCurrentlyLiked = likeButton.classList.contains('liked');
 
     try {
-        // 立即更新本地UI狀態
+        // 立即更新本地UI狀態，不回滾
         if (isCurrentlyLiked) {
             likeButton.classList.remove('liked');
             heartIcon.classList.replace('fa-solid', 'fa-regular');
-            console.log(likeCount.textContent);
             likeCount.textContent = parseInt(likeCount.textContent) - 1;
         } else {
             likeButton.classList.add('liked');
@@ -186,18 +185,10 @@ export async function handleLike(postId, userId, stompClient) {
 
         const result = await response.json();
 
-        // 如果服務器響應與本地狀態不一致，則回滾本地狀態
-        if ((result.message === "Like added successfully." && isCurrentlyLiked) ||
-            (result.message === "Like removed successfully." && !isCurrentlyLiked)) {
-            // 回滾狀態
-            likeButton.classList.toggle('liked');
-            heartIcon.classList.toggle('fa-solid');
-            heartIcon.classList.toggle('fa-regular');
+        // 確保服務端回應結果一致，更新全局點讚數
+        if (result.likeCount !== undefined) {
             likeCount.textContent = result.likeCount;
         }
-
-        // 更新全局按讚數
-        likeCount.textContent = result.likeCount;
 
         // 發送WebSocket消息
         if (stompClient && stompClient.connected) {
@@ -214,11 +205,8 @@ export async function handleLike(postId, userId, stompClient) {
         }
     } catch (error) {
         console.error('Error liking post:', error);
-        // 如果出錯，回滾到原始狀態
-        likeButton.classList.toggle('liked');
-        heartIcon.classList.toggle('fa-solid');
-        heartIcon.classList.toggle('fa-regular');
-        likeCount.textContent = parseInt(likeCount.textContent) + (isCurrentlyLiked ? 1 : -1);
+        // 顯示錯誤通知，但不回滾狀態
+        alert('操作失敗，請稍後再試。');
     }
 }
 

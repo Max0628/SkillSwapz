@@ -35,11 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stompClient = await connectWebSocket(userId);
 
         await setupWebSocketSubscriptions(stompClient, userId);
-        await fetchAndDisplayPosts(userId, searchKeyword, stompClient);
+        // await fetchAndDisplayPosts(userId, searchKeyword, stompClient);
 
         setupPostListeners(postsList, userId);
-        await setupWebSocketSubscriptions(stompClient, userId);
-        setupSearchAndFilter(userId);
+
+
 
         const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
 
