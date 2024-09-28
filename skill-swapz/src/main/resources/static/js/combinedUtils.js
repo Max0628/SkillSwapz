@@ -1,4 +1,5 @@
 // combinedUtils.js
+let stompClient = null;
 
 export async function getUserId() {
     try {
@@ -44,7 +45,7 @@ export async function fetchUserDetails(userId) {
 
 export function connectWebSocket(userId) {
     const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
-    const stompClient = Stomp.over(socket);
+    stompClient = Stomp.over(socket);
 
     const maxReconnectAttempts = 5;
     const baseDelay = 3000;
@@ -152,7 +153,7 @@ export async function fetchLikedAndBookmarkedPosts(userId) {
     }
 }
 
-export async function handleLike(postId, userId, stompClient) {
+export async function handleLike(postId, userId) {
     const likeButton = document.getElementById(`like-btn-${postId}`);
     if (!likeButton) {
         console.error(`Like button not found for post ${postId}`);
@@ -242,12 +243,6 @@ export async function handleComment(postId, userId) {
 
         if (response.ok) {
             const result = await response.json();
-            const commentData = result.content;
-            const commentSection = document.getElementById(`comment-section-${postId}`);
-            // const newComment = await createCommentElement(commentData, userId);
-            // commentSection.insertBefore(newComment, commentSection.firstChild);
-            // commentInput.value = '';
-            // updateCommentCount(postId, true);
         } else {
             const errorData = await response.json();
             console.error('Error commenting on post:', errorData.content || 'Unknown error');
@@ -261,49 +256,72 @@ export async function handleComment(postId, userId) {
 
 
 export async function createCommentElement(commentData, currentUserId) {
-    console.log("currentUserId: "+currentUserId)
-    console.log("commentData.user_id: "+commentData.user_id);
-    const commentElement = document.createElement('div');
-    commentElement.classList.add('comment');
-    commentElement.setAttribute('data-comment-id', commentData.id);
+    try {
+        console.log("createCommentElement being executing");
 
-    const userDetails = await fetchUserDetails(commentData.user_id);
-    const avatarUrl = userDetails?.avatarUrl || 'default_avatar_url';
-    const username = userDetails?.username || 'Unknown User';
+        if (!commentData || !currentUserId) {
+            throw new Error("Invalid input: commentData or currentUserId is missing");
+        }
 
-    const createdAt = new Date(commentData.createdAt).toLocaleString();
+        const commentElement = document.createElement('div');
+        commentElement.classList.add('comment');
+        commentElement.setAttribute('data-comment-id', commentData.id);
 
-    commentElement.innerHTML = `
-        <div class="comment-container">
-            <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(username)}" class="comment-avatar">
-            <div class="comment-content">
-                <div class="comment-header">
-                    <span class="comment-username">${escapeHtml(username)}</span>
-                    <span class="comment-time">${escapeHtml(createdAt)}</span>
+        let userDetails, avatarUrl, username;
+        try {
+            userDetails = await fetchUserDetails(commentData.user_id);
+            avatarUrl = userDetails?.avatarUrl || 'default_avatar_url';
+            username = userDetails?.username || 'Unknown User';
+        } catch (error) {
+            console.error("Error fetching user details:", error);
+            avatarUrl = 'default_avatar_url';
+            username = 'Unknown User';
+        }
+
+        const createdAt = new Date(commentData.createdAt).toLocaleString();
+
+        commentElement.innerHTML = `
+            <div class="comment-container">
+                <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(username)}" class="comment-avatar">
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <span class="comment-username">${escapeHtml(username)}</span>
+                        <span class="comment-time">${escapeHtml(createdAt)}</span>
+                    </div>
+                    <p class="comment-text">${escapeHtml(commentData.content)}</p>
+                    ${String(commentData.user_id) === String(currentUserId) ? '<button class="delete-comment-btn">刪除</button>' : ''}
                 </div>
-                <p class="comment-text">${escapeHtml(commentData.content)}</p>
-                ${commentData.user_id === currentUserId ? '<button class="delete-comment-btn">刪除</button>' : ''}
             </div>
-        </div>
-    `;
+        `;
 
+        // 添加样式
+        const avatarImg = commentElement.querySelector('.comment-avatar');
+        if (avatarImg) {
+            avatarImg.style.width = '30px';
+            avatarImg.style.height = '30px';
+            avatarImg.style.borderRadius = '50%';
+            avatarImg.style.objectFit = 'cover';
+        } else {
+            console.warn("Avatar image element not found");
+        }
 
-    // 添加樣式
-    const avatarImg = commentElement.querySelector('.comment-avatar');
-    avatarImg.style.width = '30px';
-    avatarImg.style.height = '30px';
-    avatarImg.style.borderRadius = '50%';
-    avatarImg.style.objectFit = 'cover';
+        // 绑定删除按钮的事件
+        if (String(currentUserId) === String(commentData.user_id)) {
+            const deleteButton = commentElement.querySelector('.delete-comment-btn');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => {
+                    handleDeleteComment(commentData.id);
+                });
+            } else {
+                console.warn("Delete button not found for user's own comment");
+            }
+        }
 
-    // 綁定刪除按鈕的事件
-    if (currentUserId === commentData.user_id) {
-        const deleteButton = commentElement.querySelector('.delete-comment-btn');
-        deleteButton.addEventListener('click', () => {
-            handleDeleteComment(commentData.id);
-        });
+        return commentElement;
+    } catch (error) {
+        console.error("Error in createCommentElement:", error);
+        throw error;
     }
-
-    return commentElement;
 }
 
 
@@ -522,17 +540,21 @@ export function escapeHtml(unsafe) {
 }
 
 export function subscribeToPostEvents(stompClient, callback, currentUserId) {
+    console.log("Subscribing to /topic/post with currentUserId:", currentUserId);
     stompClient.subscribe('/topic/post', function (message) {
+        console.log("Subscription to /topic/post successful");
         const postEvent = JSON.parse(message.body);
-        console.log("Received postEvent:", postEvent);
-
+        console.log("Received postEvent: ", postEvent);
         switch (postEvent.type) {
             case 'LIKE_POST':
             case 'UNLIKE_POST':
                 handleLikePost(postEvent.content);
                 break;
             case 'CREATE_COMMENT':
+                console.log("Handling CREATE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
                 handleCreateComment(postEvent.content, currentUserId);
+                console.log("postEvent.content: "+postEvent.content)
+                console.log(currentUserId)
                 break;
             default:
                 callback(postEvent);
@@ -543,9 +565,9 @@ export function subscribeToPostEvents(stompClient, callback, currentUserId) {
 
 
 //like related
-function handleLikePost(content) {
+async function handleLikePost(content) {
     const { postId, likeCount } = content;
-    updateLikeCount(postId, likeCount);
+    await updateLikeCount(postId, likeCount);
 }
 
 export function updateLikeCount(postId, count) {
@@ -559,11 +581,11 @@ export function updateLikeCount(postId, count) {
 
 
 //comment related
-
 function handleCreateComment(commentData, currentUserId) {
-    // 如果是當前用戶的評論，不需要處理（因為已經在本地添加了）
-    if (commentData.user_id === currentUserId) {
-        console.log("Skipping comment creation for current user's comment");
+    console.log("handleCreateComment called with:", { commentData, currentUserId });
+
+    if (!commentData || !currentUserId) {
+        console.error("Invalid input: commentData or currentUserId is missing");
         return;
     }
 
@@ -573,40 +595,17 @@ function handleCreateComment(commentData, currentUserId) {
         return;
     }
 
-    // 檢查評論是否已存在
-    if (commentSection.querySelector(`[data-comment-id="${commentData.id}"]`)) {
-        console.log("Comment already exists, skipping creation");
-        return;
-    }
-
+    console.log("開始處理評論: ", commentData);
     createCommentElement(commentData, currentUserId)
         .then(newComment => {
+            if (!newComment) {
+                throw new Error("Created comment element is null or undefined");
+            }
             commentSection.insertBefore(newComment, commentSection.firstChild);
             updateCommentCount(commentData.post_id, true);
+            console.log("Comment successfully added to the DOM");
         })
-        .catch(error => console.error('Error creating comment element:', error));
+        .catch(error => {
+            console.error('Error creating or inserting comment element:', error);
+        });
 }
-
-function getCommentSection(postId) {
-    const commentSection = document.getElementById(`comment-section-${postId}`);
-    if (!commentSection) {
-        console.warn(`Comment section not found for postId: ${postId}`);
-    }
-    return commentSection;
-}
-
-function isCommentAlreadyExists(commentSection, commentId) {
-    return !!commentSection.querySelector(`[data-comment-id="${commentId}"]`);
-}
-
-function createAndInsertComment(commentData, commentSection) {
-    createCommentElement(commentData, commentData.user_id)
-        .then(newComment => {
-            newComment.setAttribute('data-comment-id', commentData.id);
-            commentSection.insertBefore(newComment, commentSection.firstChild);
-            updateCommentCount(commentData.post_id, true);
-        })
-        .catch(error => console.error('Error creating comment element:', error));
-}
-
-

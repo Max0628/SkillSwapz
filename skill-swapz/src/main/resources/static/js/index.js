@@ -1,6 +1,7 @@
 // index.js
 import {
-    connectWebSocket, createCommentElement,
+    connectWebSocket,
+    createCommentElement,
     displayPost,
     fetchLikedAndBookmarkedPosts,
     fetchPostById,
@@ -11,6 +12,8 @@ import {
     updateLikeCount
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
+
+let currentUserId = getUserId();
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -76,15 +79,17 @@ function setupPostListeners(postsList, userId) {
 }
 
 async function setupWebSocketSubscriptions(stompClient, userId) {
+    console.log("setupWebSocketSubscriptions is called with userId:", userId);
     await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
     subscribeToPostEvents(stompClient, (postEvent) => {
-        console.log('Post event received:', postEvent);
+        console.log("Received postEvent: ", postEvent);
+        console.log(postEvent.type)
         const postsList = document.getElementById('posts-list');
-
-        switch(postEvent.type) {
+        switch (postEvent.type) {
             case 'CREATE_POST':
                 const newPost = postEvent.content;
+                console.log("EXECUTING CREATE_POST");
                 console.log("New post:", newPost.postId);
                 newPost.likeCount = 0;
                 displayPost(newPost, userId, postsList, [], [], true);
@@ -98,18 +103,20 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
             case 'UNLIKE_POST':
                 const likedPostId = postEvent.content.postId;
                 const likeCount = postEvent.content.likeCount;
+                console.log("UNLIKE A POST");
                 updateLikeCount(likedPostId, likeCount);
                 break;
             case 'CREATE_COMMENT':
+                console.log("CREATING COMMENT in setupWebSocketSubscriptions", commentData);
                 const commentData = postEvent.content;
                 const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
-                console.log("RUN TO commentSection: " + commentSection);
                 if (commentSection) {
-                    console.log("commentSection is true")
-                    createCommentElement(commentData, commentData.user_id)
+                    console.log("commentSection is true");
+                    createCommentElement(commentData, userId)  // 這裡傳入 userId 作為 currentUserId
                         .then(newComment => {
                             commentSection.appendChild(newComment);
                             updateCommentCount(commentData.post_id, true);
+                            console.log("HIHIHIHIHI");
                         })
                         .catch(error => console.error('Error creating comment element:', error));
                 } else {
@@ -122,7 +129,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
             default:
                 console.log('Received unknown post event type:', postEvent.type);
         }
-    });
+    }, userId);  // 將 userId 作為 currentUserId 傳遞
 }
 
 function onNotificationReceived(notification) {
