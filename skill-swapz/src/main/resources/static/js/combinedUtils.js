@@ -691,8 +691,12 @@ export async function handleDeleteComment(commentId, userId, postId) {
 
 export function formatTimeAgo(dateString) {
     const date = new Date(dateString);
+
+    // 將時間加上 8 小時（以毫秒為單位）
+    const correctedDate = new Date(date.getTime() + (8 * 60 * 60 * 1000));
+
     const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000); // 計算時間差，單位為秒
+    const diffInSeconds = Math.floor((now - correctedDate) / 1000); // 計算時間差，單位為秒
 
     if (diffInSeconds < 60) {
         return `${diffInSeconds} 秒前`;
@@ -713,3 +717,4 @@ export function formatTimeAgo(dateString) {
         return `${years} 年前`;
     }
 }
+
