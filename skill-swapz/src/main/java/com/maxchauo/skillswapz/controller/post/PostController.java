@@ -90,9 +90,12 @@ public class PostController {
     @DeleteMapping("/comment/{commentId}")
     public ResponseEntity<?> deleteComment(@PathVariable int commentId, @RequestParam int userId) {
         try {
-            boolean deleted = service.deleteComment(commentId, userId);
-            if (deleted) {
-                Map<String, Object> message = Map.of("type", "DELETE_COMMENT", "content", Map.of("commentId", commentId));
+            Map<String, Object> messageContent = service.deleteComment(commentId, userId);
+            if (messageContent != null) {
+                Map<String, Object> message = Map.of(
+                        "type", "DELETE_COMMENT",
+                        "content", messageContent
+                );
                 messagingTemplate.convertAndSend("/topic/post", message);
                 return ResponseEntity.ok(message);
             } else {
@@ -102,6 +105,7 @@ public class PostController {
             return ResponseEntity.badRequest().body(Map.of("type", "ERROR", "content", e.getMessage()));
         }
     }
+
 
 
     @PostMapping("/bookMark")

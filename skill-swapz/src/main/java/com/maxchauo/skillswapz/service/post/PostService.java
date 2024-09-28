@@ -11,7 +11,9 @@ import lombok.extern.log4j.Log4j2;
 
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Log4j2
@@ -72,14 +74,22 @@ public class PostService {
         return commentRepo.insertComment(commentForm);
     }
 
-    public boolean deleteComment(Integer commentId, Integer userId) {
+    public Map<String, Object> deleteComment(Integer commentId, Integer userId) {
         Optional<CommentForm> comment = commentRepo.findById(commentId);
         if (comment.isPresent() && comment.get().getUserId().equals(userId)) {
+            Integer postId = comment.get().getPostId();
             commentRepo.deleteById(commentId);
-            return true;
+
+            // 構建返回的訊息內容
+            Map<String, Object> messageContent = new HashMap<>();
+            messageContent.put("commentId", commentId);
+            messageContent.put("postId", postId);
+
+            return messageContent;
         }
-        return false;
+        return null;
     }
+
 
     public String toggleBookMark(PostBookmarkForm bookmark) {
         if (bookMarkRepo.isBookMark(bookmark)) {

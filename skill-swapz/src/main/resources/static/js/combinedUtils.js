@@ -1,6 +1,7 @@
 // combinedUtils.js
 let stompClient = null;
 
+
 export async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
@@ -569,8 +570,9 @@ export function subscribeToPostEvents(stompClient, callback, currentUserId) {
                 break;
 
             case 'DELETE_COMMENT':
-                console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
-                handleDeleteComment(commentId, userId);
+                console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", userId);
+                const { commentId, postId } = postEvent.content;
+                handleDeleteComment(commentId, undefined, postId);
                 break;
 
             default:
@@ -633,26 +635,31 @@ function handleCreateComment(commentData, currentUserId) {
 export async function handleDeleteComment(commentId, userId, postId) {
     console.log("executing handleDeleteComment");
 
-    // 如果没有 userId，表示是从 WebSocket 收到的通知，不需要验证权限
-    if (typeof userId !== 'undefined' && isNaN(userId)) {
-        console.error('Invalid userId');
-        return;
+    // 移除留言元素
+    const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
+    if (commentElement) {
+        commentElement.remove();
+        console.log(`Comment with ID ${commentId} removed from the DOM`);
+    } else {
+        console.warn(`Comment element not found for commentId: ${commentId}`);
     }
 
-    if (isNaN(commentId)) {
-        console.error('Invalid commentId');
-        return;
+    // 更新留言計數器
+    if (postId) {
+        updateCommentCount(postId, false); // 確保這裡正確減少留言數
+    } else {
+        console.warn('Post ID is not provided, cannot update comment count');
     }
 
-    // 如果有 userId，表示是用户主动删除，需要发送请求到后端
+    // 如果有 userId，表示是使用者主動刪除，需要發送請求到後端
     if (typeof userId !== 'undefined') {
-        // 确认删除操作
+        // 確認刪除操作
         if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
             return;
         }
 
         try {
-            // 发送删除请求到后端
+            // 發送刪除請求到後端
             const response = await fetch(`/api/1.0/post/comment/${commentId}?userId=${userId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
@@ -670,21 +677,5 @@ export async function handleDeleteComment(commentId, userId, postId) {
             alert(`刪除評論失敗: ${error.message}`);
             return;
         }
-    }
-
-    // 无论是否有 userId，都需要从 DOM 中移除评论，并更新评论数
-    const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
-    if (commentElement) {
-        commentElement.remove();
-        console.log(`Comment with ID ${commentId} removed from the DOM`);
-    } else {
-        console.warn(`Comment element not found for commentId: ${commentId}`);
-    }
-
-    // 更新评论数，需要 postId
-    if (postId) {
-        updateCommentCount(postId, false); // false 表示减少评论数
-    } else {
-        console.warn('Post ID is not provided, cannot update comment count');
     }
 }
