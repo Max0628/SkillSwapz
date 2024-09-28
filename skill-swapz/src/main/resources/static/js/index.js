@@ -6,6 +6,7 @@ import {
     fetchLikedAndBookmarkedPosts,
     fetchPostById,
     getUserId,
+    handleDeleteComment,
     startChat,
     subscribeToPostEvents,
     updateCommentCount,
@@ -84,53 +85,77 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
 
     subscribeToPostEvents(stompClient, (postEvent) => {
         console.log("Received postEvent: ", postEvent);
-        console.log(postEvent.type)
+
+        if (!postEvent || !postEvent.content) {
+            console.warn("Invalid postEvent or missing content");
+            return;
+        }
+
         const postsList = document.getElementById('posts-list');
         switch (postEvent.type) {
-            case 'CREATE_POST':
+            case 'CREATE_POST': {
                 const newPost = postEvent.content;
                 console.log("EXECUTING CREATE_POST");
                 console.log("New post:", newPost.postId);
                 newPost.likeCount = 0;
                 displayPost(newPost, userId, postsList, [], [], true);
                 break;
-            case 'DELETE_POST':
+            }
+
+            case 'DELETE_POST': {
                 const postId = postEvent.content.postId;
                 console.log("Deleting post with ID:", postId);
                 removePostFromUI(postId);
                 break;
+            }
+
             case 'LIKE_POST':
-            case 'UNLIKE_POST':
+            case 'UNLIKE_POST': {
                 const likedPostId = postEvent.content.postId;
                 const likeCount = postEvent.content.likeCount;
                 console.log("UNLIKE A POST");
                 updateLikeCount(likedPostId, likeCount);
                 break;
-            case 'CREATE_COMMENT':
-                console.log("CREATING COMMENT in setupWebSocketSubscriptions", commentData);
+            }
+
+            case 'CREATE_COMMENT': {
+                console.log("CREATING COMMENT in setupWebSocketSubscriptions", postEvent.content);
                 const commentData = postEvent.content;
                 const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
                 if (commentSection) {
                     console.log("commentSection is true");
-                    createCommentElement(commentData, userId)  // 這裡傳入 userId 作為 currentUserId
+                    createCommentElement(commentData, userId)  // 傳入 userId 作為 currentUserId
                         .then(newComment => {
                             commentSection.appendChild(newComment);
                             updateCommentCount(commentData.post_id, true);
-                            console.log("HIHIHIHIHI");
                         })
                         .catch(error => console.error('Error creating comment element:', error));
                 } else {
                     console.warn(`Comment section not found for postId: ${commentData.post_id}`);
                 }
                 break;
-            case 'ERROR':
+            }
+
+            case 'DELETE_COMMENT': {
+                console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", userId);
+                const {commentId, postId} = postEvent.content;
+                handleDeleteComment(commentId, undefined, postId);
+                break;
+            }
+
+            case 'ERROR': {
                 console.error('Error event received:', postEvent.content);
                 break;
-            default:
+            }
+
+            default: {
                 console.log('Received unknown post event type:', postEvent.type);
+            }
         }
-    }, userId);  // 將 userId 作為 currentUserId 傳遞
+    }, userId);
 }
+
+
 
 function onNotificationReceived(notification) {
     const data = JSON.parse(notification.body);

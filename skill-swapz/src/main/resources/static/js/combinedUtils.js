@@ -309,8 +309,11 @@ export async function createCommentElement(commentData, currentUserId) {
         if (String(currentUserId) === String(commentData.user_id)) {
             const deleteButton = commentElement.querySelector('.delete-comment-btn');
             if (deleteButton) {
+                // 傳遞commentId 和 currentUserId
                 deleteButton.addEventListener('click', () => {
-                    handleDeleteComment(commentData.id);
+                    console.log(commentData.id)
+                    console.log(currentUserId)
+                    handleDeleteComment(commentData.id, currentUserId);
                 });
             } else {
                 console.warn("Delete button not found for user's own comment");
@@ -323,6 +326,7 @@ export async function createCommentElement(commentData, currentUserId) {
         throw error;
     }
 }
+
 
 
 export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false, stompClient) {
@@ -384,7 +388,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             <i class="fa-regular fa-bookmark"></i>
         </button>
         <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${postId}">
-            <i class="fa-regular fa-comment"></i> —
+            <i class="fa-regular fa-comment"></i> 
             <span>${post.comments ? post.comments.length : 0}</span>
         </button>
         <button class="action-btn chat-btn" id="chat-btn-${postId}">
@@ -524,12 +528,17 @@ export function updateCommentCount(postId, increment = true) {
     const commentToggleBtn = document.getElementById(`comment-toggle-btn-${postId}`);
     if (commentToggleBtn) {
         const countSpan = commentToggleBtn.querySelector('span');
-        let currentCount = parseInt(countSpan.textContent);
-        currentCount = increment ? currentCount + 1 : currentCount - 1;
-        countSpan.textContent = currentCount.toString();
+        if (countSpan) {
+            let currentCount = parseInt(countSpan.textContent);
+            currentCount = increment ? currentCount + 1 : Math.max(currentCount - 1, 0);
+            countSpan.textContent = currentCount.toString();
+        } else {
+            console.warn(`Count span not found for postId: ${postId}`);
+        }
+    } else {
+        console.warn(`Comment toggle button not found for postId: ${postId}`);
     }
 }
-
 export function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")
@@ -544,24 +553,33 @@ export function subscribeToPostEvents(stompClient, callback, currentUserId) {
     stompClient.subscribe('/topic/post', function (message) {
         console.log("Subscription to /topic/post successful");
         const postEvent = JSON.parse(message.body);
+        const { commentId, userId } = postEvent.content;
+
         console.log("Received postEvent: ", postEvent);
+
         switch (postEvent.type) {
             case 'LIKE_POST':
             case 'UNLIKE_POST':
                 handleLikePost(postEvent.content);
                 break;
+
             case 'CREATE_COMMENT':
                 console.log("Handling CREATE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
                 handleCreateComment(postEvent.content, currentUserId);
-                console.log("postEvent.content: "+postEvent.content)
-                console.log(currentUserId)
                 break;
+
+            case 'DELETE_COMMENT':
+                console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
+                handleDeleteComment(commentId, userId);
+                break;
+
             default:
                 callback(postEvent);
                 break;
         }
     });
 }
+
 
 
 //like related
@@ -608,4 +626,65 @@ function handleCreateComment(commentData, currentUserId) {
         .catch(error => {
             console.error('Error creating or inserting comment element:', error);
         });
+}
+
+
+
+export async function handleDeleteComment(commentId, userId, postId) {
+    console.log("executing handleDeleteComment");
+
+    // 如果没有 userId，表示是从 WebSocket 收到的通知，不需要验证权限
+    if (typeof userId !== 'undefined' && isNaN(userId)) {
+        console.error('Invalid userId');
+        return;
+    }
+
+    if (isNaN(commentId)) {
+        console.error('Invalid commentId');
+        return;
+    }
+
+    // 如果有 userId，表示是用户主动删除，需要发送请求到后端
+    if (typeof userId !== 'undefined') {
+        // 确认删除操作
+        if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
+            return;
+        }
+
+        try {
+            // 发送删除请求到后端
+            const response = await fetch(`/api/1.0/post/comment/${commentId}?userId=${userId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || '刪除評論失敗');
+            }
+
+            alert('評論已成功刪除');
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            alert(`刪除評論失敗: ${error.message}`);
+            return;
+        }
+    }
+
+    // 无论是否有 userId，都需要从 DOM 中移除评论，并更新评论数
+    const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
+    if (commentElement) {
+        commentElement.remove();
+        console.log(`Comment with ID ${commentId} removed from the DOM`);
+    } else {
+        console.warn(`Comment element not found for commentId: ${commentId}`);
+    }
+
+    // 更新评论数，需要 postId
+    if (postId) {
+        updateCommentCount(postId, false); // false 表示减少评论数
+    } else {
+        console.warn('Post ID is not provided, cannot update comment count');
+    }
 }

@@ -10,7 +10,6 @@ import com.maxchauo.skillswapz.service.post.PostService;
 
 import lombok.extern.log4j.Log4j2;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -88,9 +87,8 @@ public class PostController {
         }
     }
 
-
-    @DeleteMapping("/{postId}/comment/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable int postId, @PathVariable int commentId, @RequestParam int userId) {
+    @DeleteMapping("/comment/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable int commentId, @RequestParam int userId) {
         try {
             boolean deleted = service.deleteComment(commentId, userId);
             if (deleted) {
