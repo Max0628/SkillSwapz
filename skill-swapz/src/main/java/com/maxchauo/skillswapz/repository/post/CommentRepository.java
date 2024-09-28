@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,7 +44,7 @@ public class CommentRepository {
         fetchParams.addValue("commentId", commentId);
 
         try {
-            Time createdAt = template.queryForObject(fetchSql, fetchParams, Time.class);
+            LocalDateTime createdAt = template.queryForObject(fetchSql, fetchParams, LocalDateTime.class);
             commentForm.setCreatedAt(createdAt);
         } catch (EmptyResultDataAccessException e) {
             System.err.println("Failed to fetch created_at for commentId: " + commentId);

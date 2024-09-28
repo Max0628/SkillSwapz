@@ -43,31 +43,16 @@ public class PostService {
     }
 
     public Integer getPostId(PostForm postForm) {
-        Integer postId = switch (postForm.getType()) {
-            case "交換技能" -> {
-                log.info("Inserting exchange post...");
-                yield postRepo.insertExchangeForm(postForm);
-            }
-            case "找老師" -> {
-                log.info("Inserting find tutor post...");
-                yield postRepo.insertFindTutorForm(postForm);
-            }
-            case "找學生" -> {
-                log.info("Inserting find student post...");
-                yield postRepo.insertFindStudentForm(postForm);
-            }
-            case "讀書會" -> {
-                log.info("Inserting book club post...");
-                yield postRepo.insertFindBookClubForm(postForm);
-            }
-            default -> {
-                log.error("Invalid post type: {}", postForm.getType());
-                throw new IllegalArgumentException("Invalid post type: " + postForm.getType());
-            }
+        PostForm createdPostForm = switch (postForm.getType()) {
+            case "交換技能" -> postRepo.insertExchangeForm(postForm);
+            case "找老師" -> postRepo.insertFindTutorForm(postForm);
+            case "找學生" -> postRepo.insertFindStudentForm(postForm);
+            case "讀書會" -> postRepo.insertFindBookClubForm(postForm);
+            default -> throw new IllegalArgumentException("Invalid post type: " + postForm.getType());
         };
 
-        log.info("Post inserted with ID: {}", postId);
-        return postId;
+        log.info("Post inserted with ID: {}", createdPostForm.getPostId());
+        return createdPostForm.getPostId();
     }
 
     public CommentForm insertComment(CommentForm commentForm) {

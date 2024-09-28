@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,5 +19,5 @@ public class CommentForm {
     @JsonProperty("user_id")
     private Integer userId;
     private String content;
-    private Time createdAt;  // 創建時間
+    private LocalDateTime createdAt;
 }

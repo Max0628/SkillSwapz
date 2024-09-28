@@ -10,7 +10,8 @@ import {
     startChat,
     subscribeToPostEvents,
     updateCommentCount,
-    updateLikeCount
+    updateLikeCount,
+    formatTimeAgo
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
@@ -98,6 +99,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 console.log("EXECUTING CREATE_POST");
                 console.log("New post:", newPost.postId);
                 newPost.likeCount = 0;
+                newPost.createdAt = formatTimeAgo(newPost.createdAt); // 格式化創建時間
                 displayPost(newPost, userId, postsList, [], [], true);
                 break;
             }
@@ -255,4 +257,6 @@ export function removePostFromUI(postId) {
         console.warn(`Post element with ID ${postId} not found in the DOM`);
     }
 }
+
+
 

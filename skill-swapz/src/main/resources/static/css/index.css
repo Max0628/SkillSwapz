@@ -79,6 +79,14 @@ h2 {
     text-align: center;
 }
 
+
+.post-time {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 5px; /* 與交換類型有些距離 */
+    text-align: right; /* 右對齊保持一致 */
+}
+
 .post-header .username {
     font-weight: bold;
     margin-left: 10px;

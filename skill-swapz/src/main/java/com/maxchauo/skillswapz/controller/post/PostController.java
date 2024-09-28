@@ -41,7 +41,7 @@ public class PostController {
         try {
             Integer postId = service.getPostId(postForm);
             postForm.setPostId(postId);
-            System.out.println(postForm.getPostId());
+
             Map<String, Object> message = Map.of("type", "CREATE_POST", "content", postForm);
             messagingTemplate.convertAndSend("/topic/post", message);
             return ResponseEntity.ok(message);
@@ -50,6 +50,7 @@ public class PostController {
                     .body(Map.of("type", "ERROR", "content", e.getMessage()));
         }
     }
+
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable int postId, @RequestParam int userId) {

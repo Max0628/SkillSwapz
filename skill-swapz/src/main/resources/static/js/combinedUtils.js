@@ -244,6 +244,8 @@ export async function handleComment(postId, userId) {
 
         if (response.ok) {
             const result = await response.json();
+            commentInput.value = '';
+            commentInput.focus();
         } else {
             const errorData = await response.json();
             console.error('Error commenting on post:', errorData.content || 'Unknown error');
@@ -258,7 +260,7 @@ export async function handleComment(postId, userId) {
 
 export async function createCommentElement(commentData, currentUserId) {
     try {
-        console.log("createCommentElement being executing");
+        console.log("createCommentElement being executed");
 
         if (!commentData || !currentUserId) {
             throw new Error("Invalid input: commentData or currentUserId is missing");
@@ -268,6 +270,7 @@ export async function createCommentElement(commentData, currentUserId) {
         commentElement.classList.add('comment');
         commentElement.setAttribute('data-comment-id', commentData.id);
 
+        // 獲取使用者詳細資料
         let userDetails, avatarUrl, username;
         try {
             userDetails = await fetchUserDetails(commentData.user_id);
@@ -279,8 +282,10 @@ export async function createCommentElement(commentData, currentUserId) {
             username = 'Unknown User';
         }
 
-        const createdAt = new Date(commentData.createdAt).toLocaleString();
+        // 使用 formatTimeAgo 函數來格式化時間
+        const createdAt = formatTimeAgo(commentData.createdAt); // 使用格式化函數
 
+        // 創建評論的 HTML
         commentElement.innerHTML = `
             <div class="comment-container">
                 <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(username)}" class="comment-avatar">
@@ -306,14 +311,11 @@ export async function createCommentElement(commentData, currentUserId) {
             console.warn("Avatar image element not found");
         }
 
-        // 绑定删除按钮的事件
+        // 綁定刪除按鈕的事件
         if (String(currentUserId) === String(commentData.user_id)) {
             const deleteButton = commentElement.querySelector('.delete-comment-btn');
             if (deleteButton) {
-                // 傳遞commentId 和 currentUserId
                 deleteButton.addEventListener('click', () => {
-                    console.log(commentData.id)
-                    console.log(currentUserId)
                     handleDeleteComment(commentData.id, currentUserId);
                 });
             } else {
@@ -339,14 +341,20 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     const authorDetails = await fetchUserDetails(post.userId);
 
+    const postCreatedAt = formatTimeAgo(post.createdAt);
+
     let postContent = `
-    <div class="post-header">
-        <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar">
-        <strong class="post-author">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
-        <div class="post-type">${escapeHtml(post.type)}</div>
-    </div>
-    <p><strong>地點：</strong> ${escapeHtml(post.location)}</p>
-    `;
+        <div class="post-header">
+            <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar">
+            <strong class="post-author">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
+            <div class="post-info">
+                <div class="post-type">${escapeHtml(post.type)}</div>
+                <span class="post-time">${escapeHtml(postCreatedAt)}</span>
+            </div>
+        </div>
+        <p><strong>地點：</strong> ${escapeHtml(post.location)}</p>
+`;
+
 
     if (post.type === '找學生') {
         postContent += `
@@ -677,5 +685,31 @@ export async function handleDeleteComment(commentId, userId, postId) {
             alert(`刪除評論失敗: ${error.message}`);
             return;
         }
+    }
+}
+
+
+export function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000); // 計算時間差，單位為秒
+
+    if (diffInSeconds < 60) {
+        return `${diffInSeconds} 秒前`;
+    } else if (diffInSeconds < 3600) { // 小於1小時
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} 分鐘前`;
+    } else if (diffInSeconds < 86400) { // 小於1天
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} 小時前`;
+    } else if (diffInSeconds < 2592000) { // 小於30天
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} 天前`;
+    } else if (diffInSeconds < 31536000) { // 小於1年
+        const months = Math.floor(diffInSeconds / 2592000);
+        return `${months} 個月前`;
+    } else {
+        const years = Math.floor(diffInSeconds / 31536000);
+        return `${years} 年前`;
     }
 }

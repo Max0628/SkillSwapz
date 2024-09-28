@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -28,4 +29,5 @@ public class PostForm {
     private String postUrl;
     private List<String> tag;
     private List<CommentForm> comments;
+    private LocalDateTime createdAt;
 }
