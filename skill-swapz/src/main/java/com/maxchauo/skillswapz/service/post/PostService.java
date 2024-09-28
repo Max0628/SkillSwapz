@@ -6,10 +6,13 @@ import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
 import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import com.maxchauo.skillswapz.repository.post.*;
+
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -65,10 +68,18 @@ public class PostService {
         return postId;
     }
 
-    public void insertComment(CommentForm commentForm) {
-        commentRepo.insertComment(commentForm);
+    public CommentForm insertComment(CommentForm commentForm) {
+        return commentRepo.insertComment(commentForm);
     }
 
+    public boolean deleteComment(Integer commentId, Integer userId) {
+        Optional<CommentForm> comment = commentRepo.findById(commentId);
+        if (comment.isPresent() && comment.get().getUserId().equals(userId)) {
+            commentRepo.deleteById(commentId);
+            return true;
+        }
+        return false;
+    }
 
     public String toggleBookMark(PostBookmarkForm bookmark) {
         if (bookMarkRepo.isBookMark(bookmark)) {

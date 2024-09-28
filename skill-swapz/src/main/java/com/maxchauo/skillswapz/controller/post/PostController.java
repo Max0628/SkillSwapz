@@ -10,6 +10,7 @@ import com.maxchauo.skillswapz.service.post.PostService;
 
 import lombok.extern.log4j.Log4j2;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -70,9 +71,38 @@ public class PostController {
     }
 
     @PostMapping("/comment")
-    public void insertComment(@RequestBody CommentForm commentForm) {
-        service.insertComment(commentForm);
-//        return ResponseEntity.ok().body("Comment created successfully.");
+    public ResponseEntity<Map<String, Object>> insertComment(
+            @RequestBody CommentForm commentForm) {
+        try {
+            CommentForm createdComment = service.insertComment(commentForm);
+            System.out.println(commentForm);
+            Map<String, Object> message =
+                    Map.of("type", "CREATE_COMMENT", "content", createdComment);
+            messagingTemplate.convertAndSend("/topic/post", message);
+            System.out.println(message);
+            return ResponseEntity.ok(message);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("type", "ERROR", "content", e.getMessage()));
+        }
+    }
+
+
+    @DeleteMapping("/{postId}/comment/{commentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable int postId, @PathVariable int commentId, @RequestParam int userId) {
+        try {
+            boolean deleted = service.deleteComment(commentId, userId);
+            if (deleted) {
+                Map<String, Object> message = Map.of("type", "DELETE_COMMENT", "content", Map.of("commentId", commentId));
+                messagingTemplate.convertAndSend("/topic/post", message);
+                return ResponseEntity.ok(message);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("type", "ERROR", "content", e.getMessage()));
+        }
     }
 
 

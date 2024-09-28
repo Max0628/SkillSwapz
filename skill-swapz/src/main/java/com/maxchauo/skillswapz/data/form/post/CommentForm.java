@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Time;
+import java.sql.Timestamp;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -15,4 +18,5 @@ public class CommentForm {
     @JsonProperty("user_id")
     private Integer userId;
     private String content;
+    private Time createdAt;  // 創建時間
 }

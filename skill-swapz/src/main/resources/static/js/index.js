@@ -1,12 +1,14 @@
 // index.js
 import {
-    connectWebSocket,
+    connectWebSocket, createCommentElement,
     displayPost,
     fetchLikedAndBookmarkedPosts,
     fetchPostById,
     getUserId,
     startChat,
-    subscribeToPostEvents
+    subscribeToPostEvents,
+    updateCommentCount,
+    updateLikeCount
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
@@ -35,7 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stompClient = await connectWebSocket(userId);
 
         await setupWebSocketSubscriptions(stompClient, userId);
-        // await fetchAndDisplayPosts(userId, searchKeyword, stompClient);
 
         setupPostListeners(postsList, userId);
 
@@ -53,8 +54,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('發生錯誤，請刷新頁面或稍後再試。');
     }
 });
-
-
 
 function setupPostListeners(postsList, userId) {
     postsList.addEventListener('click', async (event) => {
@@ -101,6 +100,22 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 const likeCount = postEvent.content.likeCount;
                 updateLikeCount(likedPostId, likeCount);
                 break;
+            case 'CREATE_COMMENT':
+                const commentData = postEvent.content;
+                const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
+                console.log("RUN TO commentSection: " + commentSection);
+                if (commentSection) {
+                    console.log("commentSection is true")
+                    createCommentElement(commentData, commentData.user_id)
+                        .then(newComment => {
+                            commentSection.appendChild(newComment);
+                            updateCommentCount(commentData.post_id, true);
+                        })
+                        .catch(error => console.error('Error creating comment element:', error));
+                } else {
+                    console.warn(`Comment section not found for postId: ${commentData.post_id}`);
+                }
+                break;
             case 'ERROR':
                 console.error('Error event received:', postEvent.content);
                 break;
@@ -109,16 +124,6 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
         }
     });
 }
-
-function updateLikeCount(postId, count) {
-    const likeCountElement = document.querySelector(`#like-count-${postId}`);
-    if (likeCountElement) {
-        likeCountElement.textContent = count;
-    } else {
-        console.warn(`Like count element not found for postId: ${postId}`);
-    }
-}
-
 
 function onNotificationReceived(notification) {
     const data = JSON.parse(notification.body);
@@ -218,3 +223,4 @@ export function removePostFromUI(postId) {
         console.warn(`Post element with ID ${postId} not found in the DOM`);
     }
 }
+

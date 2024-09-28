@@ -164,7 +164,6 @@ export async function handleLike(postId, userId, stompClient) {
     const isCurrentlyLiked = likeButton.classList.contains('liked');
 
     try {
-        // 立即更新本地UI狀態，不回滾
         if (isCurrentlyLiked) {
             likeButton.classList.remove('liked');
             heartIcon.classList.replace('fa-solid', 'fa-regular');
@@ -175,7 +174,6 @@ export async function handleLike(postId, userId, stompClient) {
             likeCount.textContent = parseInt(likeCount.textContent) + 1;
         }
 
-        // 發送請求到服務器
         const response = await fetch('/api/1.0/post/like', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -185,12 +183,10 @@ export async function handleLike(postId, userId, stompClient) {
 
         const result = await response.json();
 
-        // 確保服務端回應結果一致，更新全局點讚數
         if (result.likeCount !== undefined) {
             likeCount.textContent = result.likeCount;
         }
 
-        // 發送WebSocket消息
         if (stompClient && stompClient.connected) {
             stompClient.send('/app/post/like', {}, JSON.stringify({
                 type: isCurrentlyLiked ? 'UNLIKE_POST' : 'LIKE_POST',
@@ -205,7 +201,6 @@ export async function handleLike(postId, userId, stompClient) {
         }
     } catch (error) {
         console.error('Error liking post:', error);
-        // 顯示錯誤通知，但不回滾狀態
         alert('操作失敗，請稍後再試。');
     }
 }
@@ -233,24 +228,30 @@ export async function handleComment(postId, userId) {
         alert('請輸入評論');
         return;
     }
-
     try {
         const response = await fetch('/api/1.0/post/comment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ post_id: postId, user_id: userId, content: commentContent }),
+            body: JSON.stringify({
+                post_id: postId,
+                user_id: userId,
+                content: commentContent
+            }),
             credentials: 'include'
         });
 
         if (response.ok) {
-            const commentData = await response.json();
+            const result = await response.json();
+            const commentData = result.content;
             const commentSection = document.getElementById(`comment-section-${postId}`);
-            const newComment = await createCommentElement(commentData, userId);
-            commentSection.insertBefore(newComment, commentSection.firstChild);
-            commentInput.value = '';
-            updateCommentCount(postId, true);
+            // const newComment = await createCommentElement(commentData, userId);
+            // commentSection.insertBefore(newComment, commentSection.firstChild);
+            // commentInput.value = '';
+            // updateCommentCount(postId, true);
         } else {
-            throw new Error('Error commenting on post');
+            const errorData = await response.json();
+            console.error('Error commenting on post:', errorData.content || 'Unknown error');
+            alert(`發表評論失敗: ${errorData.content || '請稍後再試。'}`);
         }
     } catch (error) {
         console.error('Error commenting:', error);
@@ -258,13 +259,19 @@ export async function handleComment(postId, userId) {
     }
 }
 
-async function createCommentElement(comment, currentUserId) {
+
+export async function createCommentElement(commentData, currentUserId) {
+    console.log("currentUserId: "+currentUserId)
+    console.log("commentData.user_id: "+commentData.user_id);
     const commentElement = document.createElement('div');
     commentElement.classList.add('comment');
+    commentElement.setAttribute('data-comment-id', commentData.id);
 
-    const userDetails = await fetchUserDetails(comment.user_id);
-    const avatarUrl = userDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
+    const userDetails = await fetchUserDetails(commentData.user_id);
+    const avatarUrl = userDetails?.avatarUrl || 'default_avatar_url';
     const username = userDetails?.username || 'Unknown User';
+
+    const createdAt = new Date(commentData.createdAt).toLocaleString();
 
     commentElement.innerHTML = `
         <div class="comment-container">
@@ -272,20 +279,33 @@ async function createCommentElement(comment, currentUserId) {
             <div class="comment-content">
                 <div class="comment-header">
                     <span class="comment-username">${escapeHtml(username)}</span>
+                    <span class="comment-time">${escapeHtml(createdAt)}</span>
                 </div>
-                <p class="comment-text">${escapeHtml(comment.content)}</p>
+                <p class="comment-text">${escapeHtml(commentData.content)}</p>
+                ${commentData.user_id === currentUserId ? '<button class="delete-comment-btn">刪除</button>' : ''}
             </div>
         </div>
     `;
 
+
+    // 添加樣式
     const avatarImg = commentElement.querySelector('.comment-avatar');
     avatarImg.style.width = '30px';
     avatarImg.style.height = '30px';
     avatarImg.style.borderRadius = '50%';
     avatarImg.style.objectFit = 'cover';
 
+    // 綁定刪除按鈕的事件
+    if (currentUserId === commentData.user_id) {
+        const deleteButton = commentElement.querySelector('.delete-comment-btn');
+        deleteButton.addEventListener('click', () => {
+            handleDeleteComment(commentData.id);
+        });
+    }
+
     return commentElement;
 }
+
 
 export async function displayPost(post, userId, postsList, likedPosts, bookmarkedPosts, isNewPost = false, stompClient) {
     const postId = post.postId || post.id;
@@ -346,7 +366,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             <i class="fa-regular fa-bookmark"></i>
         </button>
         <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${postId}">
-            <i class="fa-regular fa-comment"></i> 
+            <i class="fa-regular fa-comment"></i> —
             <span>${post.comments ? post.comments.length : 0}</span>
         </button>
         <button class="action-btn chat-btn" id="chat-btn-${postId}">
@@ -501,22 +521,34 @@ export function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-export function subscribeToPostEvents(stompClient, callback) {
+export function subscribeToPostEvents(stompClient, callback, currentUserId) {
     stompClient.subscribe('/topic/post', function (message) {
         const postEvent = JSON.parse(message.body);
         console.log("Received postEvent:", postEvent);
 
-        if (postEvent.type === 'LIKE_POST' || postEvent.type === 'UNLIKE_POST') {
-            const likedPostId = postEvent.content.postId;
-            const likeCount = postEvent.content.likeCount;
-            updateLikeCount(likedPostId, likeCount);
-        } else {
-            callback(postEvent);
+        switch (postEvent.type) {
+            case 'LIKE_POST':
+            case 'UNLIKE_POST':
+                handleLikePost(postEvent.content);
+                break;
+            case 'CREATE_COMMENT':
+                handleCreateComment(postEvent.content, currentUserId);
+                break;
+            default:
+                callback(postEvent);
+                break;
         }
     });
 }
 
-function updateLikeCount(postId, count) {
+
+//like related
+function handleLikePost(content) {
+    const { postId, likeCount } = content;
+    updateLikeCount(postId, likeCount);
+}
+
+export function updateLikeCount(postId, count) {
     const likeCountElement = document.querySelector(`#like-count-${postId}`);
     if (likeCountElement) {
         likeCountElement.textContent = count;
@@ -524,3 +556,57 @@ function updateLikeCount(postId, count) {
         console.warn(`Like count element not found for postId: ${postId}`);
     }
 }
+
+
+//comment related
+
+function handleCreateComment(commentData, currentUserId) {
+    // 如果是當前用戶的評論，不需要處理（因為已經在本地添加了）
+    if (commentData.user_id === currentUserId) {
+        console.log("Skipping comment creation for current user's comment");
+        return;
+    }
+
+    const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
+    if (!commentSection) {
+        console.warn(`Comment section not found for postId: ${commentData.post_id}`);
+        return;
+    }
+
+    // 檢查評論是否已存在
+    if (commentSection.querySelector(`[data-comment-id="${commentData.id}"]`)) {
+        console.log("Comment already exists, skipping creation");
+        return;
+    }
+
+    createCommentElement(commentData, currentUserId)
+        .then(newComment => {
+            commentSection.insertBefore(newComment, commentSection.firstChild);
+            updateCommentCount(commentData.post_id, true);
+        })
+        .catch(error => console.error('Error creating comment element:', error));
+}
+
+function getCommentSection(postId) {
+    const commentSection = document.getElementById(`comment-section-${postId}`);
+    if (!commentSection) {
+        console.warn(`Comment section not found for postId: ${postId}`);
+    }
+    return commentSection;
+}
+
+function isCommentAlreadyExists(commentSection, commentId) {
+    return !!commentSection.querySelector(`[data-comment-id="${commentId}"]`);
+}
+
+function createAndInsertComment(commentData, commentSection) {
+    createCommentElement(commentData, commentData.user_id)
+        .then(newComment => {
+            newComment.setAttribute('data-comment-id', commentData.id);
+            commentSection.insertBefore(newComment, commentSection.firstChild);
+            updateCommentCount(commentData.post_id, true);
+        })
+        .catch(error => console.error('Error creating comment element:', error));
+}
+
+
