@@ -371,18 +371,18 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     if (post.type === '找學生') {
         postContent += `
-        <p><strong>技能提供：</strong> ${escapeHtml(post.skillOffered)}</p>
+        <p><strong>擅長技能：</strong> ${escapeHtml(post.skillOffered)}</p>
         <p><strong>薪資：</strong> ${escapeHtml(post.salary)}</p>
         `;
     } else if (post.type === '找老師') {
         postContent += `
-        <p><strong>需要的技能：</strong> ${escapeHtml(post.skillWanted)}</p>
+        <p><strong>想學技能：</strong> ${escapeHtml(post.skillWanted)}</p>
         <p><strong>薪資：</strong> ${escapeHtml(post.salary)}</p>
         `;
     } else if (post.type === '交換技能') {
         postContent += `
-        <p><strong>提供的技能：</strong> ${escapeHtml(post.skillOffered)}</p>
-        <p><strong>想要的技能：</strong> ${escapeHtml(post.skillWanted)}</p>
+        <p><strong>擅長技能：</strong> ${escapeHtml(post.skillOffered)}</p>
+        <p><strong>想學技能：</strong> ${escapeHtml(post.skillWanted)}</p>
         `;
     } else if (post.type === '讀書會') {
         postContent += `
@@ -391,7 +391,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     }
 
     postContent += `
-    <p><strong>內容：</strong> ${escapeHtml(post.content)}</p>
+    <p><strong>活動進行方式與內容：</strong> ${escapeHtml(post.content)}</p>
     `;
 
     if (post.tag && post.tag.length > 0) {
