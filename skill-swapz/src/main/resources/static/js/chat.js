@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('User not logged in');
         return;
     }
+    await loadChatList();
 
     const chatContent = document.getElementById('chat-content');
     const sendButton = document.getElementById('send-button');
@@ -182,11 +183,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadChatHistory(chatUuid);
         subscribeToPrivateChat(chatUuid);
 
+        // 添加这一行
+        selectUserInList(userId);
+    }
+
+    function selectUserInList(userId) {
         const userItems = userList.querySelectorAll('.user-item');
         userItems.forEach(item => item.classList.remove('active'));
         const currentUserItem = userList.querySelector(`[data-user-id="${userId}"]`);
         if (currentUserItem) {
             currentUserItem.classList.add('active');
+            currentUserItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
 
@@ -324,6 +331,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             }));
             const filteredChatList = chatList.filter(chat => chat.other_user_id.toString() !== currentUserId.toString());
             displayChatList(filteredChatList);
+
+            // 添加这一部分
+            const urlParams = new URLSearchParams(window.location.search);
+            const receiverIdFromUrl = urlParams.get('receiverId');
+            if (receiverIdFromUrl) {
+                selectUserInList(receiverIdFromUrl);
+            } else if (filteredChatList.length > 0) {
+                selectUserInList(filteredChatList[0].other_user_id);
+            }
         } catch (error) {
             console.error('Error loading chat list:', error);
         }
