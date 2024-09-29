@@ -226,8 +226,16 @@ h3 {
 
 
 .chat-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
+.chat-icon, .chat-text {
+    pointer-events: none; /* 確保事件總是觸發在按鈕上 */
+}
+
+
 
 /* 特殊狀態的 hover */
 .like-btn:hover {

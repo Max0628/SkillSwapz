@@ -208,7 +208,15 @@ export async function handleLike(postId, userId) {
 }
 
 export async function handleBookmark(postId, userId) {
+    const bookmarkButton = document.getElementById(`bookmark-btn-${postId}`);
+    const bookmarkIcon = bookmarkButton.querySelector('i');
+
     try {
+        // 先切換按鈕狀態，提供即時反饋
+        bookmarkButton.classList.toggle('bookmarked');
+        bookmarkIcon.classList.toggle('fa-solid');
+        bookmarkIcon.classList.toggle('fa-regular');
+
         const response = await fetch('/api/1.0/post/bookMark', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -216,13 +224,18 @@ export async function handleBookmark(postId, userId) {
             credentials: 'include'
         });
 
-        const bookmarkButton = document.getElementById(`bookmark-btn-${postId}`);
-        bookmarkButton.classList.toggle('bookmarked');
+        if (!response.ok) {
+            throw new Error('Bookmark operation failed');
+        }
     } catch (error) {
         console.error('Error bookmarking post:', error);
+        // 如果操作失敗，恢復按鈕原始狀態
+        bookmarkButton.classList.toggle('bookmarked');
+        bookmarkIcon.classList.toggle('fa-solid');
+        bookmarkIcon.classList.toggle('fa-regular');
+        alert('收藏操作失敗，請稍後再試。');
     }
 }
-
 export async function handleComment(postId, userId) {
     const commentInput = document.getElementById(`comment-input-${postId}`);
     const commentContent = commentInput.value.trim();
@@ -393,15 +406,15 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             <i class="fa-${likedPosts.includes(postId) ? 'solid' : 'regular'} fa-heart"></i> 
             <span id="like-count-${postId}">${post.likeCount || 0}</span>
         </button>
-        <button class="action-btn bookmark-btn" id="bookmark-btn-${postId}">
-            <i class="fa-regular fa-bookmark"></i>
+        <button class="action-btn bookmark-btn ${bookmarkedPosts.includes(postId) ? 'bookmarked' : ''}" id="bookmark-btn-${postId}">
+            <i class="fa-${bookmarkedPosts.includes(postId) ? 'solid' : 'regular'} fa-bookmark"></i>
         </button>
         <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${postId}">
             <i class="fa-regular fa-comment"></i> 
             <span>${post.comments ? post.comments.length : 0}</span>
         </button>
         <button class="action-btn chat-btn" id="chat-btn-${postId}">
-            <i class="fa-regular fa-envelope"></i>
+        <span class="chat-icon"><i class="fa-regular fa-envelope"></i></span>
         </button>
         ${String(post.userId).trim() === String(userId).trim() ?
         `<button class="action-btn delete-btn" id="delete-btn-${postId}">
