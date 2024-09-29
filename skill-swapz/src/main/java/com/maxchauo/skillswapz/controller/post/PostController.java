@@ -143,15 +143,17 @@ public class PostController {
             return ResponseEntity.badRequest().body(errorMessage);
         }
     }
-
-    @GetMapping
-    public ResponseEntity<List<PostForm>> getPosts(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false, defaultValue = "date") String sort) {
-
-        List<PostForm> posts = service.searchPost(keyword, sort);
-        return ResponseEntity.ok().body(posts);
-    }
+//    @RequestMapping("api/1.0/post")
+@GetMapping
+public ResponseEntity<List<PostForm>> getPosts(
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false, defaultValue = "date") String sort,
+        @RequestParam(defaultValue = "0") int page,  // 第幾頁
+        @RequestParam(defaultValue = "11") int size  // 每頁顯示的資料筆數，11 用來判斷是否有更多資料
+) {
+    List<PostForm> posts = service.searchPost(keyword, sort, page, size);
+    return ResponseEntity.ok().body(posts);
+}
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostForm> getPostDetail(@PathVariable int postId) throws Exception {

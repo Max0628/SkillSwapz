@@ -101,8 +101,8 @@ public class PostService {
     }
 
 
-    public List<PostForm> searchPost(String keyword, String sortType) {
-        return searchRepo.searchPost(keyword, sortType);
+    public List<PostForm> searchPost(String keyword, String sortType,int page,int size) {
+        return searchRepo.searchPost(keyword, sortType,page,size);
     }
 
 

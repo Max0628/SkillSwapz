@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
+        setupScrollListener(userId, searchKeyword);
+
 
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
@@ -184,11 +186,12 @@ async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts
     }
 }
 
-async function fetchAndDisplayPosts(userId, searchKeyword = null) {
+
+async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size = 10) {
     try {
-        let apiUrl = 'api/1.0/post';
+        let apiUrl = `api/1.0/post?page=${page}&size=${size}`;
         if (searchKeyword) {
-            apiUrl += `?keyword=${encodeURIComponent(searchKeyword)}`;
+            apiUrl += `&keyword=${encodeURIComponent(searchKeyword)}`;
         }
 
         const [likedAndBookmarkedData, postResponse] = await Promise.all([
@@ -199,21 +202,21 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null) {
         const posts = await postResponse.json();
         const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
 
+        // 保持現有資料而不是清空列表
         const postsList = document.getElementById('posts-list');
-        postsList.innerHTML = '';
 
-        for (const post of posts) {
-            await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
-        }
+        // 渲染新獲取的帖子
+        await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
 
-        return { likedPosts, bookmarkedPosts };
+        return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
 
     } catch (error) {
         console.error('Error fetching posts:', error);
         alert('獲取貼文失敗，請稍後再試。');
-        return { likedPosts: [], bookmarkedPosts: [] };
+        return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
     }
 }
+
 
 function setupSearchAndFilter(userId) {
     const searchInput = document.querySelector('.search-input');
@@ -256,6 +259,27 @@ export function removePostFromUI(postId) {
     } else {
         console.warn(`Post element with ID ${postId} not found in the DOM`);
     }
+}
+
+
+function setupScrollListener(userId, searchKeyword) {
+    let currentPage = 0;
+    let isLoading = false;
+    let hasMorePosts = true;
+
+    window.addEventListener('scroll', async () => {
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+        // 如果滾動接近底部且不是正在加載，則加載下一頁資料
+        if (scrollTop + clientHeight >= scrollHeight - 50 && !isLoading && hasMorePosts) {
+            isLoading = true;
+            currentPage++;
+
+            const { hasMore } = await fetchAndDisplayPosts(userId, searchKeyword, currentPage);
+            hasMorePosts = hasMore;  // 如果返回的資料小於 size，表示沒有更多資料了
+            isLoading = false;
+        }
+    });
 }
 
 

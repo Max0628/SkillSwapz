@@ -26,7 +26,7 @@ public class PostSearchRepository {
         this.commentRepository = commentRepository;
     }
 
-    public List<PostForm> searchPost(String keyword, String sortType) {
+    public List<PostForm> searchPost(String keyword, String sortType, int page, int size) {
         String sql = "SELECT * FROM post WHERE (:keyword IS NULL OR " +
                 "(location LIKE CONCAT('%', :keyword, '%') " +
                 "OR skill_offered LIKE CONCAT('%', :keyword, '%') " +
@@ -34,23 +34,20 @@ public class PostSearchRepository {
                 "OR salary LIKE CONCAT('%', :keyword, '%') " +
                 "OR book_club_purpose LIKE CONCAT('%', :keyword, '%') " +
                 "OR content LIKE CONCAT('%', :keyword, '%') " +
-                "OR tag LIKE CONCAT('%,', :keyword, ',%') " +
                 "OR tag LIKE CONCAT('%', :keyword, '%'))) " +
-                "ORDER BY CASE WHEN :sort = 'likes' THEN like_count ELSE created_at END DESC";
+                "ORDER BY CASE WHEN :sort = 'likes' THEN like_count ELSE created_at END DESC " +
+                "LIMIT :size OFFSET :offset";
 
+        int offset = page * size;  // 計算 offset，用來跳過前幾頁的資料
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("keyword", keyword)
-                .addValue("sort", sortType);
+                .addValue("sort", sortType)
+                .addValue("size", size)
+                .addValue("offset", offset);
 
-        List<PostForm> posts = template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
-
-        for (PostForm post : posts) {
-            List<CommentForm> comments = commentRepository.getCommentsForPost(post.getId());
-            post.setComments(comments);
-        }
-
-        return posts;
+        return template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
     }
+
 
     public PostForm findPostById(int postId) {
         String sql = "SELECT * FROM post WHERE id = :postId";
