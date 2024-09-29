@@ -401,7 +401,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     // 插入新的 action buttons HTML
     postContent += `
-    <div class="action-buttons">
+   <div class="action-buttons">
         <button class="action-btn like-btn" id="like-btn-${postId}" data-liked="${likedPosts.includes(postId)}">
             <i class="fa-${likedPosts.includes(postId) ? 'solid' : 'regular'} fa-heart"></i> 
             <span id="like-count-${postId}">${post.likeCount || 0}</span>
@@ -413,9 +413,11 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             <i class="fa-regular fa-comment"></i> 
             <span>${post.comments ? post.comments.length : 0}</span>
         </button>
-        <button class="action-btn chat-btn" id="chat-btn-${postId}">
-        <span class="chat-icon"><i class="fa-regular fa-envelope"></i></span>
-        </button>
+        ${String(post.userId).trim() !== String(userId).trim() ?
+        `<button class="action-btn chat-btn" id="chat-btn-${postId}">
+            <span class="chat-icon"><i class="fa-regular fa-envelope"></i></span>
+        </button>`
+        : ''}
         ${String(post.userId).trim() === String(userId).trim() ?
         `<button class="action-btn delete-btn" id="delete-btn-${postId}">
                 <i class="fa-regular fa-trash-can"></i>
@@ -446,10 +448,17 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
     });
     postDiv.querySelector(`#comment-btn-${postId}`).addEventListener('click', () => handleComment(postId, userId));
-    postDiv.querySelector(`#chat-btn-${postId}`).addEventListener('click', (event) => {
-        event.preventDefault();
-        startChat(post.userId, userId);
-    });
+
+    // 只有在聊天按鈕存在時才添加事件監聽器
+    if (String(post.userId).trim() !== String(userId).trim()) {
+        const chatButton = postDiv.querySelector(`#chat-btn-${postId}`);
+        if (chatButton) {
+            chatButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                startChat(post.userId, userId);
+            });
+        }
+    }
     if (String(post.userId).trim() === String(userId).trim()) {
         const deleteButton = postDiv.querySelector(`#delete-btn-${postId}`);
         if (deleteButton) {

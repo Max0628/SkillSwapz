@@ -43,10 +43,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const chatUuidFromUrl = urlParams.get('chatUuid');
     const receiverIdFromUrl = urlParams.get('receiverId');
-    const usernameFromUrl = urlParams.get('username') || `User ${receiverIdFromUrl}`;
+    let usernameFromUrl = urlParams.get('username') || `User ${receiverIdFromUrl}`;
 
     if (receiverIdFromUrl && chatUuidFromUrl) {
-        await openChat(receiverIdFromUrl, chatUuidFromUrl, usernameFromUrl);
+        // 檢查用戶名是否為 "User X" 格式
+        if (usernameFromUrl && usernameFromUrl.startsWith('User ')) {
+            // 如果是，獲取正確的用戶名
+            const userInfo = await fetchUserDetails(receiverIdFromUrl);
+            usernameFromUrl = userInfo.username;
+
+            // 更新 URL 中的用戶名
+            const newUrl = `/chat.html?chatUuid=${chatUuidFromUrl}&receiverId=${receiverIdFromUrl}&username=${encodeURIComponent(usernameFromUrl)}`;
+            history.replaceState(null, '', newUrl);
+        }
+
+        // 打開聊天並顯示正確的用戶名
+        await openChat(receiverIdFromUrl, chatUuidFromUrl, decodeURIComponent(usernameFromUrl));
+    } else {
+        // 如果 URL 中沒有指定聊天，加載第一個聊天（如果有的話）
+        const firstChat = await loadFirstChat();
+        if (firstChat) {
+            await openChat(firstChat.other_user_id, firstChat.chat_uuid, firstChat.username);
+        }
+    }
+
+    async function loadFirstChat() {
+        try {
+            const response = await fetch(`/api/1.0/chat/list?userId=${currentUserId}`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const chatList = await response.json();
+            const filteredChatList = chatList.filter(chat => chat.other_user_id.toString() !== currentUserId.toString());
+            if (filteredChatList.length > 0) {
+                const firstChat = filteredChatList[0];
+                const userInfo = await fetchUserDetails(firstChat.other_user_id);
+                return {
+                    other_user_id: firstChat.other_user_id,
+                    chat_uuid: firstChat.chat_uuid,
+                    username: userInfo.username
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error('Error loading first chat:', error);
+            return null;
+        }
     }
 
     function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl) {
@@ -182,8 +227,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelector('.chat-username').textContent = username;
         await loadChatHistory(chatUuid);
         subscribeToPrivateChat(chatUuid);
-
-        // 添加这一行
         selectUserInList(userId);
     }
 
