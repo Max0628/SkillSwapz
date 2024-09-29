@@ -5,52 +5,37 @@ import {
     fetchLikedAndBookmarkedPosts,
     getUserId,
     handleTagClick,
-    startChat
+    startChat,
+    subscribeToPostEvents,
+    updateLikeCount,
+    updateCommentCount,
+    createCommentElement,
+    handleDelete,
+    handleBookmark
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
+
+let stompClient;
+let currentUserId;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
-    const userId = await getUserId();
-    if (userId) {
-        console.log('Login User Id:', userId);
+    currentUserId = await getUserId();
+    if (currentUserId) {
+        console.log('Login User Id:', currentUserId);
 
-        const stompClient = await connectWebSocket(userId);
-        await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
+        stompClient = await connectWebSocket(currentUserId);
+        await setupWebSocketSubscriptions(stompClient, currentUserId);
 
         const postsList = document.getElementById('posts-list');
+        setupPostInteractions(postsList, currentUserId);
 
-        postsList.addEventListener('click', async (event) => {
-            if (event.target.classList.contains('chat-btn')) {
-                event.preventDefault();
-                const postId = event.target.id.split('-')[2];
-                const post = await fetchPostById(postId);
-                if (post) {
-                    try {
-                        const chatUuid = await startChat(post.userId, userId);
-                        window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
-                    } catch (error) {
-                        console.error('Error starting chat:', error);
-                        alert('無法啟動聊天，請稍後再試。');
-                    }
-                }
-            }
-        });
+        await fetchAndDisplayUserPosts(currentUserId);
 
-        postsList.addEventListener('click', (event) => {
-            if (event.target.classList.contains('tag-btn')) {
-                event.preventDefault();
-                const tag = event.target.textContent;
-                handleTagClick(tag);
-            }
-        });
-
-        await fetchAndDisplayUserPosts(userId);
-
-        setupSearchAndFilter(userId);
+        setupSearchAndFilter(currentUserId);
 
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
@@ -62,6 +47,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         return null;
     }
 });
+
+async function setupWebSocketSubscriptions(stompClient, userId) {
+    stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
+
+    subscribeToPostEvents(stompClient, (postEvent) => {
+        console.log("Received postEvent: ", postEvent);
+
+        if (!postEvent || !postEvent.content) {
+            console.warn("Invalid postEvent or missing content");
+            return;
+        }
+
+        switch (postEvent.type) {
+            case 'CREATE_POST':
+                handleNewPost(postEvent.content);
+                break;
+            case 'UPDATE_POST':
+                handlePostUpdate(postEvent.content);
+                break;
+            case 'DELETE_POST':
+                removePostFromUI(postEvent.content.postId);
+                break;
+            case 'LIKE_POST':
+            case 'UNLIKE_POST':
+                handleLikeUpdate(postEvent.content);
+                break;
+            case 'CREATE_COMMENT':
+                handleCommentUpdate(postEvent.content);
+                break;
+            case 'DELETE_COMMENT':
+                handleDeleteComment(postEvent.content);
+                break;
+            default:
+                console.log('Received unknown post event type:', postEvent.type);
+        }
+    }, userId);
+}
 
 function onNotificationReceived(notification) {
     const data = JSON.parse(notification.body);
@@ -82,6 +104,41 @@ function showNotification(message) {
     }
 }
 
+function setupPostInteractions(postsList, userId) {
+    postsList.addEventListener('click', async (event) => {
+        const target = event.target;
+
+        if (target.classList.contains('chat-btn')) {
+            event.preventDefault();
+            const postId = target.id.split('-')[2];
+            const post = await fetchPostById(postId);
+            if (post) {
+                try {
+                    const chatUuid = await startChat(post.userId, userId);
+                    window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
+                } catch (error) {
+                    console.error('Error starting chat:', error);
+                    alert('無法啟動聊天，請稍後再試。');
+                }
+            }
+        } else if (target.classList.contains('tag-btn')) {
+            event.preventDefault();
+            const tag = target.textContent;
+            handleTagClick(tag);
+        } else if (target.classList.contains('delete-btn')) {
+            const postId = target.id.split('-')[2];
+            await handleDelete(postId, userId);
+        } else if (target.classList.contains('like-btn')) {
+            const postId = target.id.split('-')[2];
+            // Assuming you have a handleLike function in combinedUtils.js
+            await handleLike(postId, userId);
+        } else if (target.classList.contains('bookmark-btn')) {
+            const postId = target.id.split('-')[2];
+            await handleBookmark(postId, userId);
+        }
+    });
+}
+
 async function fetchAndDisplayUserPosts(userId, searchKeyword = null) {
     try {
         const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
@@ -92,11 +149,11 @@ async function fetchAndDisplayUserPosts(userId, searchKeyword = null) {
         console.log(posts);
         console.log(postsList);
 
-        posts.forEach(post => {
+        for (const post of posts) {
             if (!searchKeyword || post.content.includes(searchKeyword) || post.tag.includes(searchKeyword)) {
-                displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+                await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
             }
-        });
+        }
     } catch (error) {
         console.error('Error fetching user posts:', error);
     }
@@ -151,5 +208,56 @@ async function fetchPostById(postId) {
     } catch (error) {
         console.error('Error fetching post by ID:', error);
         return null;
+    }
+}
+
+async function handleNewPost(postData) {
+    if (postData.userId === currentUserId) {
+        const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(currentUserId);
+        const postsList = document.getElementById('posts-list');
+        await displayPost(postData, currentUserId, postsList, likedPosts, bookmarkedPosts, true);
+    }
+}
+
+async function handlePostUpdate(postData) {
+    if (postData.userId === currentUserId) {
+        const postElement = document.getElementById(`post-${postData.id}`);
+        if (postElement) {
+            const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(currentUserId);
+            const postsList = document.getElementById('posts-list');
+            postElement.remove();
+            await displayPost(postData, currentUserId, postsList, likedPosts, bookmarkedPosts);
+        }
+    }
+}
+
+function removePostFromUI(postId) {
+    const postElement = document.getElementById(`post-${postId}`);
+    if (postElement) {
+        postElement.remove();
+    }
+}
+
+function handleLikeUpdate(content) {
+    const { postId, likeCount } = content;
+    updateLikeCount(postId, likeCount);
+}
+
+async function handleCommentUpdate(content) {
+    const { post_id: postId, id: commentId } = content;
+    const commentSection = document.getElementById(`comment-section-${postId}`);
+    if (commentSection) {
+        const newComment = await createCommentElement(content, currentUserId);
+        commentSection.querySelector('.comments-container').appendChild(newComment);
+        updateCommentCount(postId, true);
+    }
+}
+
+function handleDeleteComment(content) {
+    const { commentId, postId } = content;
+    const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
+    if (commentElement) {
+        commentElement.remove();
+        updateCommentCount(postId, false);
     }
 }
