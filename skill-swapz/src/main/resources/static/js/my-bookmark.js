@@ -2,7 +2,6 @@ import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, s
 import { addNavbarStyles, createNavbar } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-
     const navbar = createNavbar();
     await document.body.insertBefore(await navbar, document.body.firstChild);
     addNavbarStyles();
@@ -149,4 +148,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-
