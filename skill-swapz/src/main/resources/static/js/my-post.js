@@ -138,7 +138,7 @@ function filterUserPosts(searchKeyword) {
 function updatePostsTitle(searchKeyword) {
     const postTitle = document.querySelector('#posts h2');
     if (searchKeyword) {
-        postTitle.textContent = `我的文章搜索結果：${searchKeyword}`;
+        postTitle.textContent = `我的文章 搜索結果：${searchKeyword}`;
     } else {
         postTitle.textContent = '我的文章';
     }

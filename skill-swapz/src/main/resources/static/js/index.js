@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
         setupScrollListener(userId, searchKeyword);
-
+        setupSearchAndFilter(userId);
 
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
@@ -128,7 +128,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
                 if (commentSection) {
                     console.log("commentSection is true");
-                    createCommentElement(commentData, userId)  // 傳入 userId 作為 currentUserId
+                    createCommentElement(commentData, userId)
                         .then(newComment => {
                             commentSection.appendChild(newComment);
                             updateCommentCount(commentData.post_id, true);
@@ -201,11 +201,12 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
 
         const posts = await postResponse.json();
         const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
-
-        // 保持現有資料而不是清空列表
         const postsList = document.getElementById('posts-list');
 
-        // 渲染新獲取的帖子
+        if (page === 0) {
+            postsList.innerHTML = ''; // 清空現有的帖子，只在第一頁時執行
+        }
+
         await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
 
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
@@ -217,12 +218,16 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
     }
 }
 
-
 function setupSearchAndFilter(userId) {
     const searchInput = document.querySelector('.search-input');
+    let debounceTimer;
+
     searchInput.addEventListener('input', (event) => {
-        const searchKeyword = event.target.value.trim();
-        updateURLAndFetchPosts(userId, searchKeyword);
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const searchKeyword = event.target.value.trim();
+            updateURLAndFetchPosts(userId, searchKeyword);
+        }, 300); // 300ms 延遲
     });
 
     document.querySelectorAll('.popular-tags li').forEach(tag => {
@@ -242,6 +247,9 @@ function updateURLAndFetchPosts(userId, searchKeyword = null) {
 
     const postTitle = document.querySelector('#posts h2');
     postTitle.textContent = searchKeyword ? searchKeyword : '所有文章';
+
+    const postsList = document.getElementById('posts-list');
+    postsList.innerHTML = ''; // 清空現有的帖子
 
     fetchAndDisplayPosts(userId, searchKeyword);
 }

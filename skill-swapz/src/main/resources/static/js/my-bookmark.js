@@ -2,6 +2,7 @@ import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, s
 import { addNavbarStyles, createNavbar } from './navbar.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+
     const navbar = createNavbar();
     await document.body.insertBefore(await navbar, document.body.firstChild);
     addNavbarStyles();
@@ -142,9 +143,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updatePostsTitle(searchKeyword) {
         const postTitle = document.querySelector('#posts h2');
         if (searchKeyword) {
-            postTitle.textContent = `我的書籤搜索結果：${searchKeyword}`;
+            postTitle.textContent = `我的收藏 搜索結果：${searchKeyword}`;
         } else {
-            postTitle.textContent = '我的書籤';
+            postTitle.textContent = '我的收藏';
         }
     }
 });
+
