@@ -1,5 +1,3 @@
-// navbar.js
-
 export async function createNavbar() {
     const navbar = document.createElement('nav');
     navbar.className = 'navbar';
@@ -11,11 +9,6 @@ export async function createNavbar() {
 
     const rightContainer = document.createElement('div');
     rightContainer.className = 'navbar-right';
-
-    const createPostButton = document.createElement('button');
-    createPostButton.textContent = '發布文章';
-    createPostButton.className = 'navbar-create-post';
-    createPostButton.onclick = () => window.location.href = '/create-post.html';
 
     try {
         const userId = await getUserId();
@@ -31,8 +24,14 @@ export async function createNavbar() {
                 userName.className = 'navbar-username';
                 userName.textContent = userData.username || 'User';
 
-                rightContainer.appendChild(avatar);
+                // 將選單顯示事件綁定到大頭貼
+                avatar.addEventListener('click', function() {
+                    const dropdownContent = document.querySelector('.dropdown-content');
+                    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+                });
+
                 rightContainer.appendChild(userName);
+                rightContainer.appendChild(avatar);
             }
         }
     } catch (error) {
@@ -42,13 +41,14 @@ export async function createNavbar() {
     const userMenu = document.createElement('div');
     userMenu.className = 'navbar-user-menu';
 
-    const userMenuButton = document.createElement('button');
-    userMenuButton.textContent = '選單';
-    userMenuButton.className = 'navbar-user-button';
-    userMenu.appendChild(userMenuButton);
-
     const dropdownContent = document.createElement('div');
     dropdownContent.className = 'dropdown-content';
+
+    // 將發布文章按鈕添加到下拉選單的最上方
+    const createPostItem = document.createElement('a');
+    createPostItem.href = '/create-post.html';
+    createPostItem.textContent = '發布文章';
+    dropdownContent.appendChild(createPostItem);
 
     const menuItems = [
         { name: '訊息', href: '/chat.html' },
@@ -66,12 +66,21 @@ export async function createNavbar() {
     });
 
     userMenu.appendChild(dropdownContent);
-
-    rightContainer.appendChild(createPostButton);
     rightContainer.appendChild(userMenu);
 
     navbar.appendChild(logo);
     navbar.appendChild(rightContainer);
+
+    // 添加全局點擊事件，點擊其他地方隱藏選單
+    document.addEventListener('click', function(event) {
+        const dropdownContent = document.querySelector('.dropdown-content');
+        const avatar = document.querySelector('.navbar-avatar');
+
+        // 如果點擊不在大頭貼或選單內，則隱藏選單
+        if (!avatar.contains(event.target) && !dropdownContent.contains(event.target)) {
+            dropdownContent.style.display = 'none';
+        }
+    });
 
     return navbar;
 }
@@ -134,23 +143,8 @@ export function addNavbarStyles() {
             align-items: center;
             gap: 20px;
         }
-        .navbar-create-post {
-            padding: 5px 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
         .navbar-user-menu {
             position: relative;
-        }
-        .navbar-user-button {
-            padding: 5px 10px;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
         .dropdown-content {
             display: none;
@@ -160,9 +154,6 @@ export function addNavbarStyles() {
             min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
             z-index: 1;
-        }
-        .navbar-user-menu:hover .dropdown-content {
-            display: block;
         }
         .dropdown-content a {
             color: black;
@@ -178,6 +169,7 @@ export function addNavbarStyles() {
             height: 30px;
             border-radius: 50%;
             object-fit: cover;
+            cursor: pointer;
         }
         .navbar-username {
             font-weight: bold;

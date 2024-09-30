@@ -180,13 +180,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function onMessageReceived(message) {
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.content && parsedMessage.sender_id.toString() !== currentUserId) {
-            const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at);
+            console.log("parsedMessage.created_at: "+parsedMessage.created_at)
+            const adjustedTime = adjustReceivedTime(parsedMessage.created_at);
+            console.log("adjustedTime: "+adjustedTime)
+            const messageElement = createMessageElement(parsedMessage.content, 'received', adjustedTime);
+            // const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at);
             chatContent.appendChild(messageElement);
             chatContent.scrollTop = chatContent.scrollHeight;
 
             const userInfo = await fetchUserDetails(parsedMessage.sender_id);
             updateLastMessage(parsedMessage.sender_id, parsedMessage.content, userInfo.username, userInfo.avatarUrl);
         }
+    }
+
+    function adjustReceivedTime(timeString) {
+        const date = new Date(timeString);
+        date.setHours(date.getHours() + 8);
+        return date;
     }
 
     function updateLastMessage(userId, lastMessage, username, avatarUrl) {
@@ -384,7 +394,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 selectUserInList(filteredChatList[0].other_user_id);
             }
         } catch (error) {
-            console.error('Error loading chat list:', error);
+            // console.error('Error loading chat list:', error);
+            return null;
         }
     }
 

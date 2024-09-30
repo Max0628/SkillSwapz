@@ -85,6 +85,7 @@ async function uploadAvatar() {
         if (!response.ok) throw new Error('Failed to upload avatar');
 
         alert('照片上傳成功！');
+        window.location.reload();
 
         const avatarResponse = await fetch(`/api/1.0/user/avatar?userId=${userId}`, {
             method: 'GET',

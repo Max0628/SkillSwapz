@@ -117,8 +117,9 @@ function setupPostInteractions(postsList, userId) {
                     const chatUuid = await startChat(post.userId, userId);
                     window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
                 } catch (error) {
-                    console.error('Error starting chat:', error);
-                    alert('無法啟動聊天，請稍後再試。');
+                    return null;
+                    // console.error('Error starting chat:', error);
+                    // alert('無法啟動聊天，請稍後再試。');
                 }
             }
         } else if (target.classList.contains('tag-btn')) {

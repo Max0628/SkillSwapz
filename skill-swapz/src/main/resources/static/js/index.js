@@ -74,8 +74,9 @@ function setupPostListeners(postsList, userId) {
                     const redirectUrl = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
                     window.location.href = redirectUrl;
                 } catch (error) {
-                    console.error('Error starting chat:', error);
-                    alert('無法啟動聊天，請稍後再試。');
+                    return null;ㄏ
+                    // console.error('Error starting chat:', error);
+                    // alert('無法啟動聊天，請稍後再試。');
                 }
             }
         }
