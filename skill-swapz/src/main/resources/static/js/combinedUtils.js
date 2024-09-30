@@ -1,7 +1,5 @@
 // combinedUtils.js
 let stompClient = null;
-
-
 export async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
@@ -67,6 +65,10 @@ export function connectWebSocket(userId) {
                     console.log(`Successfully connected to WebSocket, User ID: ${userId}`);
                     reconnectAttempts = 0;
                     isConnecting = false;
+                    stompClient.subscribe('/user/queue/unreadCount', function(message) {
+                        const unreadCount = JSON.parse(message.body);
+                        updateUnreadMessageCount(unreadCount);
+                    });
                     resolve(stompClient);
                 },
                 error => {
@@ -77,6 +79,7 @@ export function connectWebSocket(userId) {
             );
         });
     }
+
 
     function reconnect(resolve, reject) {
         if (reconnectAttempts >= maxReconnectAttempts) {
@@ -107,6 +110,41 @@ export function connectWebSocket(userId) {
     return connect();
 }
 
+export async function getUnreadMessageCounts(userId) {
+    try {
+        const response = await fetch(`/api/1.0/chat/unreadCounts?userId=${userId}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch unread message counts');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching unread message counts:', error);
+        return {};
+    }
+}
+
+export async function markMessagesAsRead(chatUuid, userId) {
+    try {
+        await stompClient.send("/app/markAsRead", {}, JSON.stringify({
+            chatUuid: chatUuid,
+            userId: userId
+        }));
+    } catch (error) {
+        console.error('Error marking messages as read:', error);
+    }
+}
+
+function updateUnreadMessageCount(unreadCount) {
+    console.log("Updating unread message count:", unreadCount);  // 確認觸發情況
+    const event = new CustomEvent('unreadCountUpdated', { detail: unreadCount });
+    window.dispatchEvent(event);
+}
+
+
+
 export async function startChat(receiverId, senderId) {
     try {
         const response = await fetch('/api/1.0/chat/channel', {
@@ -117,6 +155,7 @@ export async function startChat(receiverId, senderId) {
         });
         const data = await response.json();
         if (response.ok && data.chat_uuid) {
+            await getUnreadMessageCounts(senderId);
             return data.chat_uuid;
         } else {
             throw new Error('Failed to create chat channel: ' + data.message);
@@ -678,7 +717,7 @@ export async function handleDeleteComment(commentId, userId, postId) {
     if (postId) {
         updateCommentCount(postId, false); // 確保這裡正確減少留言數
     } else {
-        console.warn('Post ID is not provided, cannot update comment count');
+        // console.warn('Post ID is not provided, cannot update comment count');
     }
 
     // 如果有 userId，表示是使用者主動刪除，需要發送請求到後端

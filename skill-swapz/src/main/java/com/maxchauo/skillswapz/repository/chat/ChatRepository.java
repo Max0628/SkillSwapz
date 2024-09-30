@@ -114,4 +114,35 @@ public class ChatRepository {
             return chat;
         });
     }
+
+    //根據使用者的id尋找未讀的信息數量
+    public int countUnreadMessagesForUser(int userId) {
+        String sql = "SELECT COUNT(*) FROM chat_messages WHERE receiver_id = :userId AND is_read = 0";
+        return template.queryForObject(sql, new MapSqlParameterSource("userId", userId), Integer.class);
+    }
+
+    //將使用者id作為接收者id,配合聊天室uuid名稱，搜尋尚未讀取的信息數量
+    public int countUnreadMessagesForChat(String chatUuid, int userId) {
+        String sql = "SELECT COUNT(*) FROM chat_messages WHERE chat_uuid = :chatUuid AND receiver_id = :userId AND is_read = 0";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("chatUuid", chatUuid)
+                .addValue("userId", userId);
+        return template.queryForObject(sql, params, Integer.class);
+    }
+
+    //根據使用者id作為接收者id,當試用者閱讀過信息後，把相對應的聊天室信息改為已讀
+    public void markMessagesAsRead(String chatUuid, int userId) {
+        String sql = "UPDATE chat_messages SET is_read = 1 WHERE chat_uuid = :chatUuid AND receiver_id = :userId AND is_read = 0";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("chatUuid", chatUuid)
+                .addValue("userId", userId);
+        template.update(sql, params);
+    }
+
+    //
+    public List<Map<String, Object>> getUnreadMessageCountsForUser(int userId) {
+        String sql = "SELECT chat_uuid, COUNT(*) as unread_count FROM chat_messages " +
+                "WHERE receiver_id = :userId AND is_read = 0 GROUP BY chat_uuid";
+        return template.queryForList(sql, new MapSqlParameterSource("userId", userId));
+    }
 }

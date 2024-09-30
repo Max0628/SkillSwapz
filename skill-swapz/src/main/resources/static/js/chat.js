@@ -1,6 +1,7 @@
 //chat.js
-import { getUserId, connectWebSocket, startChat } from './combinedUtils.js';
-import { createNavbar, addNavbarStyles } from './navbar.js';
+import {connectWebSocket, getUserId, markMessagesAsRead} from './combinedUtils.js';
+import {addNavbarStyles, createNavbar} from './navbar.js';
+
 const localTime = new Date();
 console.log(localTime);
 const utcTime = new Date().toISOString();
@@ -19,6 +20,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const navbarContainer = document.querySelector('.navbar');
     await navbarContainer.appendChild(await createNavbar());
     addNavbarStyles();
+
+    window.addEventListener('unreadCountUpdated', (event) => {
+        const unreadCounts = event.detail;
+        Object.entries(unreadCounts).forEach(([chatUuid, count]) => {
+            updateUnreadCountUI(chatUuid, count);
+        });
+    });
 
     currentUserId = await getUserId();
     if (!currentUserId) {
@@ -122,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (stompClient && stompClient.connected) {
-            stompClient.subscribe(`/user/queue/private/${chatUuid}`, onMessageReceived);
+            stompClient.subscribe(`/user/queue/private/${chatUuid}`, message => onMessageReceived(message, chatUuid));
             subscribedChats.add(chatUuid);
             console.log(`Subscribed to private chat: ${chatUuid}`);
         } else {
@@ -177,21 +185,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function onMessageReceived(message) {
+    async function onMessageReceived(message, chatUuid) {
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.content && parsedMessage.sender_id.toString() !== currentUserId) {
-            console.log("parsedMessage.created_at: "+parsedMessage.created_at)
-            const adjustedTime = adjustReceivedTime(parsedMessage.created_at);
-            console.log("adjustedTime: "+adjustedTime)
-            const messageElement = createMessageElement(parsedMessage.content, 'received', adjustedTime);
-            // const messageElement = createMessageElement(parsedMessage.content, 'received', parsedMessage.created_at);
-            chatContent.appendChild(messageElement);
-            chatContent.scrollTop = chatContent.scrollHeight;
+            console.log("Received message for chat:", chatUuid);
+
+            if (chatUuid === currentChatUuid) {
+                // 消息属于当前聊天室，直接显示
+                console.log("Displaying message in current chat");
+                const adjustedTime = adjustReceivedTime(parsedMessage.created_at);
+                const messageElement = createMessageElement(parsedMessage.content, 'received', adjustedTime);
+                chatContent.appendChild(messageElement);
+                chatContent.scrollTop = chatContent.scrollHeight;
+            } else {
+                // 消息不属于当前聊天室，只更新未读计数
+                console.log("Updating unread count for chat:", chatUuid);
+                updateUnreadCountUI(chatUuid, (parsedMessage.unreadCount || 0) + 1);
+                // 可以在这里添加通知逻辑
+            }
 
             const userInfo = await fetchUserDetails(parsedMessage.sender_id);
             updateLastMessage(parsedMessage.sender_id, parsedMessage.content, userInfo.username, userInfo.avatarUrl);
         }
     }
+
 
     function adjustReceivedTime(timeString) {
         const date = new Date(timeString);
@@ -212,8 +229,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+
+    function clearCurrentChat() {
+        // 清理当前聊天的逻辑，例如清空聊天内容等
+        chatContent.innerHTML = '';
+        // 可能还需要取消之前的WebSocket订阅
+    }
+
+
     async function openChat(userId, chatUuid, username) {
         console.log('Opening chat:', { userId, chatUuid, username });
+
+        if (currentChatUuid) {
+            // 如果之前有打开的聊天，先清理
+            clearCurrentChat();
+        }
+
         receiverId = userId;
         if (!chatUuid) {
             try {
@@ -238,6 +269,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadChatHistory(chatUuid);
         subscribeToPrivateChat(chatUuid);
         selectUserInList(userId);
+
+        // 標記消息為已讀
+        await markMessagesAsRead(chatUuid, currentUserId);
+        updateUnreadCountUI(chatUuid, 0);
+    }
+    function updateUnreadCountUI(chatUuid, unreadCount) {
+        // 更新特定聊天的未讀消息計數
+        const chatItem = document.querySelector(`[data-chat-uuid="${chatUuid}"]`);
+        if (chatItem) {
+            const unreadBadge = chatItem.querySelector('.unread-badge');
+            if (unreadCount > 0) {
+                if (unreadBadge) {
+                    unreadBadge.textContent = unreadCount;
+                } else {
+                    const badge = document.createElement('span');
+                    badge.className = 'unread-badge';
+                    badge.textContent = unreadCount;
+                    chatItem.appendChild(badge);
+                }
+            } else if (unreadBadge) {
+                unreadBadge.remove();
+            }
+        }
+
+        // 更新總的未讀消息計數
+        const totalUnreadCount = Array.from(document.querySelectorAll('.unread-badge'))
+            .reduce((total, badge) => total + parseInt(badge.textContent), 0);
+        updateTotalUnreadCount(totalUnreadCount);
+    }
+
+    function updateTotalUnreadCount(count) {
+        const totalUnreadBadge = document.getElementById('total-unread-badge');
+        if (count > 0) {
+            if (totalUnreadBadge) {
+                totalUnreadBadge.textContent = count;
+            } else {
+                const badge = document.createElement('span');
+                badge.id = 'total-unread-badge';
+                badge.className = 'total-unread-badge';
+                badge.textContent = count;
+                document.querySelector('.navbar-right').appendChild(badge);
+            }
+        } else if (totalUnreadBadge) {
+            totalUnreadBadge.remove();
+        }
     }
 
     function selectUserInList(userId) {

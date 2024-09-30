@@ -1,6 +1,7 @@
 package com.maxchauo.skillswapz.controller.chat;
 
 import com.maxchauo.skillswapz.data.dto.chat.ChatMessage;
+import com.maxchauo.skillswapz.data.dto.chat.ReadMessage;
 import com.maxchauo.skillswapz.service.chat.ChatService;
 
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class ChatController {
         String chatUuid = chatService.createOrGetChatChannel(userId1, userId2);
         Map<String, Object> response = new HashMap<>();
         response.put("chat_uuid", chatUuid);
-        
+
         Map<String, Object> notification = new HashMap<>();
         notification.put("chatUuid", chatUuid);
         notification.put("sender", userId1);
@@ -52,7 +53,7 @@ public class ChatController {
         log.info("createOrGetChannel completed. Response: {}", response);
         return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/sendMessage")
     public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
         try {
@@ -69,6 +70,15 @@ public class ChatController {
             Map<String, Object> response = new HashMap<>();
             response.put("message_id", messageId);
             response.put("status", "Message sent");
+
+            // 更新未讀消息計數
+            int unreadCount = chatService.getUnreadMessageCountForUser(receiverId);
+            messagingTemplate.convertAndSendToUser(
+                    receiverId.toString(),
+                    "/queue/unreadCount",
+                    unreadCount
+            );
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,7 +87,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
-    
+
     @GetMapping("/messages")
     public ResponseEntity<List<Map<String, Object>>> getMessages(@RequestParam String chat_uuid) {
         List<Map<String, Object>> messages = chatService.getMessages(chat_uuid);
@@ -119,5 +129,32 @@ public class ChatController {
             log.error("Error fetching chat list: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while fetching the chat list");
         }
+    }
+
+    @MessageMapping("/markAsRead")
+    public void markAsRead(@Payload ReadMessage readMessage) {
+        chatService.markMessagesAsRead(readMessage.getChatUuid(), readMessage.getUserId());
+
+        // 發送更新的未讀消息計數
+        int unreadCount = chatService.getUnreadMessageCountForUser(readMessage.getUserId());
+        messagingTemplate.convertAndSendToUser(
+                readMessage.getUserId().toString(),
+                "/queue/unreadCount",
+                unreadCount
+        );
+
+        // 發送特定聊天的未讀消息計數
+        int chatUnreadCount = chatService.getUnreadMessageCountForChat(readMessage.getChatUuid(), readMessage.getUserId());
+        messagingTemplate.convertAndSendToUser(
+                readMessage.getUserId().toString(),
+                "/queue/chatUnreadCount",
+                Map.of("chatUuid", readMessage.getChatUuid(), "unreadCount", chatUnreadCount)
+        );
+    }
+
+    @GetMapping("/unreadCounts")
+    public ResponseEntity<Map<String, Integer>> getUnreadCounts(@RequestParam int userId) {
+        Map<String, Integer> unreadCounts = chatService.getUnreadMessageCountsForUser(userId);
+        return ResponseEntity.ok(unreadCounts);
     }
 }

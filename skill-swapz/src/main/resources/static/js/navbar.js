@@ -1,3 +1,11 @@
+//navbar.js
+import { getUnreadMessageCounts } from './combinedUtils.js';
+
+// 監聽未讀消息計數更新事件
+window.addEventListener('unreadCountUpdated', (event) => {
+    console.log("Received unreadCountUpdated event:", event.detail);  // 新增此行來檢查
+    updateNavbarUnreadCount(event.detail);
+});
 export async function createNavbar() {
     const navbar = document.createElement('nav');
     navbar.className = 'navbar';
@@ -9,6 +17,8 @@ export async function createNavbar() {
 
     const rightContainer = document.createElement('div');
     rightContainer.className = 'navbar-right';
+
+
 
     try {
         const userId = await getUserId();
@@ -24,14 +34,24 @@ export async function createNavbar() {
                 userName.className = 'navbar-username';
                 userName.textContent = userData.username || 'User';
 
+                // 創建未讀消息計數元素
+                const unreadCountBadge = document.createElement('span');
+                unreadCountBadge.id = 'total-unread-badge';
+                unreadCountBadge.className = 'total-unread-badge';
+                unreadCountBadge.style.display = 'none'; // 初始時隱藏
+
                 // 將選單顯示事件綁定到大頭貼
                 avatar.addEventListener('click', function() {
                     const dropdownContent = document.querySelector('.dropdown-content');
                     dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
                 });
 
+                rightContainer.appendChild(unreadCountBadge);
                 rightContainer.appendChild(userName);
                 rightContainer.appendChild(avatar);
+
+                // 初始化未讀消息計數
+                updateUnreadMessageCount(userId);
             }
         }
     } catch (error) {
@@ -82,7 +102,31 @@ export async function createNavbar() {
         }
     });
 
+
+
     return navbar;
+}
+
+async function updateUnreadMessageCount(userId) {
+    try {
+        const unreadCounts = await getUnreadMessageCounts(userId);
+        updateNavbarUnreadCount(unreadCounts);
+    } catch (error) {
+        console.error('Error updating unread message count:', error);
+    }
+}
+
+function updateNavbarUnreadCount(unreadCount) {
+    console.log("Updating navbar unread count:", unreadCount);
+    const unreadCountBadge = document.getElementById('total-unread-badge');
+    if (unreadCountBadge) {
+        console.log("Before update: ", unreadCountBadge.textContent, unreadCountBadge.style.display);
+        unreadCountBadge.textContent = unreadCount;
+        unreadCountBadge.style.display = 'inline-block';
+        console.log("After update: ", unreadCountBadge.textContent, unreadCountBadge.style.display);
+    } else {
+        console.warn('Unread count badge not found in the DOM');
+    }
 }
 
 async function getUserId() {
