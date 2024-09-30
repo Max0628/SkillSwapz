@@ -278,17 +278,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 更新特定聊天的未讀消息計數
         const chatItem = document.querySelector(`[data-chat-uuid="${chatUuid}"]`);
         if (chatItem) {
-            const unreadBadge = chatItem.querySelector('.unread-badge');
+            let unreadBadge = chatItem.querySelector('.unread-badge');
+
             if (unreadCount > 0) {
+                // 如果已存在未讀徽章，將新消息的數量累加到現有未讀數
                 if (unreadBadge) {
-                    unreadBadge.textContent = unreadCount;
+                    const currentUnreadCount = parseInt(unreadBadge.textContent) || 0;
+                    unreadBadge.textContent = currentUnreadCount + unreadCount;
                 } else {
-                    const badge = document.createElement('span');
-                    badge.className = 'unread-badge';
-                    badge.textContent = unreadCount;
-                    chatItem.appendChild(badge);
+                    // 如果還沒有未讀徽章，創建一個
+                    unreadBadge = document.createElement('span');
+                    unreadBadge.className = 'unread-badge';
+                    unreadBadge.textContent = unreadCount;
+                    chatItem.appendChild(unreadBadge);
                 }
             } else if (unreadBadge) {
+                // 如果未讀數為 0，刪除徽章
                 unreadBadge.remove();
             }
         }

@@ -1,108 +1,48 @@
-//navbar.js
 import { getUnreadMessageCounts } from './combinedUtils.js';
 
 // 監聽未讀消息計數更新事件
 window.addEventListener('unreadCountUpdated', (event) => {
-    console.log("Received unreadCountUpdated event:", event.detail);  // 新增此行來檢查
+    console.log("Received unreadCountUpdated event:", event.detail);
     updateNavbarUnreadCount(event.detail);
 });
+
+// 頁面加載時更新未讀消息計數
+document.addEventListener('DOMContentLoaded', async () => {
+    const userId = await getUserId();
+    if (userId) {
+        await updateUnreadMessageCount(userId);
+    }
+});
+
 export async function createNavbar() {
-    const navbar = document.createElement('nav');
-    navbar.className = 'navbar';
-
-    const logo = document.createElement('a');
-    logo.href = '/';
-    logo.className = 'navbar-logo';
-    logo.textContent = '技能交換';
-
-    const rightContainer = document.createElement('div');
-    rightContainer.className = 'navbar-right';
-
-
+    const navbar = createElementWithClass('nav', 'navbar');
+    const logo = createLogo();
+    const rightContainer = createElementWithClass('div', 'navbar-right');
 
     try {
         const userId = await getUserId();
         if (userId) {
             const userData = await fetchUserProfile(userId);
             if (userData) {
-                const avatar = document.createElement('img');
-                avatar.className = 'navbar-avatar';
-                avatar.src = userData.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
-                avatar.alt = 'User Avatar';
+                const avatar = createAvatar(userData);
+                const userName = createUserName(userData);
+                const unreadCountBadge = createUnreadCountBadge();
 
-                const userName = document.createElement('span');
-                userName.className = 'navbar-username';
-                userName.textContent = userData.username || 'User';
+                avatar.addEventListener('click', toggleDropdown);
 
-                // 創建未讀消息計數元素
-                const unreadCountBadge = document.createElement('span');
-                unreadCountBadge.id = 'total-unread-badge';
-                unreadCountBadge.className = 'total-unread-badge';
-                unreadCountBadge.style.display = 'none'; // 初始時隱藏
-
-                // 將選單顯示事件綁定到大頭貼
-                avatar.addEventListener('click', function() {
-                    const dropdownContent = document.querySelector('.dropdown-content');
-                    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
-                });
-
-                rightContainer.appendChild(unreadCountBadge);
-                rightContainer.appendChild(userName);
-                rightContainer.appendChild(avatar);
-
-                // 初始化未讀消息計數
-                updateUnreadMessageCount(userId);
+                rightContainer.append(unreadCountBadge, userName, avatar);
             }
         }
     } catch (error) {
         console.error('Error loading user data:', error);
     }
 
-    const userMenu = document.createElement('div');
-    userMenu.className = 'navbar-user-menu';
-
-    const dropdownContent = document.createElement('div');
-    dropdownContent.className = 'dropdown-content';
-
-    // 將發布文章按鈕添加到下拉選單的最上方
-    const createPostItem = document.createElement('a');
-    createPostItem.href = '/create-post.html';
-    createPostItem.textContent = '發布文章';
-    dropdownContent.appendChild(createPostItem);
-
-    const menuItems = [
-        { name: '訊息', href: '/chat.html' },
-        { name: '個人資料', href: '/profile.html' },
-        { name: '我的文章', href: '/my-post.html' },
-        { name: '收藏文章', href: '/my-bookmark.html' },
-        { name: '登出', href: '/logout' }
-    ];
-
-    menuItems.forEach(item => {
-        const menuItem = document.createElement('a');
-        menuItem.href = item.href;
-        menuItem.textContent = item.name;
-        dropdownContent.appendChild(menuItem);
-    });
-
-    userMenu.appendChild(dropdownContent);
+    const userMenu = createUserMenu();
     rightContainer.appendChild(userMenu);
-
-    navbar.appendChild(logo);
-    navbar.appendChild(rightContainer);
+    navbar.append(logo, rightContainer);
 
     // 添加全局點擊事件，點擊其他地方隱藏選單
-    document.addEventListener('click', function(event) {
-        const dropdownContent = document.querySelector('.dropdown-content');
-        const avatar = document.querySelector('.navbar-avatar');
-
-        // 如果點擊不在大頭貼或選單內，則隱藏選單
-        if (!avatar.contains(event.target) && !dropdownContent.contains(event.target)) {
-            dropdownContent.style.display = 'none';
-        }
-    });
-
-
+    document.addEventListener('click', hideDropdownOnClick);
 
     return navbar;
 }
@@ -110,20 +50,18 @@ export async function createNavbar() {
 async function updateUnreadMessageCount(userId) {
     try {
         const unreadCounts = await getUnreadMessageCounts(userId);
-        updateNavbarUnreadCount(unreadCounts);
+        const totalUnreadCount = Object.values(unreadCounts).reduce((total, count) => total + count, 0);
+        updateNavbarUnreadCount(totalUnreadCount);
     } catch (error) {
         console.error('Error updating unread message count:', error);
     }
 }
 
 function updateNavbarUnreadCount(unreadCount) {
-    console.log("Updating navbar unread count:", unreadCount);
     const unreadCountBadge = document.getElementById('total-unread-badge');
     if (unreadCountBadge) {
-        console.log("Before update: ", unreadCountBadge.textContent, unreadCountBadge.style.display);
-        unreadCountBadge.textContent = unreadCount;
-        unreadCountBadge.style.display = 'inline-block';
-        console.log("After update: ", unreadCountBadge.textContent, unreadCountBadge.style.display);
+        unreadCountBadge.textContent = unreadCount > 0 ? unreadCount : '';
+        unreadCountBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
     } else {
         console.warn('Unread count badge not found in the DOM');
     }
@@ -135,11 +73,9 @@ async function getUserId() {
             method: 'POST',
             credentials: 'include',
         });
-
         if (!response.ok) {
             throw new Error('Failed to fetch user ID');
         }
-
         const data = await response.json();
         return data.user_id;
     } catch (error) {
@@ -154,15 +90,88 @@ async function fetchUserProfile(userId) {
             method: 'GET',
             credentials: 'include'
         });
-
         if (!response.ok) {
             throw new Error('Failed to fetch user profile');
         }
-
         return await response.json();
     } catch (error) {
         console.error('Error fetching user profile:', error);
         return null;
+    }
+}
+
+// Utility functions for creating elements and handling DOM
+function createElementWithClass(element, className) {
+    const el = document.createElement(element);
+    el.className = className;
+    return el;
+}
+
+function createLogo() {
+    const logo = createElementWithClass('a', 'navbar-logo');
+    logo.href = '/';
+    logo.textContent = '技能交換';
+    return logo;
+}
+
+function createAvatar(userData) {
+    const avatar = createElementWithClass('img', 'navbar-avatar');
+    avatar.src = userData.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
+    avatar.alt = 'User Avatar';
+    return avatar;
+}
+
+function createUserName(userData) {
+    const userName = createElementWithClass('span', 'navbar-username');
+    userName.textContent = userData.username || 'User';
+    return userName;
+}
+
+function createUnreadCountBadge() {
+    const unreadCountBadge = createElementWithClass('span', 'total-unread-badge');
+    unreadCountBadge.id = 'total-unread-badge';
+    unreadCountBadge.style.display = 'none'; // 初始時隱藏
+    return unreadCountBadge;
+}
+
+function createUserMenu() {
+    const userMenu = createElementWithClass('div', 'navbar-user-menu');
+    const dropdownContent = createElementWithClass('div', 'dropdown-content');
+
+    const menuItems = [
+        { name: '訊息', href: '/chat.html' },
+        { name: '個人資料', href: '/profile.html' },
+        { name: '我的文章', href: '/my-post.html' },
+        { name: '收藏文章', href: '/my-bookmark.html' },
+        { name: '登出', href: '/logout' }
+    ];
+
+    const createPostItem = createElementWithClass('a', '');
+    createPostItem.href = '/create-post.html';
+    createPostItem.textContent = '發布文章';
+    dropdownContent.appendChild(createPostItem);
+
+    menuItems.forEach(item => {
+        const menuItem = createElementWithClass('a', '');
+        menuItem.href = item.href;
+        menuItem.textContent = item.name;
+        dropdownContent.appendChild(menuItem);
+    });
+
+    userMenu.appendChild(dropdownContent);
+    return userMenu;
+}
+
+function toggleDropdown() {
+    const dropdownContent = document.querySelector('.dropdown-content');
+    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+}
+
+function hideDropdownOnClick(event) {
+    const dropdownContent = document.querySelector('.dropdown-content');
+    const avatar = document.querySelector('.navbar-avatar');
+    if (!avatar.contains(event.target) && !dropdownContent.contains(event.target)) {
+        dropdownContent.style.display = 'none';
     }
 }
 
