@@ -116,19 +116,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         userItem.setAttribute('data-user-id', userId);
         userItem.setAttribute('data-chat-uuid', chatUuid);
         userItem.innerHTML = `
-    <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
-    <div class="user-details">
-        <span class="username">${username}</span>
-        <span class="last-message">${lastMessage || ''}</span>
+        <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
+        <div class="user-details">
+            <span class="username">${username}</span>
+            <span class="last-message">${lastMessage || ''}</span>
+        </div>
         ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
-    </div>
     `;
         userItem.addEventListener('click', () => openChat(userId, chatUuid, username));
         userList.appendChild(userItem);
     }
-
-
-    // await loadChatList();
 
     function subscribeToPrivateChat(chatUuid) {
         if (subscribedChats.has(chatUuid)) {

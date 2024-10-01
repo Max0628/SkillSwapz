@@ -186,3 +186,39 @@
         display: flex;
         flex: 1;
     }
+
+    .user-item {
+        display: flex;
+        align-items: center; /* 垂直置中 */
+        justify-content: space-between; /* 讓子元素分布兩側 */
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        position: relative; /* 為了讓徽章定位使用 */
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .user-details {
+        flex-grow: 1;
+    }
+
+    .unread-badge {
+        background-color: red;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+        margin-left: 10px; /* 讓徽章與右側有些距離 */
+        position: absolute;
+        right: 10px; /* 調整徽章距離 user-item 右側的距離 */
+        top: 50%;
+        transform: translateY(-50%); /* 垂直置中 */
+    }

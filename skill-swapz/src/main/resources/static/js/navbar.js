@@ -68,6 +68,7 @@ export function updateNavbarUnreadCount(unreadCount) {
     }
 }
 
+
 async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
@@ -116,10 +117,17 @@ function createLogo() {
 }
 
 function createAvatar(userData) {
+    // 建立一個 wrapper 來包裹 avatar 和 badge
+    const avatarWrapper = createElementWithClass('div', 'navbar-avatar-wrapper');
+
     const avatar = createElementWithClass('img', 'navbar-avatar');
     avatar.src = userData.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
     avatar.alt = 'User Avatar';
-    return avatar;
+
+    const unreadBadge = createUnreadCountBadge();
+    avatarWrapper.append(avatar, unreadBadge); // 將徽章放在 avatar 的 wrapper 中
+
+    return avatarWrapper;
 }
 
 function createUserName(userData) {
@@ -227,6 +235,24 @@ export function addNavbarStyles() {
         }
         .navbar-username {
             font-weight: bold;
+        }
+        .navbar-avatar-wrapper {
+        position: relative;
+        display: inline-block;
+        }
+    
+        .total-unread-badge {
+        position: absolute;
+        top: 8px; /* 可以根據需要進一步微調，讓它貼近頭像 */
+        right: 30px; /* 可以根據需要進一步微調 */
+        background-color: red;
+        color: white;
+        padding: 2px 5px; /* 減少 padding 讓它變小 */
+        border-radius: 50%; /* 使其成為圓形 */
+        font-size: 10px; /* 調小字體大小 */
+        font-weight: bold; /* 可以設定為粗體，讓數字更清晰 */
+        display: none; /* 預設不顯示，根據未讀消息動態顯示 */
+        z-index:999;
         }
     `;
     document.head.appendChild(style);
