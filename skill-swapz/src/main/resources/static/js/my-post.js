@@ -20,7 +20,7 @@ let currentUserId;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const navbar = await createNavbar();
-    document.body.insertBefore(navbar, document.body.firstChild);
+    await document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
     currentUserId = await getUserId();

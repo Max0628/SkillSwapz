@@ -137,7 +137,7 @@ export async function markMessagesAsRead(chatUuid, userId) {
     }
 }
 
-function updateUnreadMessageCount(unreadCount) {
+export function updateUnreadMessageCount(unreadCount) {
     console.log("Updating unread message count:", unreadCount);  // 確認觸發情況
     const event = new CustomEvent('unreadCountUpdated', { detail: unreadCount });
     window.dispatchEvent(event);

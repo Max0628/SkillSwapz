@@ -13,13 +13,14 @@ let currentChatUuid = null;
 let receiverId = null;
 let subscribedChats = new Set();
 let userCache = new Map();
+let userList = null;  // 將 userList 定義為全局變數
 const DEFAULT_AVATAR_URL = "https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp";
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Page loaded at:', new Date().toISOString(), 'Local timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const navbarContainer = document.querySelector('.navbar');
     await navbarContainer.appendChild(await createNavbar());
-    addNavbarStyles();
+    await addNavbarStyles();
 
     window.addEventListener('unreadCountUpdated', (event) => {
         const unreadCounts = event.detail;
@@ -28,24 +29,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    currentUserId = await getUserId();
+    currentUserId = await getUserId();  // 確保獲取當前用戶 ID
     if (!currentUserId) {
         window.location.href = "auth.html";
         console.log('User not logged in');
         return;
     }
-    await loadChatList();
+
+    userList = document.getElementById('user-list');  // 初始化全局變數 userList
 
     const chatContent = document.getElementById('chat-content');
     const sendButton = document.getElementById('send-button');
     const messageInput = document.getElementById('message-input');
-    const userList = document.getElementById('user-list');
 
     try {
-        stompClient = await connectWebSocket(currentUserId);
-        subscribeToNotifications();
+        stompClient = await connectWebSocket(currentUserId);  // 先連接 WebSocket
+        console.log('WebSocket connected successfully');  // 確認連接成功
+
+        subscribeToNotifications();  // 連接成功後訂閱通知
+        await loadChatList();  // 等 WebSocket 連接成功後再加載聊天列表
+
     } catch (error) {
         console.error('Failed to connect WebSocket:', error);
+        return;  // 如果 WebSocket 連接失敗，不繼續執行後續邏輯
     }
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -454,29 +460,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 method: 'GET',
                 credentials: 'include',
             });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
             const chatList = await response.json();
+
+            // 假設後端返回每個聊天對象的未讀消息數量
             await Promise.all(chatList.map(async (chat) => {
                 const userInfo = await fetchUserDetails(chat.other_user_id);
                 chat.username = userInfo.username;
                 chat.avatarUrl = userInfo.avatarUrl;
+                chat.unreadCount = chat.unread_count;  // 假設返回未讀消息數量
+
+                // 主動訂閱每個聊天頻道
+                subscribeToPrivateChat(chat.chat_uuid);
             }));
+
             const filteredChatList = chatList.filter(chat => chat.other_user_id.toString() !== currentUserId.toString());
             displayChatList(filteredChatList);
-
-            // 添加这一部分
-            const urlParams = new URLSearchParams(window.location.search);
-            const receiverIdFromUrl = urlParams.get('receiverId');
-            if (receiverIdFromUrl) {
-                selectUserInList(receiverIdFromUrl);
-            } else if (filteredChatList.length > 0) {
-                selectUserInList(filteredChatList[0].other_user_id);
-            }
         } catch (error) {
-            // console.error('Error loading chat list:', error);
-            return null;
+            console.error('Error loading chat list:', error);
         }
     }
 

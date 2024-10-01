@@ -3,8 +3,8 @@ import { getUserId } from './combinedUtils.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     const navbar = await createNavbar();
-    document.body.insertBefore(navbar, document.body.firstChild);
-    addNavbarStyles();
+    await document.body.insertBefore(navbar, document.body.firstChild);
+    await addNavbarStyles();
 
     const form = document.getElementById('profileForm');
     form.addEventListener('submit', function(event) {

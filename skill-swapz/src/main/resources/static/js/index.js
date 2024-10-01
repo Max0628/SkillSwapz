@@ -20,8 +20,8 @@ let currentUserId = getUserId();
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const navbar = await createNavbar();
-        document.body.insertBefore(navbar, document.body.firstChild);
-        addNavbarStyles();
+        await document.body.insertBefore(navbar, document.body.firstChild);
+        await addNavbarStyles();
 
         const userId = await getUserId();
         if (!userId) {
@@ -74,7 +74,7 @@ function setupPostListeners(postsList, userId) {
                     const redirectUrl = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
                     window.location.href = redirectUrl;
                 } catch (error) {
-                    return null;ㄏ
+                    return null;
                     // console.error('Error starting chat:', error);
                     // alert('無法啟動聊天，請稍後再試。');
                 }

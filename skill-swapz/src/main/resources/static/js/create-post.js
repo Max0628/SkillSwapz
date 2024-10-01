@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
 
-    addNavbarStyles();
+    await addNavbarStyles();
 
     const typeSelect = document.getElementById('type');
     const dynamicFieldsContainer = document.getElementById('dynamic-fields');

@@ -100,8 +100,8 @@ public class ChatRepository {
                 "LEFT JOIN (SELECT chat_uuid, MAX(created_at) as max_created_at FROM chat_messages GROUP BY chat_uuid) latest " +
                 "ON cc.chat_uuid = latest.chat_uuid " +
                 "LEFT JOIN chat_messages cm ON latest.chat_uuid = cm.chat_uuid AND latest.max_created_at = cm.created_at " +
-                "WHERE cc.user_id_1 = :userId OR cc.user_id_2 = :userId " +
-                "ORDER BY cm.created_at DESC";
+                "WHERE cc.user_id_1 = :userId OR cc.user_id_2 = :userId " ;
+//                "ORDER BY cm.created_at DESC";
 
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", userId);
 

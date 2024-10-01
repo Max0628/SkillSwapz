@@ -26,11 +26,11 @@ export async function createNavbar() {
             if (userData) {
                 const avatar = createAvatar(userData);
                 const userName = createUserName(userData);
-                const unreadCountBadge = createUnreadCountBadge();
+                const unreadCountBadge =await createUnreadCountBadge();
 
                 avatar.addEventListener('click', toggleDropdown);
 
-                rightContainer.append(unreadCountBadge, userName, avatar);
+                await rightContainer.append(unreadCountBadge, userName, avatar);
             }
         }
     } catch (error) {
@@ -51,16 +51,16 @@ async function updateUnreadMessageCount(userId) {
     try {
         const unreadCounts = await getUnreadMessageCounts(userId);
         const totalUnreadCount = Object.values(unreadCounts).reduce((total, count) => total + count, 0);
-        updateNavbarUnreadCount(totalUnreadCount);
+        await updateNavbarUnreadCount(totalUnreadCount);
     } catch (error) {
         console.error('Error updating unread message count:', error);
     }
 }
 
-function updateNavbarUnreadCount(unreadCount) {
+async function updateNavbarUnreadCount(unreadCount) {
     const unreadCountBadge = document.getElementById('total-unread-badge');
     if (unreadCountBadge) {
-        unreadCountBadge.textContent = unreadCount > 0 ? unreadCount : '';
+        unreadCountBadge.textContent = unreadCount >= 1 ? unreadCount : '';
         unreadCountBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
     } else {
         console.warn('Unread count badge not found in the DOM');
