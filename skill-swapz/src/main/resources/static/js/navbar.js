@@ -1,6 +1,8 @@
 import { getUnreadMessageCounts } from './combinedUtils.js';
 
 // 監聽未讀消息計數更新事件
+let unreadCountBadge = null;
+
 window.addEventListener('unreadCountUpdated', (event) => {
     console.log("Received unreadCountUpdated event:", event.detail);
     updateNavbarUnreadCount(event.detail);
@@ -26,11 +28,11 @@ export async function createNavbar() {
             if (userData) {
                 const avatar = createAvatar(userData);
                 const userName = createUserName(userData);
-                const unreadCountBadge =await createUnreadCountBadge();
+                unreadCountBadge = createUnreadCountBadge();
 
                 avatar.addEventListener('click', toggleDropdown);
 
-                await rightContainer.append(unreadCountBadge, userName, avatar);
+                rightContainer.append(unreadCountBadge, userName, avatar);
             }
         }
     } catch (error) {
@@ -41,7 +43,6 @@ export async function createNavbar() {
     rightContainer.appendChild(userMenu);
     navbar.append(logo, rightContainer);
 
-    // 添加全局點擊事件，點擊其他地方隱藏選單
     document.addEventListener('click', hideDropdownOnClick);
 
     return navbar;
@@ -57,13 +58,13 @@ async function updateUnreadMessageCount(userId) {
     }
 }
 
-async function updateNavbarUnreadCount(unreadCount) {
-    const unreadCountBadge = document.getElementById('total-unread-badge');
+export function updateNavbarUnreadCount(unreadCount) {
     if (unreadCountBadge) {
-        unreadCountBadge.textContent = unreadCount >= 1 ? unreadCount : '';
+        unreadCountBadge.textContent = unreadCount > 0 ? unreadCount : '';
         unreadCountBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
     } else {
-        console.warn('Unread count badge not found in the DOM');
+        console.warn('Unread count badge not found, retrying...');
+        setTimeout(() => updateNavbarUnreadCount(unreadCount), 100);
     }
 }
 
@@ -128,10 +129,10 @@ function createUserName(userData) {
 }
 
 function createUnreadCountBadge() {
-    const unreadCountBadge = createElementWithClass('span', 'total-unread-badge');
-    unreadCountBadge.id = 'total-unread-badge';
-    unreadCountBadge.style.display = 'none'; // 初始時隱藏
-    return unreadCountBadge;
+    const badge = createElementWithClass('span', 'total-unread-badge');
+    badge.id = 'total-unread-badge';
+    badge.style.display = 'none';
+    return badge;
 }
 
 function createUserMenu() {

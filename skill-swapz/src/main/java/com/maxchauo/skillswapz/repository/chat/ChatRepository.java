@@ -95,13 +95,13 @@ public class ChatRepository {
 
     public List<Map<String, Object>> getChatListForUser(Integer userId) {
         String sql = "SELECT cc.*, cm.content as last_message, cm.created_at as last_message_time, " +
-                "CASE WHEN cc.user_id_1 = :userId THEN cc.user_id_2 ELSE cc.user_id_1 END as other_user_id " +
+                "CASE WHEN cc.user_id_1 = :userId THEN cc.user_id_2 ELSE cc.user_id_1 END as other_user_id, " +
+                "(SELECT COUNT(*) FROM chat_messages WHERE chat_uuid = cc.chat_uuid AND receiver_id = :userId AND is_read = false) AS unread_count " +
                 "FROM chat_channel cc " +
                 "LEFT JOIN (SELECT chat_uuid, MAX(created_at) as max_created_at FROM chat_messages GROUP BY chat_uuid) latest " +
                 "ON cc.chat_uuid = latest.chat_uuid " +
                 "LEFT JOIN chat_messages cm ON latest.chat_uuid = cm.chat_uuid AND latest.max_created_at = cm.created_at " +
-                "WHERE cc.user_id_1 = :userId OR cc.user_id_2 = :userId " ;
-//                "ORDER BY cm.created_at DESC";
+                "WHERE cc.user_id_1 = :userId OR cc.user_id_2 = :userId ";
 
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", userId);
 
@@ -111,9 +111,13 @@ public class ChatRepository {
             chat.put("other_user_id", rs.getInt("other_user_id"));
             chat.put("last_message", rs.getString("last_message"));
             chat.put("last_message_time", rs.getTimestamp("last_message_time"));
+
+            // 新增未讀消息數量到返回數據中
+            chat.put("unread_count", rs.getInt("unread_count"));
             return chat;
         });
     }
+
 
     //根據使用者的id尋找未讀的信息數量
     public int countUnreadMessagesForUser(int userId) {

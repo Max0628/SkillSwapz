@@ -3,9 +3,7 @@ import {connectWebSocket, getUserId, markMessagesAsRead} from './combinedUtils.j
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
 const localTime = new Date();
-console.log(localTime);
 const utcTime = new Date().toISOString();
-console.log(utcTime);
 
 let stompClient = null;
 let currentUserId = null;
@@ -21,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const navbarContainer = document.querySelector('.navbar');
     await navbarContainer.appendChild(await createNavbar());
     await addNavbarStyles();
+
 
     window.addEventListener('unreadCountUpdated', (event) => {
         const unreadCounts = event.detail;
@@ -108,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl) {
+    function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl, unreadCount = 0) {
         if (userId.toString() === currentUserId.toString()) {
             return;
         }
@@ -117,17 +116,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         userItem.setAttribute('data-user-id', userId);
         userItem.setAttribute('data-chat-uuid', chatUuid);
         userItem.innerHTML = `
-        <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
-        <div class="user-details">
-            <span class="username">${username}</span>
-            <span class="last-message">${lastMessage || ''}</span>
-        </div>
+    <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
+    <div class="user-details">
+        <span class="username">${username}</span>
+        <span class="last-message">${lastMessage || ''}</span>
+        ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
+    </div>
     `;
         userItem.addEventListener('click', () => openChat(userId, chatUuid, username));
         userList.appendChild(userItem);
     }
 
-    await loadChatList();
+
+    // await loadChatList();
 
     function subscribeToPrivateChat(chatUuid) {
         if (subscribedChats.has(chatUuid)) {
@@ -136,13 +137,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (stompClient && stompClient.connected) {
+            // 訂閱該聊天頻道，並在接收到消息時執行處理
             stompClient.subscribe(`/user/queue/private/${chatUuid}`, message => onMessageReceived(message, chatUuid));
-            subscribedChats.add(chatUuid);
+            subscribedChats.add(chatUuid);  // 添加到已訂閱的列表中
             console.log(`Subscribed to private chat: ${chatUuid}`);
         } else {
             console.error('STOMP client is not connected');
         }
     }
+
 
     function subscribeToNotifications() {
         console.log('Subscribing to notifications, STOMP client status:', stompClient.connected);
@@ -197,23 +200,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Received message for chat:", chatUuid);
 
             if (chatUuid === currentChatUuid) {
-                // 消息属于当前聊天室，直接显示
+                // 消息屬於當前聊天室，直接顯示
                 console.log("Displaying message in current chat");
                 const adjustedTime = adjustReceivedTime(parsedMessage.created_at);
                 const messageElement = createMessageElement(parsedMessage.content, 'received', adjustedTime);
                 chatContent.appendChild(messageElement);
                 chatContent.scrollTop = chatContent.scrollHeight;
+
+                // 標記消息為已讀
+                await markMessagesAsRead(chatUuid, currentUserId);
+                updateUnreadCountUI(chatUuid, 0);
             } else {
-                // 消息不属于当前聊天室，只更新未读计数
+                // 消息不屬於當前聊天室，更新未讀計數
                 console.log("Updating unread count for chat:", chatUuid);
-                updateUnreadCountUI(chatUuid, (parsedMessage.unreadCount || 0) + 1);
-                // 可以在这里添加通知逻辑
+                // 從後端獲取最新的未讀消息數量
+                const response = await fetch(`/api/1.0/chat/unreadCounts?userId=${currentUserId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                const unreadCounts = await response.json();
+                const unreadCount = unreadCounts[chatUuid] || 0;
+                updateUnreadCountUI(chatUuid, unreadCount);
             }
 
             const userInfo = await fetchUserDetails(parsedMessage.sender_id);
             updateLastMessage(parsedMessage.sender_id, parsedMessage.content, userInfo.username, userInfo.avatarUrl);
         }
     }
+
 
 
     function adjustReceivedTime(timeString) {
@@ -246,8 +260,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function openChat(userId, chatUuid, username) {
         console.log('Opening chat:', { userId, chatUuid, username });
 
+        // 如果已經打開該聊天，直接返回，避免重複打開
+        if (currentChatUuid === chatUuid) {
+            console.log(`Already opened chat: ${chatUuid}`);
+            return;
+        }
+
         if (currentChatUuid) {
-            // 如果之前有打开的聊天，先清理
+            // 如果之前有打開的聊天，先清理
             clearCurrentChat();
         }
 
@@ -269,37 +289,39 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
         }
+
+        // 設定當前聊天的 chatUuid，避免重複打開相同聊天
         currentChatUuid = chatUuid;
+
         history.pushState(null, '', `/chat.html?chatUuid=${chatUuid}&receiverId=${userId}&username=${encodeURIComponent(username)}`);
         document.querySelector('.chat-username').textContent = username;
         await loadChatHistory(chatUuid);
+
+        // 確保只訂閱一次該聊天頻道
         subscribeToPrivateChat(chatUuid);
+
         selectUserInList(userId);
 
         // 標記消息為已讀
         await markMessagesAsRead(chatUuid, currentUserId);
         updateUnreadCountUI(chatUuid, 0);
     }
+
     function updateUnreadCountUI(chatUuid, unreadCount) {
-        // 更新特定聊天的未讀消息計數
         const chatItem = document.querySelector(`[data-chat-uuid="${chatUuid}"]`);
         if (chatItem) {
             let unreadBadge = chatItem.querySelector('.unread-badge');
 
             if (unreadCount > 0) {
-                // 如果已存在未讀徽章，將新消息的數量累加到現有未讀數
                 if (unreadBadge) {
-                    const currentUnreadCount = parseInt(unreadBadge.textContent) || 0;
-                    unreadBadge.textContent = currentUnreadCount + unreadCount;
+                    unreadBadge.textContent = unreadCount;
                 } else {
-                    // 如果還沒有未讀徽章，創建一個
                     unreadBadge = document.createElement('span');
                     unreadBadge.className = 'unread-badge';
                     unreadBadge.textContent = unreadCount;
-                    chatItem.appendChild(unreadBadge);
+                    chatItem.querySelector('.user-details').appendChild(unreadBadge);
                 }
             } else if (unreadBadge) {
-                // 如果未讀數為 0，刪除徽章
                 unreadBadge.remove();
             }
         }
@@ -309,6 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .reduce((total, badge) => total + parseInt(badge.textContent), 0);
         updateTotalUnreadCount(totalUnreadCount);
     }
+
 
     function updateTotalUnreadCount(count) {
         const totalUnreadBadge = document.getElementById('total-unread-badge');
@@ -462,23 +485,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const chatList = await response.json();
 
-            // 假設後端返回每個聊天對象的未讀消息數量
             await Promise.all(chatList.map(async (chat) => {
                 const userInfo = await fetchUserDetails(chat.other_user_id);
                 chat.username = userInfo.username;
                 chat.avatarUrl = userInfo.avatarUrl;
-                chat.unreadCount = chat.unread_count;  // 假設返回未讀消息數量
 
-                // 主動訂閱每個聊天頻道
+                // 傳遞未讀消息數量
+                addUserToList(
+                    chat.other_user_id,
+                    chat.username,
+                    chat.chat_uuid,
+                    chat.last_message,
+                    chat.avatarUrl,
+                    chat.unread_count  // 新增
+                );
+
+                // 訂閱每個聊天頻道
                 subscribeToPrivateChat(chat.chat_uuid);
             }));
 
-            const filteredChatList = chatList.filter(chat => chat.other_user_id.toString() !== currentUserId.toString());
-            displayChatList(filteredChatList);
         } catch (error) {
             console.error('Error loading chat list:', error);
         }
     }
+
 
     function displayChatList(chatList) {
         userList.innerHTML = '';
