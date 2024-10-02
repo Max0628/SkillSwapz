@@ -2,6 +2,7 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
+    padding-top: 60px; /* 調整這個值以匹配你的 navbar 高度 */
 }
 
 h2 {
@@ -401,32 +402,39 @@ textarea::placeholder {
 
 .container {
     display: flex;
-    gap: 20px; /* 增加側邊欄和內容區之間的距離 */
-    width: 90%; /* 預設情況下，container 寬度占 90% */
+    gap: 20px;
+    width: 90%;
     margin: 20px auto;
-    max-width: 1200px; /* 設置最大寬度，確保大螢幕時有留白 */
-    min-width: 300px; /* 設置最小寬度，避免太窄 */
-    transition: width 0.5s ease; /* 過渡效果使寬度變化平滑 */
+    max-width: 1200px;
+    min-width: 300px;
+    transition: width 0.5s ease;
 }
 
-/* 搜索與熱門標籤欄樣式 */
+.content-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+}
+
 .search-sidebar {
-    flex: 3; /* 設置 sidebar 占 3 份 */
+    flex: 2; /* 調整為 2，使其比例更小 */
     position: sticky;
-    top: 20px; /* 固定的位置距離頂部20px，根據需要調整 */
+    top: 80px; /* 增加頂部距離，為固定的 navbar 留出空間 */
     color: black;
-    height: 35rem;
+    /*height: calc(100vh - 100px); !* 調整高度，減去 navbar 和上下邊距 *!*/
+    max-height: 400px;
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    transition: width 0.5s ease; /* 添加過渡效果使其縮放時平滑 */
-    min-width: 200px; /* 確保 sidebar 不會過小 */
-    max-width: 300px; /* 限制 sidebar 的最大寬度 */
+    transition: width 0.5s ease;
+    min-width: 150px; /* 稍微減少最小寬度 */
+    max-width: 250px; /* 減少最大寬度 */
 }
 
 .search-input {
-    width: 60%;
+    width: 60%; /* 讓搜索框填滿 sidebar 寬度 */
     padding: 8px;
     margin-bottom: 15px;
     border: 1px solid #ccc;
@@ -434,15 +442,8 @@ textarea::placeholder {
     font-size: 14px;
 }
 
-.content-wrapper {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-/* 貼文欄位樣式 */
 .section {
-    flex: 7; /* 主內容區域占 7 份 */
+    flex: 8; /* 增加主內容區域的比例 */
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -451,73 +452,101 @@ textarea::placeholder {
 
 #posts.section {
     width: 100%;
+    min-width: 300px; /* 設置最小寬度，防止縮得太小 */
 }
 
 /* RWD 調整 */
 
-/* 當螢幕寬度大於 1400px 時，增加更多留白 */
 @media (min-width: 1400px) {
     .container {
-        width: 60%; /* 設置容器寬度為 60%，讓大螢幕有更多留白 */
-        max-width: 1600px; /* 容器的最大寬度，讓大螢幕有更多留白 */
+        width: 70%; /* 稍微增加寬度 */
+        max-width: 1600px;
     }
 
     .search-sidebar {
-        max-width: 300px; /* 限制 sidebar 最大寬度 */
+        max-width: 250px;
     }
 
     .section {
-        flex: 7; /* 主內容區域仍然佔 7 份 */
+        flex: 8;
     }
 }
 
-/* 當螢幕寬度介於 1024px 到 1400px 時，留白適中 */
 @media (min-width: 1024px) and (max-width: 1400px) {
     .container {
-        width: 75%; /* 設置容器寬度為 75%，留白適中 */
-        max-width: 1200px; /* 限制容器最大寬度 */
+        width: 80%;
+        max-width: 1200px;
     }
 
     .search-sidebar {
-        flex: 3; /* 依然是 3:7 的比例 */
-        max-width: 300px; /* 限制 sidebar 最大寬度 */
+        flex: 2;
+        max-width: 250px;
     }
 
     .section {
-        flex: 7; /* 主內容區域仍然佔 7 份 */
+        flex: 8;
     }
 }
 
-/* 當螢幕寬度小於 1024px 時，容器寬度增加，減少留白 */
 @media (max-width: 1024px) {
     .container {
-        width: 90%; /* 減少留白，擴大內容區域 */
-        max-width: 900px; /* 限制最大寬度 */
+        width: 95%;
+        max-width: 900px;
     }
 
     .search-sidebar {
-        max-width: 280px; /* 讓 sidebar 更窄一點 */
+        max-width: 220px;
     }
 
     .section {
-        width: 100%; /* 主內容佔滿整個寬度 */
+        width: 100%;
     }
 }
 
-/* 當螢幕寬度小於 768px 時，垂直排列 */
 @media (max-width: 768px) {
     .container {
-        flex-direction: column; /* 垂直排列 sidebar 和主內容 */
-        width: 100%; /* 佔滿屏幕寬度 */
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .content-wrapper {
+        flex-direction: column;
     }
 
     .search-sidebar {
-        width: 100%; /* 讓 sidebar 在小螢幕上佔滿整個寬度 */
-        position: relative; /* 小螢幕不固定位置 */
-        max-width: none; /* 移除最大寬度限制 */
+        width: 100%;
+        position: relative;
+        max-width: none;
+        height: auto; /* 自適應高度 */
     }
 
     .section {
-        width: 100%; /* 主內容也佔滿整個寬度 */
+        width: 100%;
     }
+}
+@media (max-width: 768px) {
+    .search-sidebar {
+        position: static;
+        width: 100%;
+        max-width: none;
+        /* 其他移動端樣式 */
+    }
+}
+
+
+
+/* 新增：為空的 posts 區域設置最小高度 */
+#posts-list:empty {
+    min-height: 300px; /* 可以根據需要調整這個值 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    font-style: italic;
+    color: #888;
+}
+
+#posts-list:empty::after {
+    content: "暫無文章";
 }

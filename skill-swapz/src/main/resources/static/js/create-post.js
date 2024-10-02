@@ -1,5 +1,5 @@
 // create-post.js
-import {getUserId} from './combinedUtils.js';
+import {getUserId, updateUnreadMessageCount} from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
 const postTypes = {
@@ -83,12 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Form submitted');
         const formData = new FormData(postForm);
         const userId = await getUserId();
-
-        if (!userId) {
-            window.location.href = "auth.html";
-            console.error('Unable to get user ID');
-            alert('無法獲取用戶信息，請登入後再試');
-            return;
+        if (userId) {
+            await updateUnreadMessageCount(userId);
         }
 
         formData.append('userId', userId);

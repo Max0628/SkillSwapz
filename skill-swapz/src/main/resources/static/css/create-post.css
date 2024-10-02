@@ -1,62 +1,123 @@
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        padding: 0;
-    }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
-    .container {
-        width: 50%;
-        margin: 40px auto;
-        background-color: #fff;
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    margin-top: 60px; /* 為 navbar 留出空間，根據實際 navbar 高度調整 */
+}
+
+form {
+    width: 100%;
+    max-width: 600px;
+    background-color: #fff;
+    padding: 0px 30px 30px 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    max-height: calc(100vh - 120px); /* 減去 navbar 高度和一些額外空間 */
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+input[type="text"],
+textarea,
+select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: 98%;
+    background-position-y: 50%;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+button[type="button"] {
+    background-color: #ccc;
+    margin-right: 10px;
+}
+
+button[type="button"]:hover {
+    background-color: #aaa;
+}
+
+#dynamic-fields {
+    margin-top: 15px;
+}
+
+/* 適應小屏幕 */
+@media (max-height: 600px) {
+    form {
         padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
     h2 {
-        text-align: center;
-    }
-
-    label {
-        display: block;
-        margin-top: 10px;
+        font-size: 1.5em;
+        margin-bottom: 15px;
     }
 
     input[type="text"],
     textarea,
     select {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    textarea {
-        resize: vertical;
-        height: 100px;
+        padding: 6px;
+        margin-bottom: 8px;
     }
 
     button {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 10px 20px;
-        background-color: #333;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+        padding: 8px 16px;
     }
-
-    button:hover {
-        background-color: #555;
-    }
-
-    button[type="button"] {
-        background-color: #ccc;
-    }
-
-    button[type="button"]:hover {
-        background-color: #aaa;
-    }
+}

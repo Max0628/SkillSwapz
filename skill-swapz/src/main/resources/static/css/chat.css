@@ -6,6 +6,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        overflow: hidden; /* 防止整個頁面出現滾動條 */
     }
 
     /* 聊天主容器 */
@@ -72,6 +73,8 @@
         display: flex;
         flex-direction: column;
         background-color: #fff;
+        overflow-y: auto; /* 只允許聊天內容區域滾動 */
+        padding-bottom: 20px; /* 為輸入框留出一些空間 */
     }
 
     .chat-header {
@@ -131,7 +134,8 @@
     }
 
     .chat-input {
-        padding: 10px;
+        padding: 25px 10px 10px 10px;
+        background-color: #fff; /* 確保輸入框有背景色 */
         display: flex;
         border-top: 1px solid #ccc;
     }
@@ -176,15 +180,18 @@
 
     /* 聊天室內容包裹層，確保不被 navbar 遮擋 */
     .chat-wrapper {
-        margin-top: 60px; /* 根據 navbar 的高度進行調整 */
+        height: calc(100vh - 60px); /* 假設 navbar 高度為 60px */
+        margin-top: 60px; /* 與 navbar 高度相同 */
         display: flex;
-        height: calc(100vh - 60px); /* 確保聊天室內容佔滿整個畫面高度 */
+        flex-direction: column;
     }
 
     /* 調整 .chat-container 等現有的樣式以適應新結構 */
     .chat-container {
+        top: 80px; /* 增加頂部距離，為固定的 navbar 留出空間 */
         display: flex;
         flex: 1;
+        overflow: hidden; /* 防止整個聊天容器出現滾動條 */
     }
 
     .user-item {
