@@ -196,12 +196,14 @@ export function addNavbarStyles() {
         }
         .navbar-logo {
             font-size: 20px;
+            padding-left: 10px;
             font-weight: bold;
             text-decoration: none;
             color: #333;
         }
         .navbar-right {
             display: flex;
+            padding-left: 20px;
             align-items: center;
             gap: 20px;
         }

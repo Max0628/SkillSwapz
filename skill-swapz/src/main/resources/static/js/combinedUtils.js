@@ -339,17 +339,20 @@ export async function createCommentElement(commentData, currentUserId) {
 
         // 創建評論的 HTML
         commentElement.innerHTML = `
-            <div class="comment-container">
-                <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(username)}" class="comment-avatar">
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <span class="comment-username">${escapeHtml(username)}</span>
-                        <span class="comment-time">${escapeHtml(createdAt)}</span>
-                    </div>
-                    <p class="comment-text">${escapeHtml(commentData.content)}</p>
-                    ${String(commentData.user_id) === String(currentUserId) ? '<button class="delete-comment-btn">刪除</button>' : ''}
+        <div class="comment-container">
+            <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(username)}" class="comment-avatar">
+            <div class="comment-content">
+                <div class="comment-header">
+                    <span class="comment-username">${escapeHtml(username)}</span>
+                    <span class="comment-time">${escapeHtml(createdAt)}</span>
                 </div>
+                <p class="comment-text">${escapeHtml(commentData.content)}</p>
             </div>
+            ${String(commentData.user_id) === String(currentUserId) ?
+            `<button class="delete-comment-btn">
+                <span class="material-icons-outlined">remove_circle_outline</span>
+            </button>` : ''}
+        </div>
         `;
 
         // 添加样式
@@ -396,17 +399,19 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     const postCreatedAt = formatTimeAgo(post.createdAt);
 
     let postContent = `
-        <div class="post-header">
-            <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar">
-            <strong class="post-author">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
-            <div class="post-info">
+          <div class="post-header" style="display: flex; align-items: center;">
+            <div class="post-avatar-container" style="display: flex; align-items: center;">
+                <img src="${escapeHtml(authorDetails?.avatarUrl || 'default_avatar_url')}" alt="User Avatar" class="post-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                <strong class="post-author" style="margin-left: 10px;">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
+            </div>
+            <div class="post-info" style="margin-left: 20px;">
                 <div class="post-type">${escapeHtml(post.type)}</div>
                 <span class="post-time">${escapeHtml(postCreatedAt)}</span>
+                <div class="post-actual-time">${escapeHtml(post.time || '')}</div>
             </div>
         </div>
         <p><strong>地點：</strong> ${escapeHtml(post.location)}</p>
-`;
-
+    `;
 
     if (post.type === '找學生') {
         postContent += `
@@ -430,7 +435,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     }
 
     postContent += `
-    <p><strong>活動進行方式與內容：</strong> ${escapeHtml(post.content)}</p>
+    <p><strong>內容/進行方式：</strong> ${escapeHtml(post.content)}</p>
     `;
 
     if (post.tag && post.tag.length > 0) {
@@ -440,7 +445,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     // 插入新的 action buttons HTML
     postContent += `
-   <div class="action-buttons">
+   <div class="action-buttons" style="margin-bottom: 16px;">
         <button class="action-btn like-btn" id="like-btn-${postId}" data-liked="${likedPosts.includes(postId)}">
             <i class="fa-${likedPosts.includes(postId) ? 'solid' : 'regular'} fa-heart"></i> 
             <span id="like-count-${postId}">${post.likeCount || 0}</span>
@@ -469,10 +474,12 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     <div class="comment-section" id="comment-section-${postId}" style="display: none;"> 
         <div class="comments-container"></div>
         <div class="comment-box">
-            <textarea id="comment-input-${postId}" placeholder="輸入評論..."></textarea>
-            <button class="comment-btn" id="comment-btn-${postId}">
-                <i class="fa-regular fa-paper-plane"></i>
-            </button>
+            <div class="textarea-container">
+                <textarea id="comment-input-${postId}" placeholder="輸入評論..."></textarea>
+                <button class="comment-btn" id="comment-btn-${postId}">
+                    <i class="fa-regular fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
     `;
@@ -539,6 +546,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         postsList.appendChild(postDiv);
     }
 }
+
 
 export function handleTagClick(tag) {
     const cleanTag = tag.replace(/^#/, '').trim();
@@ -678,9 +686,10 @@ function handleCreateComment(commentData, currentUserId) {
         return;
     }
 
-    const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
-    if (!commentSection) {
-        console.warn(`Comment section not found for postId: ${commentData.post_id}`);
+    // 找到 comments-container，這是留言應該被插入的容器
+    const commentContainer = document.querySelector(`#comment-section-${commentData.post_id} .comments-container`);
+    if (!commentContainer) {
+        console.warn(`Comment container not found for postId: ${commentData.post_id}`);
         return;
     }
 
@@ -690,7 +699,8 @@ function handleCreateComment(commentData, currentUserId) {
             if (!newComment) {
                 throw new Error("Created comment element is null or undefined");
             }
-            commentSection.insertBefore(newComment, commentSection.firstChild);
+            // 將新評論插入到 comments-container 的最底部
+            commentContainer.appendChild(newComment);
             updateCommentCount(commentData.post_id, true);
             console.log("Comment successfully added to the DOM");
         })
@@ -698,6 +708,7 @@ function handleCreateComment(commentData, currentUserId) {
             console.error('Error creating or inserting comment element:', error);
         });
 }
+
 
 
 

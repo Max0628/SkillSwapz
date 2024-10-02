@@ -4,35 +4,6 @@ body {
     margin: 0;
 }
 
-.container {
-    width: 90%;
-    margin: 20px auto;
-    transition: width 0.5s ease; /* 設置動畫過渡時間 */
-}
-
-/* 當螢幕寬度大於 1024px 時，將寬度變為 75% */
-@media (min-width: 1024px) {
-    .container {
-        width: 75%;
-    }
-}
-
-
-.content-wrapper {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-/* 貼文欄位樣式 */
-.section {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    flex: 3; /* 占用大部分的寬度 */
-}
-
 h2 {
     margin-top: 0;
 }
@@ -64,9 +35,32 @@ h2 {
     margin-bottom: 10px;
 }
 
+.post-avatar-container {
+    display: flex;
+    align-items: center;
+}
+
+
+.post-avatar {
+    width: 50px;          /* 根據需要調整頭像大小 */
+    height: 50px;
+    border-radius: 50%;   /* 圓形頭像 */
+    object-fit: cover;
+}
+
 .post-author {
     font-weight: bold;
     font-size: 1.2em;
+    margin-left: 10px;
+}
+
+.post-author-info {
+    margin-left: 10px;    /* 調整作者與頭像的間距 */
+}
+
+.post-info {
+    display: flex;
+    flex-direction: column;  /* 讓時間等資訊垂直排列 */
 }
 
 .post-type {
@@ -121,25 +115,7 @@ h2 {
     color: #000;
 }
 
-/* 搜索與熱門標籤欄樣式 */
-.search-sidebar {
-    flex: 1; /* 占用較小的空間 */
-    color: black;
-    height: 35rem;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
 
-.search-input{
-    width: 60%;
-    padding: 8px; /* 縮小padding */
-    margin-bottom: 15px; /* 縮小margin */
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px; /* 縮小搜尋欄字體 */
-}
 
 a.explore-link{
     color: black;
@@ -172,6 +148,7 @@ h3 {
     justify-content: flex-start;
     gap: 10px;
     margin-top: 1rem;
+    margin-bottom: 20px;
     border-top: none;
     padding: 0;
 }
@@ -294,6 +271,7 @@ h3 {
 
 .comment-time {
     font-size: 12px;
+    margin-right: 2rem;
     color: #888;
 }
 
@@ -336,3 +314,210 @@ h3 {
     border-color: #007bff;  /* 邊框也變成藍色 */
 }
 
+
+/*留言按鈕*/
+.textarea-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+textarea {
+    width: 100%;
+    padding-right: 40px; /* 給按鈕預留空間 */
+    box-sizing: border-box;
+    resize: none; /* 禁止調整大小 */
+    background-color: #fff; /* 背景為白色 */
+    color: #000; /* 字體顏色為黑色 */
+    border: 2px solid #000; /* 黑色邊框 */
+    border-radius: 5px;
+}
+
+textarea::placeholder {
+    color: #666; /* 灰色佔位符 */
+}
+
+.comment-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #000; /* 按鈕顏色為黑色 */
+    font-size: 16px;
+}
+
+.comment-btn i {
+    color: #000; /* 按鈕圖標顏色為黑色 */
+}
+
+.textarea-container textarea:focus + .comment-btn i {
+    color: #333; /* 當聚焦在輸入框時按鈕顏色變為深灰 */
+}
+/*留言按鈕*/
+
+
+
+.delete-comment-btn {
+    background-color: white;   /* 背景設為白色 */
+    border: none;              /* 移除按鈕的預設邊框 */
+    cursor: pointer;           /* 鼠標移上去時變成點擊手勢 */
+    padding: 5px;              /* 調整按鈕內間距 */
+}
+
+.delete-comment-btn .material-icons-outlined {
+    color: red;                /* 設置圖標顏色為紅色 */
+    font-size: 24px;           /* 調整圖標大小 */
+}
+
+.delete-comment-btn:hover {
+    background-color: #f8f8f8; /* 當滑鼠移上去時改變背景顏色 */
+}
+
+
+
+.post-info {
+    display: flex;
+    flex-direction: column; /* 使內容垂直排列 */
+    align-items: center; /* 將內容置中對齊 */
+    text-align: center;  /* 確保文字也在容器內水平居中 */
+}
+
+.post-actual-time {
+    font-size: 0.85rem; /* 可根據需要調整字體大小 */
+    color: #666;        /* 使用淡色字體來表示時間 */
+    margin-top: 4px;    /* 添加與 post-time 之間的間距 */
+}
+
+.post-time, .post-actual-time {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 4px;
+}
+
+.post-time {
+    font-weight: bold;   /* 可選：讓 post-time 更加突出 */
+}
+
+.container {
+    display: flex;
+    gap: 20px; /* 增加側邊欄和內容區之間的距離 */
+    width: 90%; /* 預設情況下，container 寬度占 90% */
+    margin: 20px auto;
+    max-width: 1200px; /* 設置最大寬度，確保大螢幕時有留白 */
+    min-width: 300px; /* 設置最小寬度，避免太窄 */
+    transition: width 0.5s ease; /* 過渡效果使寬度變化平滑 */
+}
+
+/* 搜索與熱門標籤欄樣式 */
+.search-sidebar {
+    flex: 3; /* 設置 sidebar 占 3 份 */
+    position: sticky;
+    top: 20px; /* 固定的位置距離頂部20px，根據需要調整 */
+    color: black;
+    height: 35rem;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.5s ease; /* 添加過渡效果使其縮放時平滑 */
+    min-width: 200px; /* 確保 sidebar 不會過小 */
+    max-width: 300px; /* 限制 sidebar 的最大寬度 */
+}
+
+.search-input {
+    width: 60%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.content-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* 貼文欄位樣式 */
+.section {
+    flex: 7; /* 主內容區域占 7 份 */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#posts.section {
+    width: 100%;
+}
+
+/* RWD 調整 */
+
+/* 當螢幕寬度大於 1400px 時，增加更多留白 */
+@media (min-width: 1400px) {
+    .container {
+        width: 60%; /* 設置容器寬度為 60%，讓大螢幕有更多留白 */
+        max-width: 1600px; /* 容器的最大寬度，讓大螢幕有更多留白 */
+    }
+
+    .search-sidebar {
+        max-width: 300px; /* 限制 sidebar 最大寬度 */
+    }
+
+    .section {
+        flex: 7; /* 主內容區域仍然佔 7 份 */
+    }
+}
+
+/* 當螢幕寬度介於 1024px 到 1400px 時，留白適中 */
+@media (min-width: 1024px) and (max-width: 1400px) {
+    .container {
+        width: 75%; /* 設置容器寬度為 75%，留白適中 */
+        max-width: 1200px; /* 限制容器最大寬度 */
+    }
+
+    .search-sidebar {
+        flex: 3; /* 依然是 3:7 的比例 */
+        max-width: 300px; /* 限制 sidebar 最大寬度 */
+    }
+
+    .section {
+        flex: 7; /* 主內容區域仍然佔 7 份 */
+    }
+}
+
+/* 當螢幕寬度小於 1024px 時，容器寬度增加，減少留白 */
+@media (max-width: 1024px) {
+    .container {
+        width: 90%; /* 減少留白，擴大內容區域 */
+        max-width: 900px; /* 限制最大寬度 */
+    }
+
+    .search-sidebar {
+        max-width: 280px; /* 讓 sidebar 更窄一點 */
+    }
+
+    .section {
+        width: 100%; /* 主內容佔滿整個寬度 */
+    }
+}
+
+/* 當螢幕寬度小於 768px 時，垂直排列 */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* 垂直排列 sidebar 和主內容 */
+        width: 100%; /* 佔滿屏幕寬度 */
+    }
+
+    .search-sidebar {
+        width: 100%; /* 讓 sidebar 在小螢幕上佔滿整個寬度 */
+        position: relative; /* 小螢幕不固定位置 */
+        max-width: none; /* 移除最大寬度限制 */
+    }
+
+    .section {
+        width: 100%; /* 主內容也佔滿整個寬度 */
+    }
+}
