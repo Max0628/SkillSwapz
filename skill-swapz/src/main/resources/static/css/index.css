@@ -23,7 +23,7 @@ h2 {
 /* 貼文樣式 */
 .post {
     border: 1px solid #ddd;
-    padding: 20px;
+    padding: 20px 20px 0px 20px;
     margin-bottom: 15px;
     border-radius: 8px;
     background-color: #fff;
@@ -57,7 +57,7 @@ h2 {
 
 .post-author {
     font-weight: bold;
-    font-size: 1.2em;
+    font-size: 1.5em;
     margin-left: 10px;
 }
 
@@ -240,11 +240,49 @@ h3 {
     border: none;
     border-radius: 12px;
     color: #333;
-    font-size: 0.85rem;
+    font-size: 1.25rem;
     cursor: pointer;
+    margin-right: 5px;  /* 與內容之間的距離 */
 }
 
+.label-tag {
+    font-weight: bold;
+    background-color: #f0f0f0;  /* 灰色背景 */
+    color: #333;  /* 文字顏色 */
+    padding: 2px 6px;  /* 調整內邊距 */
+    border-radius: 4px;  /* 圓角邊框 */
+    font-size: 1.25rem;  /* 調整字體大小 */
+    margin-right: 5px;  /* 與內容之間的距離 */
+    display: inline-block;  /* 讓背景只套用在標頭上 */
+}
+.tags{
+    border-radius: 10px !important;  /* 圓角邊框 */
+}
 
+p {
+    display: block;
+    border: none;
+    border-radius: 12px;
+    color: #333;
+    padding-bottom: 0;
+    font-size: 1.25rem;
+    cursor: pointer;
+    margin: 0.5rem 0;  /* 縮小段落之間的行距 */
+}
+/* 針對這些標題，減少它們之間的行距 */
+.post p {
+    margin-bottom: 0.5rem;  /* 段落之間更小的行距 */
+}
+.label-tag {
+    font-weight: bold;
+    background-color: #f0f0f0;  /* 標頭背景灰色 */
+    color: #333;  /* 標頭字體顏色 */
+    padding: 4px 6px;  /* 內邊距 */
+    border-radius: 4px;  /* 圓角 */
+    font-size: 1.25rem;  /* 字體大小 */
+    margin-right: 8px;  /* 與內容的距離 */
+    display: inline-block;
+}
 
 /*留言相關*/
 .comment-container {
@@ -291,6 +329,7 @@ h3 {
 .comment-box textarea {
     width: 100%;  /* 讓輸入框佔滿可用寬度 */
     padding: 10px;  /* 讓內部的文字與邊緣有間距 */
+    margin-bottom: 20px;
     border: 1px solid #ccc;  /* 給輸入框添加邊框 */
     border-radius: 5px;  /* 讓邊角變圓 */
     resize: none;  /* 禁止手動調整輸入框大小 */
@@ -304,6 +343,7 @@ h3 {
     border: 1px solid #ccc;  /* 添加邊框 */
     padding: 8px 12px;  /* 讓按鈕有內邊距 */
     border-radius: 5px;  /* 圓角邊框 */
+    margin-bottom: 20px;
     display: flex;  /* 使用 flex 來對齊圖標和文字 */
     align-items: center;  /* 垂直居中 */
     cursor: pointer;  /* 讓按鈕有點擊手感 */
@@ -424,7 +464,7 @@ textarea::placeholder {
 }
 
 .search-sidebar {
-    flex: 2;
+    flex: 1;
     position: sticky;
     top: 80px;
     color: black;
@@ -450,15 +490,30 @@ textarea::placeholder {
     font-size: 14px;
 }
 
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    right: 50px;  /* 圖標靠右顯示 */
+    top: 35%;
+    transform: translateY(-50%);  /* 垂直居中 */
+    color: #808080;  /* 使用你指定的顏色 */
+    font-size: 24px;  /* 調整圖標大小 */
+}
+
 .section {
-    flex: 8; /* 增加主內容區域的比例 */
+    flex: 6; /* 增加主內容區域的比例 */
     background-color: #fff;
-    padding: 20px;
+    padding: 20px 20px 20px 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 #posts.section {
+    background-color: #fff;
     width: 100%;
     min-width: 300px; /* 設置最小寬度，防止縮得太小 */
 }
@@ -467,7 +522,7 @@ textarea::placeholder {
 
 @media (min-width: 1400px) {
     .container {
-        width: 70%; /* 稍微增加寬度 */
+        width: 60%; /* 稍微增加寬度 */
         max-width: 1600px;
     }
 
@@ -482,7 +537,7 @@ textarea::placeholder {
 
 @media (min-width: 1024px) and (max-width: 1400px) {
     .container {
-        width: 80%;
+        width: 70%;
         max-width: 1200px;
     }
 
@@ -498,7 +553,7 @@ textarea::placeholder {
 
 @media (max-width: 1024px) {
     .container {
-        width: 95%;
+        width: 85%;
         max-width: 900px;
     }
 
@@ -514,7 +569,7 @@ textarea::placeholder {
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
-        width: 100%;
+        width: 80%;
     }
 
     .content-wrapper {

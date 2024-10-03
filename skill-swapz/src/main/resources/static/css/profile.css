@@ -54,7 +54,7 @@ h1 {
     display: block;
     margin: 10px auto;
     padding: 6px; /* 縮小按鈕 */
-    border: 1px solid #007bff;
+    border: 1px solid #000;
     border-radius: 5px;
     font-size: 12px; /* 調整字體大小 */
     cursor: pointer;
@@ -69,7 +69,7 @@ h1 {
 #avatarUpload::before {
     content: '選擇圖片';
     display: inline-block;
-    background-color: #007bff;
+    background-color: #000;
     color: #fff;
     padding: 6px 10px; /* 調整 padding */
     border-radius: 3px;
@@ -81,7 +81,7 @@ h1 {
     width: 160px; /* 調整寬度 */
     margin: 10px auto;
     padding: 6px 10px; /* 調整按鈕的 padding */
-    background-color: #28a745;
+    background-color: #000;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -91,7 +91,7 @@ h1 {
 }
 
 #uploadAvatarBtn:hover {
-    background-color: #218838;
+    background-color: #000;
 }
 
 .form-group {
@@ -124,7 +124,7 @@ textarea {
     display: block;
     width: 100%;
     padding: 8px; /* 調整按鈕的 padding */
-    background-color: #007bff;
+    background-color: #000;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -134,7 +134,7 @@ textarea {
 }
 
 .submit-btn:hover {
-    background-color: #0056b3;
+    background-color: #000;
 }
 
 /* 適應小屏幕 */

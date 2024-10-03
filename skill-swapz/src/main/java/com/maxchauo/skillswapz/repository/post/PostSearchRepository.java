@@ -29,9 +29,10 @@ public class PostSearchRepository {
     public List<PostForm> searchPost(String keyword, String sortType, int page, int size) {
         String sql = "SELECT * FROM post WHERE (:keyword IS NULL OR " +
                 "(location LIKE CONCAT('%', :keyword, '%') " +
+                "OR type LIKE CONCAT('%', :keyword, '%') " +
                 "OR skill_offered LIKE CONCAT('%', :keyword, '%') " +
                 "OR skill_wanted LIKE CONCAT('%', :keyword, '%') " +
-                "OR salary LIKE CONCAT('%', :keyword, '%') " +
+//                "OR salary LIKE CONCAT('%', :keyword, '%') " +
                 "OR book_club_purpose LIKE CONCAT('%', :keyword, '%') " +
                 "OR content LIKE CONCAT('%', :keyword, '%') " +
                 "OR tag LIKE CONCAT('%', :keyword, '%'))) " +

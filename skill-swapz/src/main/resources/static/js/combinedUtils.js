@@ -399,48 +399,49 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     const postCreatedAt = formatTimeAgo(post.createdAt);
 
     let postContent = `
-          <div class="post-header" style="display: flex; align-items: center;">
-            <div class="post-avatar-container" style="display: flex; align-items: center;">
-                <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
-                <strong class="post-author" style="margin-left: 10px;">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
-            </div>
-            <div class="post-info" style="margin-left: 20px;">
-                <div class="post-type">${escapeHtml(post.type)}</div>
-                <span class="post-time">${escapeHtml(postCreatedAt)}</span>
-                <div class="post-actual-time">${escapeHtml(post.time || '')}</div>
-            </div>
+      <div class="post-header" style="display: flex; align-items: center;">
+        <div class="post-avatar-container" style="display: flex; align-items: center;">
+            <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+            <strong class="post-author" style="margin-left: 10px;">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
         </div>
-        <p><strong>地點：</strong> ${escapeHtml(post.location)}</p>
-    `;
+        <div class="post-info" style="margin-left: 20px;">
+            <div class="post-type">${escapeHtml(post.type)}</div>
+            <span class="post-time">${escapeHtml(postCreatedAt)}</span>
+            <div class="post-actual-time">${escapeHtml(post.time || '')}</div>
+        </div>
+    </div>
+    <p><span class="label-tag">地點</span> ${escapeHtml(post.location)}</p>
+`;
 
     if (post.type === '找學生') {
         postContent += `
-        <p><strong>擅長技能：</strong> ${escapeHtml(post.skillOffered)}</p>
-        <p><strong>薪資：</strong> ${escapeHtml(post.salary)}</p>
-        `;
+    <p><span class="label-tag">擅長技能</span> ${escapeHtml(post.skillOffered)}</p>
+    <p><span class="label-tag">薪資</span> ${escapeHtml(post.salary)}</p>
+    `;
     } else if (post.type === '找老師') {
         postContent += `
-        <p><strong>想學技能：</strong> ${escapeHtml(post.skillWanted)}</p>
-        <p><strong>薪資：</strong> ${escapeHtml(post.salary)}</p>
-        `;
+    <p><span class="label-tag">想學技能</span> ${escapeHtml(post.skillWanted)}</p>
+    <p><span class="label-tag">薪資</span> ${escapeHtml(post.salary)}</p>
+    `;
     } else if (post.type === '交換技能') {
         postContent += `
-        <p><strong>擅長技能：</strong> ${escapeHtml(post.skillOffered)}</p>
-        <p><strong>想學技能：</strong> ${escapeHtml(post.skillWanted)}</p>
-        `;
+    <p><span class="label-tag">擅長技能</span> ${escapeHtml(post.skillOffered)}</p>
+    <p><span class="label-tag">想學技能</span> ${escapeHtml(post.skillWanted)}</p>
+    `;
     } else if (post.type === '讀書會') {
         postContent += `
-        <p><strong>讀書會目的：</strong> ${escapeHtml(post.bookClubPurpose || post.skillOffered)}</p>
-        `;
+    <p><span class="label-tag">讀書會目的</span> ${escapeHtml(post.bookClubPurpose || post.skillOffered)}</p>
+    `;
     }
 
     postContent += `
-    <p><strong>內容/進行方式：</strong> ${escapeHtml(post.content)}</p>
-    `;
+<p><span class="label-tag">內容/進行方式</span> ${escapeHtml(post.content)}</p>
+`;
+
 
     if (post.tag && post.tag.length > 0) {
-        const tags = post.tag.map(tag => `<button class="tag-btn"># ${escapeHtml(tag)}</button>`).join(' ');
-        postContent += `<p><strong>標籤：</strong> ${tags}</p>`;
+        const tags = post.tag.map(tag => `<button class="tag-btn label-tag tags" > # ${escapeHtml(tag)}</button>`).join(' ');
+        postContent += `<p>${tags}</p>`;
     }
 
     // 插入新的 action buttons HTML
