@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const formsWrapper = document.getElementById('forms-wrapper');
 
     document.getElementById('show-register').addEventListener('click', (e) => {
         e.preventDefault();
@@ -28,9 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
         await register(username, email, password);
     });
 
+
     function toggleForms(hideForm, showForm) {
-        hideForm.style.display = 'none';
-        showForm.style.display = 'block';
+        hideForm.classList.add('fade-out');
+        setTimeout(() => {
+            hideForm.style.display = 'none';
+            showForm.style.display = 'block';
+            hideForm.classList.remove('fade-out');
+            showForm.classList.add('fade-in');
+        }, 300);
     }
 
     async function login(email, password) {
