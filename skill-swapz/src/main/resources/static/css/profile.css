@@ -2,37 +2,36 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
-    padding: 0;
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
+    justify-content: center; /* 水平置中 */
+    align-items: center; /* 垂直置中 */
 }
 
 .container {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
+    min-width: 60%; /* 增加表單寬度 */
+    margin: 30px auto;
+    padding: 30px; /* 增加內邊距 */
     box-sizing: border-box;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    overflow-y: auto;
+    max-height: 90vh; /* 最大高度，不會超過視窗的 90% */
+    overflow-y: auto; /* 內容過多時出現滾輪 */
 }
 
 #profileForm {
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 h1 {
     text-align: center;
     color: #333;
     margin: 0 0 20px 0;
-    padding-top: 60px; /* 為 navbar 留出空間 */
+    padding-top: 0; /* 無需為 navbar 預留空間，因為已經置中 */
 }
 
 .profile-image {
@@ -52,12 +51,12 @@ h1 {
 #avatarUpload {
     display: block;
     margin: 10px auto;
-    padding: 8px;
+    padding: 6px; /* 縮小按鈕 */
     border: 1px solid #007bff;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 12px; /* 調整字體大小 */
     cursor: pointer;
-    width: 180px;
+    width: 30%; /* 縮小按鈕寬度 */
 }
 
 #avatarUpload::-webkit-file-upload-button {
@@ -70,23 +69,23 @@ h1 {
     display: inline-block;
     background-color: #007bff;
     color: #fff;
-    padding: 6px 15px;
+    padding: 6px 10px; /* 調整 padding */
     border-radius: 3px;
     cursor: pointer;
 }
 
 #uploadAvatarBtn {
     display: block;
-    width: 180px;
+    width: 160px; /* 調整寬度 */
     margin: 10px auto;
-    padding: 8px 15px;
+    padding: 6px 10px; /* 調整按鈕的 padding */
     background-color: #28a745;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    font-size: 14px;
+    font-size: 12px; /* 調整字體大小 */
 }
 
 #uploadAvatarBtn:hover {
@@ -107,7 +106,7 @@ label {
 input[type="text"],
 textarea {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 14px;
@@ -122,13 +121,12 @@ textarea {
 .submit-btn {
     display: block;
     width: 100%;
-    padding: 10px;
-    margin-top: auto; /* 將按鈕推到表單底部 */
+    padding: 8px; /* 調整按鈕的 padding */
     background-color: #007bff;
     color: #fff;
     border: none;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 14px; /* 調整字體大小 */
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -140,13 +138,12 @@ textarea {
 /* 適應小屏幕 */
 @media (max-width: 768px) {
     .container {
-        padding: 15px;
+        padding: 20px;
     }
 
     h1 {
         font-size: 22px;
         margin-bottom: 15px;
-        padding-top: 50px; /* 為小屏幕上的 navbar 調整空間 */
     }
 
     #avatar {
@@ -167,7 +164,7 @@ textarea {
     }
 
     #avatarUpload {
-        width: 160px;
+        width: 140px;
         font-size: 12px;
     }
 }

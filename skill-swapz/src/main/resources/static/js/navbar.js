@@ -1,14 +1,13 @@
 import { getUnreadMessageCounts } from './combinedUtils.js';
 
-// 監聽未讀消息計數更新事件
 let unreadCountBadge = null;
+let dropdownUnreadBadge = null;
 
 window.addEventListener('unreadCountUpdated', (event) => {
     console.log("Received unreadCountUpdated event:", event.detail);
     updateNavbarUnreadCount(event.detail);
 });
 
-// 頁面加載時更新未讀消息計數
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getUserId();
     if (userId) {
@@ -26,13 +25,14 @@ export async function createNavbar() {
         if (userId) {
             const userData = await fetchUserProfile(userId);
             if (userData) {
-                const avatar = createAvatar(userData);
+                const createPostButton = createCreatePostButton();
                 const userName = createUserName(userData);
+                const avatar = createAvatar(userData);
                 unreadCountBadge = createUnreadCountBadge();
 
                 avatar.addEventListener('click', toggleDropdown);
 
-                rightContainer.append(unreadCountBadge, userName, avatar);
+                rightContainer.append(createPostButton, userName, avatar);
             }
         }
     } catch (error) {
@@ -59,15 +59,21 @@ async function updateUnreadMessageCount(userId) {
 }
 
 export function updateNavbarUnreadCount(unreadCount) {
-    if (unreadCountBadge) {
-        unreadCountBadge.textContent = unreadCount > 0 ? unreadCount : '';
-        unreadCountBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+    const avatarUnreadBadge = document.getElementById('avatar-unread-badge');
+    if (avatarUnreadBadge && dropdownUnreadBadge) {
+        const displayStyle = unreadCount > 0 ? 'inline-block' : 'none';
+        const badgeText = unreadCount > 0 ? unreadCount : '';
+
+        avatarUnreadBadge.textContent = badgeText;
+        avatarUnreadBadge.style.display = displayStyle;
+
+        dropdownUnreadBadge.textContent = badgeText;
+        dropdownUnreadBadge.style.display = displayStyle;
     } else {
-        console.warn('Unread count badge not found, retrying...');
+        console.warn('Unread count badges not found, retrying...');
         setTimeout(() => updateNavbarUnreadCount(unreadCount), 100);
     }
 }
-
 
 async function getUserId() {
     try {
@@ -102,7 +108,6 @@ async function fetchUserProfile(userId) {
     }
 }
 
-// Utility functions for creating elements and handling DOM
 function createElementWithClass(element, className) {
     const el = document.createElement(element);
     el.className = className;
@@ -112,20 +117,33 @@ function createElementWithClass(element, className) {
 function createLogo() {
     const logo = createElementWithClass('a', 'navbar-logo');
     logo.href = '/';
-    logo.textContent = '技能交換';
+
+    const img = document.createElement('img');
+    img.src = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/logo2-removebg-preview.png';
+    img.alt = '技能交換 Logo';
+    img.classList.add('logo-image');
+
+    logo.appendChild(img);
     return logo;
 }
 
+function createCreatePostButton() {
+    const button = createElementWithClass('a', 'create-post-button');
+    button.href = '/create-post.html';
+    button.textContent = '發布文章';
+    return button;
+}
+
 function createAvatar(userData) {
-    // 建立一個 wrapper 來包裹 avatar 和 badge
     const avatarWrapper = createElementWithClass('div', 'navbar-avatar-wrapper');
 
     const avatar = createElementWithClass('img', 'navbar-avatar');
     avatar.src = userData.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
     avatar.alt = 'User Avatar';
 
-    const unreadBadge = createUnreadCountBadge();
-    avatarWrapper.append(avatar, unreadBadge); // 將徽章放在 avatar 的 wrapper 中
+    const avatarUnreadBadge = createUnreadCountBadge();
+    avatarUnreadBadge.id = 'avatar-unread-badge';
+    avatarWrapper.append(avatar, avatarUnreadBadge);
 
     return avatarWrapper;
 }
@@ -138,7 +156,6 @@ function createUserName(userData) {
 
 function createUnreadCountBadge() {
     const badge = createElementWithClass('span', 'total-unread-badge');
-    badge.id = 'total-unread-badge';
     badge.style.display = 'none';
     return badge;
 }
@@ -148,22 +165,24 @@ function createUserMenu() {
     const dropdownContent = createElementWithClass('div', 'dropdown-content');
 
     const menuItems = [
-        { name: '訊息', href: '/chat.html' },
+        { name: '訊息', href: '/chat.html', id: 'messageMenuItem' },
         { name: '個人資料', href: '/profile.html' },
         { name: '我的文章', href: '/my-post.html' },
         { name: '收藏文章', href: '/my-bookmark.html' },
         { name: '登出', href: '/logout' }
     ];
 
-    const createPostItem = createElementWithClass('a', '');
-    createPostItem.href = '/create-post.html';
-    createPostItem.textContent = '發布文章';
-    dropdownContent.appendChild(createPostItem);
-
     menuItems.forEach(item => {
         const menuItem = createElementWithClass('a', '');
         menuItem.href = item.href;
         menuItem.textContent = item.name;
+
+        if (item.id === 'messageMenuItem') {
+            dropdownUnreadBadge = createUnreadCountBadge();
+            dropdownUnreadBadge.id = 'dropdown-unread-badge';
+            menuItem.appendChild(dropdownUnreadBadge);
+        }
+
         dropdownContent.appendChild(menuItem);
     });
 
@@ -197,7 +216,7 @@ export function addNavbarStyles() {
             justify-content: space-between;
             align-items: center;
             padding: 10px 20px;
-            background-color: #e0e0e0;
+            background-color: #E0E0E0;
         }
         .navbar-logo {
             font-size: 20px;
@@ -205,6 +224,10 @@ export function addNavbarStyles() {
             font-weight: bold;
             text-decoration: none;
             color: #333;
+        }
+        .logo-image {
+            width: 15rem;
+            height: auto;
         }
         .navbar-right {
             display: flex;
@@ -219,6 +242,8 @@ export function addNavbarStyles() {
             display: none;
             position: absolute;
             right: 0;
+            top: 100%; /* 這會讓下拉選單從父元素的底部開始 */
+            margin-top: 35px; /* 這會讓下拉選單再往下移動10像素 */
             background-color: #f9f9f9;
             min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
@@ -229,6 +254,7 @@ export function addNavbarStyles() {
             padding: 12px 16px;
             text-decoration: none;
             display: block;
+            position: relative;
         }
         .dropdown-content a:hover {
             background-color: #f1f1f1;
@@ -244,22 +270,52 @@ export function addNavbarStyles() {
             font-weight: bold;
         }
         .navbar-avatar-wrapper {
-        position: relative;
-        display: inline-block;
+            position: relative;
+            display: inline-block;
         }
-    
+        .total-unread-badge, #dropdown-unread-badge {
+            position: absolute;
+            background-color: red;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: bold;
+            display: none;
+        }
         .total-unread-badge {
+            top: -5px;
+            right: -5px;
+        }
+        #dropdown-unread-badge {
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+        }
+        .create-post-button {
+            padding: 8px 16px;
+            background-color: #A9A9A9;
+            color: black;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .create-post-button:hover {
+            background-color: #808080;
+        }
+        #avatar-unread-badge {
         position: absolute;
-        top: 8px; /* 可以根據需要進一步微調，讓它貼近頭像 */
-        right: 30px; /* 可以根據需要進一步微調 */
+        top: -5px;
+        right: -5px;
         background-color: red;
         color: white;
-        padding: 2px 5px; /* 減少 padding 讓它變小 */
-        border-radius: 50%; /* 使其成為圓形 */
-        font-size: 10px; /* 調小字體大小 */
-        font-weight: bold; /* 可以設定為粗體，讓數字更清晰 */
-        display: none; /* 預設不顯示，根據未讀消息動態顯示 */
-        z-index:999;
+        padding: 2px 5px;
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: bold;
+        display: none;
         }
     `;
     document.head.appendChild(style);

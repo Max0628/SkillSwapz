@@ -1,9 +1,15 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    "Helvetica Neue", sans-serif;
     background-color: #f4f4f4;
     margin: 0;
-    padding-top: 60px; /* 調整這個值以匹配你的 navbar 高度 */
+    padding-top: 100px; /* 調整這個值以匹配你的 navbar 高度 */
 }
+code {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 
 h2 {
     margin-top: 0;
@@ -418,20 +424,22 @@ textarea::placeholder {
 }
 
 .search-sidebar {
-    flex: 2; /* 調整為 2，使其比例更小 */
+    flex: 2;
     position: sticky;
-    top: 80px; /* 增加頂部距離，為固定的 navbar 留出空間 */
+    top: 80px;
     color: black;
-    /*height: calc(100vh - 100px); !* 調整高度，減去 navbar 和上下邊距 *!*/
-    max-height: 400px;
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     transition: width 0.5s ease;
-    min-width: 150px; /* 稍微減少最小寬度 */
-    max-width: 250px; /* 減少最大寬度 */
+    min-width: 150px; /* 保持最小寬度 */
+    max-width: 250px; /* 保持最大寬度 */
+    max-height: 400px; /* 設置最大高度，避免過長 */
+    overflow-y: auto; /* 當內容超出時出現捲動條 */
 }
+
+
 
 .search-input {
     width: 60%; /* 讓搜索框填滿 sidebar 寬度 */
