@@ -401,7 +401,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     let postContent = `
           <div class="post-header" style="display: flex; align-items: center;">
             <div class="post-avatar-container" style="display: flex; align-items: center;">
-                <img src="${escapeHtml(authorDetails?.avatarUrl || 'default_avatar_url')}" alt="User Avatar" class="post-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
                 <strong class="post-author" style="margin-left: 10px;">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
             </div>
             <div class="post-info" style="margin-left: 20px;">

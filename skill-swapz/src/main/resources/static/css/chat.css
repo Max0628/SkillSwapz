@@ -2,6 +2,9 @@
 
     /* 確保 body 和 html 占滿整個視窗 */
     html, body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        "Helvetica Neue", sans-serif;
         height: 100%;
         margin: 0;
         padding: 0;
