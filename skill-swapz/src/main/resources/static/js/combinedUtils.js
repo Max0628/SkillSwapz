@@ -326,7 +326,7 @@ export async function createCommentElement(commentData, currentUserId) {
         let userDetails, avatarUrl, username;
         try {
             userDetails = await fetchUserDetails(commentData.user_id);
-            avatarUrl = userDetails?.avatarUrl || 'default_avatar_url';
+            avatarUrl = userDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
             username = userDetails?.username || 'Unknown User';
         } catch (error) {
             console.error("Error fetching user details:", error);
