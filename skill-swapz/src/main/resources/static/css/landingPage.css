@@ -46,13 +46,14 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 10px;
     position: relative;
 }
 
 header {
     background-color: #e0e0e0;
-    padding: 20px 0;
+    /*height: 5rem;*/
+    padding: 10px 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: fixed;
     top: 0;

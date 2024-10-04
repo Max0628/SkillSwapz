@@ -215,7 +215,7 @@ h3 {
     align-items: center;
     justify-content: center;
 }
-.chat-icon, .chat-text {
+.chat-icon, .chat-text .material-icons-outlined {
     pointer-events: none; /* 確保事件總是觸發在按鈕上 */
 }
 

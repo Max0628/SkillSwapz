@@ -455,12 +455,12 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             <i class="fa-${bookmarkedPosts.includes(postId) ? 'solid' : 'regular'} fa-bookmark"></i>
         </button>
         <button class="action-btn comment-toggle-btn" id="comment-toggle-btn-${postId}">
-            <i class="fa-regular fa-comment"></i> 
+            <i class="fa-regular fa-comment-dots"></i>
             <span>${post.comments ? post.comments.length : 0}</span>
         </button>
         ${String(post.userId).trim() !== String(userId).trim() ?
         `<button class="action-btn chat-btn" id="chat-btn-${postId}">
-            <span class="chat-icon"><i class="fa-regular fa-envelope"></i></span>
+            <span class="chat-icon"><i class="fa-regular fa-comments"></i></span>
         </button>`
         : ''}
         ${String(post.userId).trim() === String(userId).trim() ?
