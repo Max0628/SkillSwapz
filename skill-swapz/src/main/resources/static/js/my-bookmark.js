@@ -1,3 +1,4 @@
+//my-bookmarks.js
 import { displayPost, fetchLikedAndBookmarkedPosts, getUserId, handleBookmark, startChat, connectWebSocket, handleTagClick, handleDelete, subscribeToPostEvents, updateLikeCount, updateCommentCount, createCommentElement } from './combinedUtils.js';
 import { addNavbarStyles, createNavbar } from './navbar.js';
 

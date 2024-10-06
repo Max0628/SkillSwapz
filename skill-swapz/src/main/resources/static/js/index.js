@@ -182,9 +182,17 @@ function showNotification(message) {
 }
 
 async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts) {
-    for (const post of posts) {
-        await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+    // for (const post of posts) {
+    //     await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+    // }
+    if (Array.isArray(posts)) {
+        for (const post of posts) {
+            await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+        }
+    } else {
+        console.error("Posts is not an array:", posts);
     }
+
 }
 
 
@@ -194,26 +202,45 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         if (searchKeyword) {
             apiUrl += `&keyword=${encodeURIComponent(searchKeyword)}`;
         }
+        console.log('Fetching posts from URL:', apiUrl);
 
         const [likedAndBookmarkedData, postResponse] = await Promise.all([
             fetchLikedAndBookmarkedPosts(userId),
             fetch(apiUrl, { credentials: 'include' })
         ]);
 
+        console.log('Liked and Bookmarked data:', likedAndBookmarkedData);
+        console.log('Post response status:', postResponse.status);
+        console.log('Post response headers:', Object.fromEntries(postResponse.headers.entries()));
+
+        if (!postResponse.ok) {
+            console.error('Error response from server:', await postResponse.text());
+            throw new Error(`HTTP error! status: ${postResponse.status}`);
+        }
+
         const posts = await postResponse.json();
+        console.log('Fetched posts:', posts);
+
         const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
         const postsList = document.getElementById('posts-list');
 
         if (page === 0) {
-            postsList.innerHTML = ''; // 清空現有的帖子，只在第一頁時執行
+            postsList.innerHTML = '';
+            console.log('Cleared existing posts');
         }
 
-        await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
+        if (posts.length === 0) {
+            console.log('No posts received from server');
+            postsList.innerHTML += '<p>No posts found</p>';
+        } else {
+            console.log('Rendering posts');
+            await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
+        }
 
+        console.log('Finished processing posts');
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
-
     } catch (error) {
-        console.error('Error fetching posts:', error);
+        console.error('Error in fetchAndDisplayPosts:', error);
         alert('獲取貼文失敗，請稍後再試。');
         return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
     }

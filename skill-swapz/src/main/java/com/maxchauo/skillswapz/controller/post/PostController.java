@@ -10,6 +10,7 @@ import com.maxchauo.skillswapz.service.post.PostService;
 
 import lombok.extern.log4j.Log4j2;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -143,17 +144,39 @@ public class PostController {
             return ResponseEntity.badRequest().body(errorMessage);
         }
     }
-//    @RequestMapping("api/1.0/post")
-@GetMapping
-public ResponseEntity<List<PostForm>> getPosts(
-        @RequestParam(required = false) String keyword,
-        @RequestParam(required = false, defaultValue = "date") String sort,
-        @RequestParam(defaultValue = "0") int page,  // 第幾頁
-        @RequestParam(defaultValue = "11") int size  // 每頁顯示的資料筆數，11 用來判斷是否有更多資料
-) {
-    List<PostForm> posts = service.searchPost(keyword, sort, page, size);
-    return ResponseEntity.ok().body(posts);
-}
+
+    @GetMapping
+    public ResponseEntity<?> getPosts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "date") String sortType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "11") int size
+    ) {
+        try {
+            List<PostForm> posts;
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                log.info("Searching posts with keyword: {}, sortType: {}, page: {}, size: {}", keyword, sortType, page, size);
+                posts = service.searchPost(keyword, sortType, page, size);
+            } else {
+                log.info("Fetching latest posts for page: {}, size: {}", page, size);
+                posts = service.getLatestPosts(page, size);
+            }
+
+            if (posts.isEmpty()) {
+                log.info("No posts found");
+                return ResponseEntity.noContent().build();
+            }
+
+            log.info("Returning {} posts", posts.size());
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error fetching posts", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching posts: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostForm> getPostDetail(@PathVariable int postId) throws Exception {
