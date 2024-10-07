@@ -12,37 +12,34 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.text.SimpleDateFormat;
 
-
 @Configuration
 public class RedisConfig {
 
-    // 從環境變數或配置文件中讀取 Redis 密碼
+    // 从环境变量或配置文件中读取 Redis 密码
     @Value("${spring.data.redis.password}")
     private String redisPassword;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-        lettuceConnectionFactory.setPassword(redisPassword); // 使用從環境變數中讀取的密碼
+        lettuceConnectionFactory.setPassword(redisPassword); // 使用从环境变量中读取的密码
         return lettuceConnectionFactory;
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
-
-        // 使用 String 序列化器處理鍵和值
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());  // 修改這裡，使用 String 序列化器來處理值
-
-        // 使用 String 序列化器處理 Sorted Set 的成員值
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
 
         return template;
     }
@@ -76,10 +73,10 @@ public class RedisConfig {
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // 註冊 JavaTimeModule 支持 Java 8 時間類型
+        // 注册 JavaTimeModule 支持 Java 8 时间类型
         objectMapper.registerModule(new JavaTimeModule());
 
-        // 設定日期格式，根據你需要的格式來調整，例如 "yyyy-MM-dd HH:mm:ss"
+        // 设置日期格式，按照你需要的格式，例如 "yyyy-MM-dd HH:mm:ss"
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 

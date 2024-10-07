@@ -56,10 +56,15 @@ public class PostService {
 
         log.info("Post inserted with ID: {}", createdPostForm.getId());
 
-        // 將文章加入 Redis Sorted Set
+        // 将文章加入 Redis Sorted Set
         addToRedisSortedSet(createdPostForm);
+
+        // 将文章内容存入 Redis，键为 "post:<postId>"
+        redisTemplate.opsForValue().set("post:" + createdPostForm.getId(), createdPostForm);
+
         return createdPostForm.getId();
     }
+
 
     // 新增方法，將文章加入 Redis Sorted Set
     private void addToRedisSortedSet(PostForm postForm) {
@@ -144,7 +149,14 @@ public class PostService {
     }
 
     public PostForm getPostDetail(int postId) throws Exception {
-        PostForm post = searchRepo.findPostById(postId);
+        // 首先尝试从 Redis 中获取文章
+        PostForm post = getPostFromRedis(postId);
+        if (post != null) {
+            return post;
+        }
+
+        // 如果 Redis 中没有，查询数据库
+        post = searchRepo.findPostById(postId);
         if (post == null) {
             throw new Exception("Post not found with id: " + postId);
         }
@@ -152,8 +164,14 @@ public class PostService {
         List<CommentForm> comments = searchRepo.findCommentsByPostId(postId);
         post.setComments(comments);
 
+        // 将从数据库中获取到的文章存入 Redis
+        redisTemplate.opsForValue().set("post:" + postId, post);
+        log.info("Stored post in Redis: post:{}", postId);
+
         return post;
     }
+
+
 
     public List<PostForm> getPostsByUserId(Integer userId) {
         return postSearchRepository.findPostsByUserId(userId);
@@ -271,12 +289,30 @@ public class PostService {
         for (PostForm post : posts) {
             Integer postId = post.getId();
             if (postId != null) {
+                // 将文章 ID 和创建时间戳存入 Sorted Set
                 redisTemplate.opsForZSet().add(REDIS_KEY, postId.toString(), post.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
-                log.info("Saved post to Redis: {}", postId);
+                log.info("Saved post ID to Redis Sorted Set: {}", postId);
+
+                // 将文章内容存入 Redis，键为 post:<postId>
+                redisTemplate.opsForValue().set("post:" + postId, post);
+                log.info("Saved post content to Redis: post:{}", postId);
             } else {
                 log.warn("Attempted to save post with null id to Redis. Post content: {}", post);
             }
         }
     }
+
+    public PostForm getPostFromRedis(int postId) {
+        // 从 Redis 中获取文章的详细内容
+        PostForm post = (PostForm) redisTemplate.opsForValue().get("post:" + postId);
+        if (post != null) {
+            log.info("Retrieved post from Redis: post:{}", postId);
+        } else {
+            log.warn("Post not found in Redis: post:{}", postId);
+        }
+        return post;
+    }
+
+
 }
 
