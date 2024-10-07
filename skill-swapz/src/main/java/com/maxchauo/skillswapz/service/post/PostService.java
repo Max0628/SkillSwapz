@@ -1,5 +1,7 @@
 package com.maxchauo.skillswapz.service.post;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.maxchauo.skillswapz.data.dto.post.CategoryDto;
 import com.maxchauo.skillswapz.data.form.post.CommentForm;
 import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
@@ -55,18 +57,11 @@ public class PostService {
         };
 
         log.info("Post inserted with ID: {}", createdPostForm.getId());
-
-        // 将文章加入 Redis Sorted Set
         addToRedisSortedSet(createdPostForm);
-
-        // 将文章内容存入 Redis，键为 "post:<postId>"
         redisTemplate.opsForValue().set("post:" + createdPostForm.getId(), createdPostForm);
-
         return createdPostForm.getId();
     }
 
-
-    // 新增方法，將文章加入 Redis Sorted Set
     private void addToRedisSortedSet(PostForm postForm) {
         Integer postId = postForm.getId();
         if (postId == null) {
@@ -74,24 +69,16 @@ public class PostService {
             return;
         }
 
-        // 移除 postId 前後的雙引號（如果有的話）
         String postIdString = postId.toString().replaceAll("^\"|\"$", "");
-
         redisTemplate.opsForZSet().add(REDIS_KEY, postIdString, postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
-
         log.info("Added post to Redis with postId: {} and score: {}", postIdString, postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
-
-        // 保留最新的 30 篇文章
-        Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);  // 查詢 Redis 目前的數量
+        Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
         log.info("Current number of posts in Redis: {}", zCard);
-
         if (zCard > 30) {
             redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, 0);
             log.info("Removed oldest post, keeping only the latest 30.");
         }
     }
-
-
 
     public CommentForm insertComment(CommentForm commentForm) {
         return commentRepo.insertComment(commentForm);
@@ -102,12 +89,9 @@ public class PostService {
         if (comment.isPresent() && comment.get().getUserId().equals(userId)) {
             Integer postId = comment.get().getPostId();
             commentRepo.deleteById(commentId);
-
-            // 構建返回的訊息內容
             Map<String, Object> messageContent = new HashMap<>();
             messageContent.put("commentId", commentId);
             messageContent.put("postId", postId);
-
             return messageContent;
         }
         return null;
@@ -149,28 +133,42 @@ public class PostService {
     }
 
     public PostForm getPostDetail(int postId) throws Exception {
-        // 首先尝试从 Redis 中获取文章
-        PostForm post = getPostFromRedis(postId);
-        if (post != null) {
-            return post;
+        PostForm post = null;
+        try {
+            // 先从 Redis 获取
+            post = getPostFromRedis(postId);
+            if (post != null) {
+                log.info("Post retrieved from Redis with postId: {}", postId);
+                return post;
+            }
+
+            // 如果 Redis 没有，从数据库中获取
+            post = searchRepo.findPostById(postId);
+            if (post == null) {
+                log.error("Post not found in database with id: {}", postId);
+                throw new Exception("Post not found with id: " + postId);
+            }
+
+            // 获取评论并添加到 post 中
+            List<CommentForm> comments = searchRepo.findCommentsByPostId(postId);
+            post.setComments(comments);
+
+            // 将 post 保存到 Redis 中
+            redisTemplate.opsForValue().set("post:" + postId, post);
+            log.info("Stored post in Redis: post:{}", postId);
+        } catch (IllegalArgumentException e) {
+            log.error("Error in serializing/deserializing PostForm for postId: {}", postId, e);
+            throw new Exception("Serialization issue occurred while retrieving post with id: " + postId);
+        } catch (Exception e) {
+            log.error("Failed to get post with postId: {}. Error: {}", postId, e.getMessage());
+            throw e;
         }
-
-        // 如果 Redis 中没有，查询数据库
-        post = searchRepo.findPostById(postId);
-        if (post == null) {
-            throw new Exception("Post not found with id: " + postId);
-        }
-
-        List<CommentForm> comments = searchRepo.findCommentsByPostId(postId);
-        post.setComments(comments);
-
-        // 将从数据库中获取到的文章存入 Redis
-        redisTemplate.opsForValue().set("post:" + postId, post);
-        log.info("Stored post in Redis: post:{}", postId);
-
         return post;
     }
 
+    public List<CommentForm> getCommentsByPostId(int postId) {
+        return postSearchRepository.findCommentsByPostId(postId);
+    }
 
 
     public List<PostForm> getPostsByUserId(Integer userId) {
@@ -190,110 +188,82 @@ public class PostService {
         return likeRepository.findLikedPostIdsByUserId(userId);
     }
 
-    // 刪除文章時，從 Redis Sorted Set 移除文章
     public boolean deletePost(int postId, int userId) {
         boolean deleted = postRepo.deletePost(postId, userId);
 
         if (deleted) {
             try {
-                // 嘗試從 Redis 中刪除文章
-                redisTemplate.opsForZSet().remove(REDIS_KEY, String.valueOf(postId));  // 將 postId 轉換為字串
+                redisTemplate.opsForZSet().remove(REDIS_KEY, String.valueOf(postId));
                 log.info("Deleted post from Redis with postId: {}", postId);
-
-                // 檢查 Redis 中的文章數量
                 Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
                 log.info("Current number of posts in Redis after deletion: {}", zCard);
-
-                // 如果 Redis 中的文章數量少於 30，從資料庫補充最新的文章
                 if (zCard != null && zCard < 30) {
-                    // 查詢最新的文章補充到 Redis
-                    List<PostForm> additionalPosts = postRepo.findLatestPostsAfter(0, 1); // 查詢最新的一篇文章
+                    List<PostForm> additionalPosts = postRepo.findLatestPostsAfter(0, 1);
                     if (!additionalPosts.isEmpty()) {
-                        savePostsToRedis(additionalPosts); // 將補充的文章存入 Redis
+                        savePostsToRedis(additionalPosts);
                         log.info("Added new post to Redis after deletion to maintain 30 posts.");
                     } else {
                         log.info("No more posts available in the database to add to Redis.");
                     }
                 }
             } catch (Exception e) {
-                // 捕獲異常並記錄錯誤信息
                 log.error("Failed to delete post from Redis with postId: {}. Error: {}", postId, e.getMessage());
             }
         } else {
             log.warn("Failed to delete post from DB with postId: {} and userId: {}", postId, userId);
         }
-
         return deleted;
     }
 
-
-
-    // 取得 Redis 中的最新文章，如果 Redis 沒有，從 MySQL 拿取
     public List<PostForm> getLatestPosts(int page, int size) {
-        long start = page * size;
-        long end = (page + 1) * size - 1;
-
-        // 從 Redis 取出文章，只取 Redis 前 30 篇
+        long start = (long) page * size;
+        long end = (long) (page + 1) * size - 1;
         Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, start, Math.min(end, 29));
         log.info("Fetched postIds from Redis: {}", postIds);
-
-        // 將 Object 轉換為 String，然後嘗試轉換為 Integer
+        assert postIds != null;
         List<Integer> validPostIds = postIds.stream()
                 .filter(Objects::nonNull)
                 .map(id -> {
                     try {
-                        return Integer.parseInt(id.toString());  // 將 String 轉為 Integer
+                        return Integer.parseInt(id.toString());
                     } catch (NumberFormatException e) {
                         log.error("Failed to parse postId: {}", id);
-                        return null; // 處理無法轉換的情況
+                        return null;
                     }
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        // 如果 Redis 中的文章數量不足，從 MySQL 補充
         if (validPostIds.size() < size) {
             int remaining = size - validPostIds.size();
             long totalCount = redisTemplate.opsForZSet().size(REDIS_KEY);
 
             List<PostForm> additionalPosts;
             if (start >= 30) {
-                // 如果需要查詢超過 30 篇，直接從 MySQL 查詢後續的文章，不存入 Redis
                 additionalPosts = postRepo.findLatestPostsAfter((int) (start), remaining);
             } else {
-                // 如果 Redis 中文章不夠，從 MySQL 補充文章
                 additionalPosts = postRepo.findLatestPostsAfter((int) totalCount, remaining);
-
-                // 將補充的文章存入 Redis，只保留最新的 30 篇文章
                 savePostsToRedis(additionalPosts);
                 log.info("Saved {} additional posts to Redis", additionalPosts.size());
 
-                // 確保 Redis 中只保留最新的 30 篇文章
                 Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
                 if (zCard > 30) {
-                    redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, zCard - 31); // 移除超過 30 篇的部分
+                    redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, zCard - 31);
                     log.info("Trimmed Redis to keep only the latest 30 posts");
                 }
             }
-
-            // 將補充的文章 id 加入到結果列表中
             validPostIds.addAll(additionalPosts.stream().map(PostForm::getId).collect(Collectors.toList()));
         }
 
         return postRepo.getPostsByIds(validPostIds);
     }
 
-
-    // 新增方法，將文章列表存入 Redis
     private void savePostsToRedis(List<PostForm> posts) {
         for (PostForm post : posts) {
             Integer postId = post.getId();
             if (postId != null) {
-                // 将文章 ID 和创建时间戳存入 Sorted Set
                 redisTemplate.opsForZSet().add(REDIS_KEY, postId.toString(), post.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
                 log.info("Saved post ID to Redis Sorted Set: {}", postId);
-
-                // 将文章内容存入 Redis，键为 post:<postId>
                 redisTemplate.opsForValue().set("post:" + postId, post);
                 log.info("Saved post content to Redis: post:{}", postId);
             } else {
@@ -303,16 +273,29 @@ public class PostService {
     }
 
     public PostForm getPostFromRedis(int postId) {
-        // 从 Redis 中获取文章的详细内容
-        PostForm post = (PostForm) redisTemplate.opsForValue().get("post:" + postId);
-        if (post != null) {
-            log.info("Retrieved post from Redis: post:{}", postId);
-        } else {
-            log.warn("Post not found in Redis: post:{}", postId);
+        try {
+            Object redisData = redisTemplate.opsForValue().get("post:" + postId);
+            if (redisData != null) {
+                if (redisData instanceof LinkedHashMap) {
+                    // 避免 Redis 返回的非 PostForm 数据
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());  // 确保支持 Java 8 时间
+                    PostForm post = objectMapper.convertValue(redisData, PostForm.class);
+                    log.info("Converted LinkedHashMap to PostForm from Redis: post:{}", postId);
+                    return post;
+                } else if (redisData instanceof PostForm) {
+                    log.info("Post retrieved from Redis: post:{}", postId);
+                    return (PostForm) redisData;
+                } else {
+                    log.warn("Unexpected data type in Redis for postId {}: {}", postId, redisData.getClass().getName());
+                }
+            } else {
+                log.info("No post found in Redis for postId: {}", postId);
+            }
+        } catch (Exception e) {
+            log.error("Error retrieving post from Redis for postId: {}", postId, e);
         }
-        return post;
+        return null;
     }
-
-
 }
 

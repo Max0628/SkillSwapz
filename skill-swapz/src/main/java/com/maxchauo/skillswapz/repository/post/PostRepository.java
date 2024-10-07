@@ -198,11 +198,14 @@ public class PostRepository {
     public List<PostForm> getPostsByIds(List<Integer> postIds) {
         if (postIds.isEmpty()) return List.of();
 
-        String sql = "SELECT * FROM post WHERE id IN (:postIds) ORDER BY FIELD(id, :postIds)";
+        String sql = "SELECT p.*, (SELECT COUNT(*) FROM comment c WHERE c.post_id = p.id) AS comment_count " +
+                "FROM post p WHERE p.id IN (:postIds) ORDER BY FIELD(p.id, :postIds)";
+
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("postIds", postIds);
         return template.query(sql, params, new PostRowMapper());
     }
+
 
     private static class PostRowMapper implements RowMapper<PostForm> {
         @Override
@@ -222,6 +225,7 @@ public class PostRepository {
             post.setMessageUrl(rs.getString("message_url"));
             post.setProfileUrl(rs.getString("profile_url"));
             post.setPostUrl(rs.getString("post_url"));
+            post.setCommentCount(rs.getInt("comment_count"));
             post.setTag(Arrays.asList(rs.getString("tag").split(","))); // 假設 tag 是以逗號分隔的字符串
             post.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
             return post;

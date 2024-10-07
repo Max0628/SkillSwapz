@@ -32,7 +32,7 @@ public class PostSearchRepository {
                 "OR type LIKE CONCAT('%', :keyword, '%') " +
                 "OR skill_offered LIKE CONCAT('%', :keyword, '%') " +
                 "OR skill_wanted LIKE CONCAT('%', :keyword, '%') " +
-//                "OR salary LIKE CONCAT('%', :keyword, '%') " +
+                "OR salary LIKE CONCAT('%', :keyword, '%') " +
                 "OR book_club_purpose LIKE CONCAT('%', :keyword, '%') " +
                 "OR content LIKE CONCAT('%', :keyword, '%') " +
                 "OR tag LIKE CONCAT('%', :keyword, '%'))) " +
@@ -98,10 +98,11 @@ public class PostSearchRepository {
 
 
     public List<CommentForm> findCommentsByPostId(int postId) {
-        String sql = "SELECT * FROM comment WHERE post_id = :postId ORDER BY created_at DESC";
+        String sql = "SELECT * FROM comment WHERE post_id = :postId ORDER BY created_at ASC"; // 由舊到新
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("postId", postId);
 
         return template.query(sql, params, new BeanPropertyRowMapper<>(CommentForm.class));
     }
+
 }

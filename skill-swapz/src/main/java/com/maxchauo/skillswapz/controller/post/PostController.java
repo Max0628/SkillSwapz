@@ -108,6 +108,17 @@ public class PostController {
         }
     }
 
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<CommentForm>> getCommentsByPostId(@PathVariable int postId) {
+        try {
+            List<CommentForm> comments = service.getCommentsByPostId(postId);
+            return ResponseEntity.ok(comments);
+        } catch (Exception e) {
+            log.error("Error fetching comments for postId: {}", postId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);  // 或者可以自定義一個錯誤訊息
+        }
+    }
 
 
     @PostMapping("/bookMark")
@@ -179,9 +190,19 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostForm> getPostDetail(@PathVariable int postId) throws Exception {
-        PostForm post = service.getPostDetail(postId);
-        return ResponseEntity.ok(post);
+    public ResponseEntity<?> getPostDetail(@PathVariable int postId) {
+        try {
+            PostForm post = service.getPostDetail(postId);
+            return ResponseEntity.ok(post);
+        } catch (IllegalArgumentException e) {
+            log.error("Error retrieving post with postId: {}", postId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Serialization issue occurred for postId: " + postId));
+        } catch (Exception e) {
+            log.error("Error fetching post with postId: {}", postId, e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/user/{userId}")

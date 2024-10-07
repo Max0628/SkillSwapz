@@ -27,6 +27,7 @@ public class PostForm {
     private String messageUrl;
     private String profileUrl;
     private String postUrl;
+    private Integer commentCount;
     private List<String> tag;
     private List<CommentForm> comments;
     private LocalDateTime createdAt;
