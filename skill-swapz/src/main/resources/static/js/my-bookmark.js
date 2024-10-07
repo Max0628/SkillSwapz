@@ -142,26 +142,26 @@ function setupPostInteractions(userId, postsList) {
 }
 
 function setupSearchAndFilter(userId) {
-    let debounceTimer;
-
     const searchInput = document.querySelector('.search-input');
-    searchInput.addEventListener('input', (event) => {
-        const searchKeyword = event.target.value.trim();
 
-        clearTimeout(debounceTimer);
-
-        debounceTimer = setTimeout(() => {
-            filterBookmarkedPosts(searchKeyword);
-        }, 500);
+    // 偵測按下 Enter 鍵來觸發搜尋書籤文章
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // 防止預設行為
+            const searchKeyword = searchInput.value.trim();
+            filterBookmarkedPosts(searchKeyword); // 在 Enter 鍵按下時觸發搜尋
+        }
     });
 
+    // 讓熱門標籤點擊時也能觸發搜尋
     document.querySelectorAll('.popular-tags li').forEach(tag => {
         tag.addEventListener('click', (event) => {
             const searchKeyword = event.target.innerText.replace('#', '').trim();
-            filterBookmarkedPosts(searchKeyword);
+            filterBookmarkedPosts(searchKeyword); // 點擊標籤時觸發搜尋
         });
     });
 }
+
 
 function filterBookmarkedPosts(searchKeyword) {
     const posts = document.querySelectorAll('.post');

@@ -5,17 +5,21 @@ import {
     displayPost,
     fetchLikedAndBookmarkedPosts,
     fetchPostById,
+    formatTimeAgo,
     getUserId,
     handleDeleteComment,
     startChat,
     subscribeToPostEvents,
     updateCommentCount,
-    updateLikeCount,
-    formatTimeAgo
+    updateLikeCount
 } from './combinedUtils.js';
-import {addNavbarStyles, createNavbar} from './navbar.js';
+import { addNavbarStyles, createNavbar } from './navbar.js';
 
-let currentUserId = getUserId();
+// 全域變數，維護搜尋狀態和頁面狀態
+let currentSearchKeyword = null;
+let currentPage = 0;
+let isLoading = false;
+let hasMorePosts = true;
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -32,23 +36,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log('Login User Id:', userId);
 
+        // 初始化當前搜尋關鍵字
         const urlParams = new URLSearchParams(window.location.search);
-        const searchKeyword = urlParams.get('search') || null;
+        currentSearchKeyword = urlParams.get('search') || null;
 
-        const postTitle = document.querySelector('#posts h2');
-        postTitle.textContent = searchKeyword ? decodeURIComponent(searchKeyword) : '所有文章';
+        // 設置滾動監聽器（只需要設置一次）
+        setupScrollListener(userId);
 
-        const postsList = document.getElementById('posts-list');
-        const stompClient = await connectWebSocket(userId);
+        // 加載初始的貼文
+        await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 
-        await setupWebSocketSubscriptions(stompClient, userId);
-
-        setupPostListeners(postsList, userId);
-
-
-
-        const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
-        setupScrollListener(userId, searchKeyword);
+        // 設置搜尋和篩選
         setupSearchAndFilter(userId);
 
         window.addEventListener('tagSearch', (event) => {
@@ -61,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('發生錯誤，請刷新頁面或稍後再試。');
     }
 });
+
 
 function setupPostListeners(postsList, userId) {
     postsList.addEventListener('click', async (event) => {
@@ -182,9 +181,6 @@ function showNotification(message) {
 }
 
 async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts) {
-    // for (const post of posts) {
-    //     await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
-    // }
     if (Array.isArray(posts)) {
         for (const post of posts) {
             await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
@@ -202,71 +198,64 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         if (searchKeyword) {
             apiUrl += `&keyword=${encodeURIComponent(searchKeyword)}`;
         }
-        console.log('Fetching posts from URL:', apiUrl);
 
         const [likedAndBookmarkedData, postResponse] = await Promise.all([
             fetchLikedAndBookmarkedPosts(userId),
             fetch(apiUrl, { credentials: 'include' })
         ]);
 
-        console.log('Liked and Bookmarked data:', likedAndBookmarkedData);
-        console.log('Post response status:', postResponse.status);
-        console.log('Post response headers:', Object.fromEntries(postResponse.headers.entries()));
-
-        if (!postResponse.ok) {
-            console.error('Error response from server:', await postResponse.text());
-            throw new Error(`HTTP error! status: ${postResponse.status}`);
-        }
-
         const posts = await postResponse.json();
-        console.log('Fetched posts:', posts);
+        console.log('Fetched posts response:', postResponse);
 
         const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
         const postsList = document.getElementById('posts-list');
 
-        if (page === 0) {
-            postsList.innerHTML = '';
-            console.log('Cleared existing posts');
+        // 只有在第一頁時才清空貼文列表（已經在 updateURLAndFetchPosts 中處理）
+        if (page === 0 && postsList.innerHTML === '') {
+            postsList.innerHTML = ''; // 清空現有的帖子，只在第一頁且尚未清空時執行
         }
 
-        if (posts.length === 0) {
-            console.log('No posts received from server');
-            postsList.innerHTML += '<p>No posts found</p>';
-        } else {
-            console.log('Rendering posts');
-            await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
-        }
+        await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
 
-        console.log('Finished processing posts');
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
+
     } catch (error) {
-        console.error('Error in fetchAndDisplayPosts:', error);
-        alert('獲取貼文失敗，請稍後再試。');
-        return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
+        console.error('Error fetching posts:', error);
+        // alert('捲到底部，沒有文章囉！');
+        // return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
+        return null;
     }
 }
 
+
 function setupSearchAndFilter(userId) {
     const searchInput = document.querySelector('.search-input');
-    let debounceTimer;
 
-    searchInput.addEventListener('input', (event) => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            const searchKeyword = event.target.value.trim();
-            updateURLAndFetchPosts(userId, searchKeyword);
-        }, 300); // 300ms 延遲
+    // 偵測按下 Enter 鍵來觸發搜尋
+    searchInput.addEventListener('keydown', async (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // 防止預設的 Enter 行為 (例如表單提交)
+            const searchKeyword = searchInput.value.trim();
+            await updateURLAndFetchPosts(userId, searchKeyword);
+        }
     });
 
+    // 讓熱門標籤點擊時也能觸發搜尋
     document.querySelectorAll('.popular-tags li').forEach(tag => {
-        tag.addEventListener('click', (event) => {
+        tag.addEventListener('click', async (event) => {
             const searchKeyword = event.target.innerText.replace('#', '').trim();
-            updateURLAndFetchPosts(userId, searchKeyword);
+            await updateURLAndFetchPosts(userId, searchKeyword);
         });
     });
 }
 
-function updateURLAndFetchPosts(userId, searchKeyword = null) {
+
+async function updateURLAndFetchPosts(userId, searchKeyword = null) {
+    currentSearchKeyword = searchKeyword;  // 更新全域的搜尋關鍵字
+    currentPage = 0;  // 重置頁碼
+    hasMorePosts = true;  // 重置是否有更多貼文的標誌
+    isLoading = false;  // 確保加載狀態正確
+
     let newUrl = '/index.html';
     if (searchKeyword) {
         newUrl += `?search=${encodeURIComponent(searchKeyword)}`;
@@ -279,8 +268,10 @@ function updateURLAndFetchPosts(userId, searchKeyword = null) {
     const postsList = document.getElementById('posts-list');
     postsList.innerHTML = ''; // 清空現有的帖子
 
-    fetchAndDisplayPosts(userId, searchKeyword);
+    // 加載第一頁的搜尋結果
+    await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 }
+
 
 export function removePostFromUI(postId) {
     if (!postId) {
@@ -298,11 +289,7 @@ export function removePostFromUI(postId) {
 }
 
 
-function setupScrollListener(userId, searchKeyword) {
-    let currentPage = 0;
-    let isLoading = false;
-    let hasMorePosts = true;
-
+function setupScrollListener(userId) {
     window.addEventListener('scroll', async () => {
         const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
@@ -311,7 +298,8 @@ function setupScrollListener(userId, searchKeyword) {
             isLoading = true;
             currentPage++;
 
-            const { hasMore } = await fetchAndDisplayPosts(userId, searchKeyword, currentPage);
+            // 使用最新的 searchKeyword
+            const { hasMore } = await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
             hasMorePosts = hasMore;  // 如果返回的資料小於 size，表示沒有更多資料了
             isLoading = false;
         }
