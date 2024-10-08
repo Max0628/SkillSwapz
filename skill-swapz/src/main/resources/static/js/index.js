@@ -14,7 +14,10 @@ import {
     formatTimeAgo
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
-
+let currentSearchKeyword = null;
+let currentPage = 0;
+let isLoading = false;
+let hasMorePosts = true;
 let currentUserId = getUserId();
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -45,10 +48,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setupPostListeners(postsList, userId);
 
+        // 設置滾動監聽器（只需要設置一次）
+        setupScrollListener(userId);
 
+        // 加載初始的貼文
+        await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 
-        const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
-        setupScrollListener(userId, searchKeyword);
+        // const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
+        // setupScrollListener(userId, searchKeyword);
         setupSearchAndFilter(userId);
 
         window.addEventListener('tagSearch', (event) => {
@@ -240,24 +247,25 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         console.log('Finished processing posts');
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
     } catch (error) {
-        console.error('Error in fetchAndDisplayPosts:', error);
-        alert('獲取貼文失敗，請稍後再試。');
-        return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
+        // console.error('Error in fetchAndDisplayPosts:', error);
+        // alert('獲取貼文失敗，請稍後再試。');
+        // return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
     }
 }
 
 function setupSearchAndFilter(userId) {
     const searchInput = document.querySelector('.search-input');
-    let debounceTimer;
 
-    searchInput.addEventListener('input', (event) => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
+    // 偵測使用者按下 Enter 鍵來觸發搜尋
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // 防止預設的 Enter 行為 (例如表單提交)
             const searchKeyword = event.target.value.trim();
             updateURLAndFetchPosts(userId, searchKeyword);
-        }, 300); // 300ms 延遲
+        }
     });
 
+    // 讓熱門標籤點擊時也能觸發搜尋
     document.querySelectorAll('.popular-tags li').forEach(tag => {
         tag.addEventListener('click', (event) => {
             const searchKeyword = event.target.innerText.replace('#', '').trim();
@@ -266,7 +274,12 @@ function setupSearchAndFilter(userId) {
     });
 }
 
-function updateURLAndFetchPosts(userId, searchKeyword = null) {
+
+async function updateURLAndFetchPosts(userId, searchKeyword = null) {
+    currentSearchKeyword = searchKeyword;  // 更新全域的搜尋關鍵字
+    currentPage = 0;  // 重置頁碼
+    hasMorePosts = true;  // 重置是否有更多貼文的標誌
+    isLoading = false;  // 確保加載狀態正確
     let newUrl = '/index.html';
     if (searchKeyword) {
         newUrl += `?search=${encodeURIComponent(searchKeyword)}`;
@@ -274,13 +287,15 @@ function updateURLAndFetchPosts(userId, searchKeyword = null) {
     window.history.pushState({}, '', newUrl);
 
     const postTitle = document.querySelector('#posts h2');
-    postTitle.textContent = searchKeyword ? searchKeyword : '所有文章';
+    postTitle.textContent = searchKeyword ? decodeURIComponent(searchKeyword) : '所有文章';
 
     const postsList = document.getElementById('posts-list');
     postsList.innerHTML = ''; // 清空現有的帖子
 
-    fetchAndDisplayPosts(userId, searchKeyword);
+    // 加載第一頁的搜尋結果
+    await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 }
+
 
 export function removePostFromUI(postId) {
     if (!postId) {
@@ -298,11 +313,7 @@ export function removePostFromUI(postId) {
 }
 
 
-function setupScrollListener(userId, searchKeyword) {
-    let currentPage = 0;
-    let isLoading = false;
-    let hasMorePosts = true;
-
+function setupScrollListener(userId) {
     window.addEventListener('scroll', async () => {
         const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
@@ -311,7 +322,7 @@ function setupScrollListener(userId, searchKeyword) {
             isLoading = true;
             currentPage++;
 
-            const { hasMore } = await fetchAndDisplayPosts(userId, searchKeyword, currentPage);
+            const { hasMore } = await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
             hasMorePosts = hasMore;  // 如果返回的資料小於 size，表示沒有更多資料了
             isLoading = false;
         }
