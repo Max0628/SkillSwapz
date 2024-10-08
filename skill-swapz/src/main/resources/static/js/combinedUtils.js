@@ -772,7 +772,7 @@ export function formatTimeAgo(dateString) {
     const diffInSeconds = Math.floor((now - correctedDate) / 1000); // 計算時間差，單位為秒
 
     if (diffInSeconds < 60) {
-        return `${diffInSeconds} 秒前`;
+        return `剛剛發佈`;
     } else if (diffInSeconds < 3600) { // 小於1小時
         const minutes = Math.floor(diffInSeconds / 60);
         return `${minutes} 分鐘前`;

@@ -1,5 +1,7 @@
 package com.maxchauo.skillswapz.service.post;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.maxchauo.skillswapz.data.dto.post.CategoryDto;
 import com.maxchauo.skillswapz.data.form.post.CommentForm;
 import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
@@ -283,34 +285,52 @@ public class PostService {
         return postRepo.getPostsByIds(validPostIds);
     }
 
-
-    // 新增方法，將文章列表存入 Redis
     private void savePostsToRedis(List<PostForm> posts) {
         for (PostForm post : posts) {
             Integer postId = post.getId();
             if (postId != null) {
-                // 将文章 ID 和创建时间戳存入 Sorted Set
-                redisTemplate.opsForZSet().add(REDIS_KEY, postId.toString(), post.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
+                redisTemplate
+                        .opsForZSet()
+                        .add(
+                                REDIS_KEY,
+                                postId.toString(),
+                                post.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
                 log.info("Saved post ID to Redis Sorted Set: {}", postId);
-
-                // 将文章内容存入 Redis，键为 post:<postId>
                 redisTemplate.opsForValue().set("post:" + postId, post);
                 log.info("Saved post content to Redis: post:{}", postId);
-            } else {
-                log.warn("Attempted to save post with null id to Redis. Post content: {}", post);
+            } {
             }
         }
     }
 
+    // 新增方法，將文章列表存入 Redis
     public PostForm getPostFromRedis(int postId) {
-        // 从 Redis 中获取文章的详细内容
-        PostForm post = (PostForm) redisTemplate.opsForValue().get("post:" + postId);
-        if (post != null) {
-            log.info("Retrieved post from Redis: post:{}", postId);
-        } else {
-            log.warn("Post not found in Redis: post:{}", postId);
+        try {
+            Object redisData = redisTemplate.opsForValue().get("post:" + postId);
+            if (redisData != null) {
+                if (redisData instanceof LinkedHashMap) {
+                    // 避免 Redis 返回的非 PostForm 数据
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule()); // 确保支持 Java 8 时间
+                    PostForm post = objectMapper.convertValue(redisData, PostForm.class);
+                    log.info("Converted LinkedHashMap to PostForm from Redis: post:{}", postId);
+                    return post;
+                } else if (redisData instanceof PostForm) {
+                    log.info("Post retrieved from Redis: post:{}", postId);
+                    return (PostForm) redisData;
+                } else {
+                    log.warn(
+                            "Unexpected data type in Redis for postId {}: {}",
+                            postId,
+                            redisData.getClass().getName());
+                }
+            } else {
+                log.info("No post found in Redis for postId: {}", postId);
+            }
+        } catch (Exception e) {
+            log.error("Error retrieving post from Redis for postId: {}", postId, e);
         }
-        return post;
+        return null;
     }
 
 
