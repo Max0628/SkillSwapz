@@ -1,5 +1,6 @@
 // combinedUtils.js
 let stompClient = null;
+const commentCache = {}; // 格式: { postId1: [comment1, comment2], postId2: [comment3] }
 
 export async function getUserId() {
     try {
@@ -372,7 +373,8 @@ export async function createCommentElement(commentData, currentUserId) {
 
     const commentElement = document.createElement('div');
     commentElement.classList.add('comment');
-    commentElement.setAttribute('data-comment-id', commentData.id);
+    commentElement.setAttribute('data-comment-id', String(commentData.id));
+
 
     // 使用佔位符
     let avatarUrl = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
@@ -532,27 +534,33 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             const commentSection = postDiv.querySelector(`#comment-section-${postId}`);
             commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
 
+            const commentsContainer = postDiv.querySelector('.comments-container');
+
             if (commentSection.style.display === 'block' && !commentsLoaded) {
-                const commentsContainer = postDiv.querySelector('.comments-container');
                 try {
                     const comments = await fetchPostComments(postId);
+
                     if (comments.length > 0) {
                         for (const comment of comments) {
-                            const commentElement = await createCommentElement(comment, userId);
-                            if (commentElement) {
-                                commentsContainer.appendChild(commentElement);
-                            }
+                            addCommentToDOM(comment, userId, commentsContainer);
                         }
                     } else {
                         commentsContainer.innerHTML = '<p></p>';
                     }
                     commentsLoaded = true;
+
+                    // 展開後清除暫存的評論
+                    if (commentCache[postId]) {
+                        delete commentCache[postId];
+                    }
                 } catch (error) {
                     console.error(`Failed to load comments for post ${postId}:`, error);
                     commentsContainer.innerHTML = '<p>Error loading comments.</p>';
                 }
             }
         });
+
+
         postDiv.querySelector(`#comment-btn-${postId}`).addEventListener('click', () => handleComment(postId, userId));
 
         if (String(post.userId).trim() !== String(userId).trim()) {
@@ -739,16 +747,12 @@ export function subscribeToPostEvents(stompClient, callback, currentUserId) {
 
             case 'CREATE_COMMENT':
                 console.log("Handling CREATE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
-                if (!addedComments.has(postEvent.content.id)) {
-                    handleCreateComment(postEvent.content, currentUserId);
-                    addedComments.add(postEvent.content.id);
-                }
+                handleCreateComment(postEvent.content, currentUserId);
                 break;
 
             case 'DELETE_COMMENT':
                 console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", postEvent.content.userId);
                 handleDeleteComment(postEvent.content.commentId, undefined, postEvent.content.postId);
-                addedComments.delete(postEvent.content.commentId);
                 break;
 
             default:
@@ -785,33 +789,55 @@ function handleCreateComment(commentData, currentUserId) {
         return;
     }
 
-    const commentContainer = document.querySelector(`#comment-section-${commentData.post_id} .comments-container`);
+    const commentSection = document.querySelector(`#comment-section-${commentData.post_id}`);
+    if (!commentSection) {
+        console.warn(`Comment section not found for postId: ${commentData.post_id}`);
+        return;
+    }
+
+    const commentContainer = commentSection.querySelector('.comments-container');
     if (!commentContainer) {
         console.warn(`Comment container not found for postId: ${commentData.post_id}`);
         return;
     }
 
+    // 使用 getComputedStyle 判斷留言區是否展開
+    if (getComputedStyle(commentSection).display === 'none') {
+        // 留言區未展開，暫存評論
+        if (!commentCache[commentData.post_id]) {
+            commentCache[commentData.post_id] = [];
+        }
+        commentCache[commentData.post_id].push(commentData);
+        console.log(`Comment cached for postId ${commentData.post_id}`);
+    } else {
+        // 留言區已展開，直接添加評論到 DOM
+        addCommentToDOM(commentData, currentUserId, commentContainer);
+    }
+
+    // 更新評論數量
+    updateCommentCount(commentData.post_id, true);
+}
+
+
+function addCommentToDOM(commentData, currentUserId, commentContainer) {
     // 檢查評論是否已存在
-    if (commentContainer.querySelector(`[data-comment-id="${commentData.id}"]`)) {
+    if (commentContainer.querySelector(`[data-comment-id="${String(commentData.id)}"]`)) {
         console.log("Comment already exists, skipping addition");
         return;
     }
 
-    console.log("開始處理評論: ", commentData);
     createCommentElement(commentData, currentUserId)
         .then(newComment => {
             if (!newComment) {
                 throw new Error("Created comment element is null or undefined");
             }
             commentContainer.appendChild(newComment);
-            updateCommentCount(commentData.post_id, true);
             console.log("Comment successfully added to the DOM");
         })
         .catch(error => {
             console.error('Error creating or inserting comment element:', error);
         });
 }
-
 export async function handleDeleteComment(commentId, userId, postId) {
     console.log("executing handleDeleteComment");
 
@@ -820,6 +846,7 @@ export async function handleDeleteComment(commentId, userId, postId) {
         return;
     }
 
+    // 移除 DOM 中的评论
     const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
     if (commentElement) {
         commentElement.remove();
@@ -828,11 +855,18 @@ export async function handleDeleteComment(commentId, userId, postId) {
         console.warn(`Comment element not found for commentId: ${commentId}`);
     }
 
-    if (postId) {
+    // 从缓存中移除评论
+    if (postId && commentCache[postId]) {
+        commentCache[postId] = commentCache[postId].filter(comment => comment.id !== commentId);
+    }
+
+    // 只有当 userId 未定义（即通过 WebSocket 调用）时，才更新评论数量
+    if (postId && userId === undefined) {
         updateCommentCount(postId, false);
     }
 
     if (userId !== undefined) {
+        // 用户确认删除操作
         if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
             return;
         }
@@ -849,11 +883,6 @@ export async function handleDeleteComment(commentId, userId, postId) {
                 throw new Error(data.message || '刪除評論失敗');
             }
 
-            const commentCount = document.querySelector(`#comment-count-${postId}`);
-            if (commentCount) {
-                commentCount.textContent = Math.max(0, parseInt(commentCount.textContent) - 1);
-            }
-
             alert('評論已成功刪除');
         } catch (error) {
             console.error('Error deleting comment:', error);
@@ -861,6 +890,8 @@ export async function handleDeleteComment(commentId, userId, postId) {
         }
     }
 }
+
+
 
 export function formatTimeAgo(dateString) {
     if (!dateString) {
