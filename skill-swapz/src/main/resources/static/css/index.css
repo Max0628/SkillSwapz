@@ -153,9 +153,9 @@ h3 {
 .action-buttons {
     display: flex;
     justify-content: flex-start;
-    gap: 10px;
-    margin-top: 1rem;
-    margin-bottom: 20px;
+    gap: 0;
+    margin-top: 1.5rem;
+    margin-bottom: 25px;
     border-top: none;
     padding: 0;
 }
@@ -168,20 +168,22 @@ h3 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 3px 1px ;  /* 增加內邊距使得內容不緊貼邊緣 */
-    font-size: 16px;
+    /*padding: 3px 1px ;  !* 增加內邊距使得內容不緊貼邊緣 *!*/
+    /*font-size: 16px;*/
     color: #666;
+    padding: 8px 12px 8px 0; /* 增加內邊距使按鈕變大 */
+    font-size: 20px; /* 調整按鈕內文字的大小 */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* 圖標與數字之間的距離 */
 .action-btn i {
-    font-size: 18px;
-    margin-right: 2px;  /* 圖標與數字保持距離 */
+    font-size: 22px;
+    margin-right: 5px;  /* 圖標與數字保持距離 */
 }
 
 .action-btn span {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 /* 按下後顏色變化的樣式 */

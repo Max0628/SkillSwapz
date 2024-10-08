@@ -294,7 +294,8 @@ export function addNavbarStyles() {
         }
         .create-post-button {
             padding: 8px 16px;
-            background-color: #A9A9A9;
+            background-color: #FFD700;
+            border: 2px solid black ;
             color: black;
             border: none;
             border-radius: 4px;
@@ -303,7 +304,7 @@ export function addNavbarStyles() {
             font-weight: bold;
         }
         .create-post-button:hover {
-            background-color: #808080;
+            background-color: #F7D794;
         }
         #avatar-unread-badge {
         position: absolute;
