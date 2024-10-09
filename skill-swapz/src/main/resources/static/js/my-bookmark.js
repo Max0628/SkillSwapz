@@ -99,6 +99,8 @@ async function fetchAndDisplayBookmarkedPosts(userId, searchKeyword = null) {
             const response = await fetch(`/api/1.0/post/${postId}`, { credentials: 'include' });
             const post = await response.json();
             if (!searchKeyword || post.content.includes(searchKeyword) || post.tag.includes(searchKeyword)) {
+                // 調整帖子的創建時間
+                post.createdAt = adjustTimeForBookmarks(post.createdAt);
                 await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
             }
         }
@@ -246,4 +248,10 @@ async function fetchPostById(postId) {
         console.error('Error fetching post by ID:', error);
         return null;
     }
+}
+
+function adjustTimeForBookmarks(dateString) {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 8);
+    return date;
 }
