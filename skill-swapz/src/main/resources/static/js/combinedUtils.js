@@ -439,8 +439,8 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     try {
         const authorDetails = await fetchUserDetails(post.userId);
-        // const postCreatedAt = formatTimeAgo(post.createdAt);
-        const postCreatedAt = formatTimeAgo(adjustReceivedTime(post.createdAt));
+        const postCreatedAt = formatTimeAgo(post.createdAt);
+        // const postCreatedAt = formatTimeAgo(adjustReceivedTime(post.createdAt));
 
 
         let postContent = `

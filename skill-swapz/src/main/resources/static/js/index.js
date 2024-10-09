@@ -57,13 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
         // setupScrollListener(userId, searchKeyword);
         setupSearchAndFilter(userId);
-        setInterval(() => {
-            document.querySelectorAll('.post-time').forEach(timeElement => {
-                const postId = timeElement.getAttribute('data-post-id');
-                const createdAt = timeElement.getAttribute('data-created-at');
-                timeElement.textContent = formatTimeAgo(createdAt);
-            });
-        }, 60000);  // 每分鐘更新一次
 
 
         window.addEventListener('tagSearch', (event) => {
