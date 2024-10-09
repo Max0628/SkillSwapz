@@ -70,7 +70,14 @@ public class PostService {
         }
 
         String postIdString = postId.toString().replaceAll("^\"|\"$", "");
-        redisTemplate.opsForZSet().add(REDIS_KEY, postIdString, postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
+        // redisTemplate.opsForZSet().add(REDIS_KEY, postIdString,
+        // postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
+        redisTemplate
+                .opsForZSet()
+                .add(
+                        REDIS_KEY,
+                        postIdString,
+                        postForm.getCreatedAt().minusHours(8).toEpochSecond(ZoneOffset.UTC));
         log.info("Added post to Redis with postId: {} and score: {}", postIdString, postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
         Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
         log.info("Current number of posts in Redis: {}", zCard);
