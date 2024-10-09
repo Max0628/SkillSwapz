@@ -380,7 +380,8 @@ export async function createCommentElement(commentData, currentUserId) {
     let avatarUrl = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
     let username = 'Loading...';
 
-    const createdAt = formatTimeAgo(commentData.createdAt);
+    // const createdAt = formatTimeAgo(commentData.createdAt);
+    const createdAt = formatTimeAgo(adjustReceivedTime(commentData.createdAt));
 
     commentElement.innerHTML = `
     <div class="comment-container">
@@ -438,7 +439,9 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
     try {
         const authorDetails = await fetchUserDetails(post.userId);
-        const postCreatedAt = formatTimeAgo(post.createdAt);
+        // const postCreatedAt = formatTimeAgo(post.createdAt);
+        const postCreatedAt = formatTimeAgo(adjustReceivedTime(post.createdAt));
+
 
         let postContent = `
           <div class="post-header" style="display: flex; align-items: center;">
@@ -924,4 +927,10 @@ export function formatTimeAgo(dateString) {
         const years = Math.floor(diffInSeconds / 31536000);
         return `${years} 年前`;
     }
+}
+
+export function adjustReceivedTime(timeString) {
+    const date = new Date(timeString);
+    date.setHours(date.getHours() + 8);
+    return date;
 }
