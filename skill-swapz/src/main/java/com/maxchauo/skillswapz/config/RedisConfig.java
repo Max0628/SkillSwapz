@@ -46,7 +46,11 @@ public class RedisConfig {
         redisConfig.setPassword(redisPassword);
 
         LettuceClientConfiguration.LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();
-        builder.useSsl().disablePeerVerification();
+
+        if (sslEnabled) {
+            builder.useSsl().disablePeerVerification();
+        }
+
         builder.commandTimeout(Duration.ofMillis(timeout));
 
         return new LettuceConnectionFactory(redisConfig, builder.build());
