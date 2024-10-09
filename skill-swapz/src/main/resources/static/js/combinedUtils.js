@@ -908,6 +908,8 @@ export function formatTimeAgo(dateString) {
     // 計算時間差（秒）
     const diffInSeconds = Math.floor((now - date) / 1000);
 
+    console.log(`Now: ${now}, Date: ${date}, Diff in seconds: ${diffInSeconds}`);
+
     // 如果時間差小於 60 秒，顯示「剛剛發佈」
     if (diffInSeconds < 60) {
         return '剛剛發佈';
@@ -929,8 +931,10 @@ export function formatTimeAgo(dateString) {
     }
 }
 
+
 export function adjustReceivedTime(timeString) {
     const date = new Date(timeString);
     date.setHours(date.getHours() + 8);
+    console.log(`Original time: ${timeString}, Adjusted time: ${date}`);
     return date;
 }
