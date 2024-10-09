@@ -95,14 +95,21 @@ async function fetchAndDisplayBookmarkedPosts(userId, searchKeyword = null) {
         const postsList = document.getElementById('bookmarks-list');
         postsList.innerHTML = '';
 
+        let allPosts = [];
+
         for (const postId of bookmarkedPosts) {
             const response = await fetch(`/api/1.0/post/${postId}`, { credentials: 'include' });
             const post = await response.json();
             if (!searchKeyword || post.content.includes(searchKeyword) || post.tag.includes(searchKeyword)) {
-                // 調整帖子的創建時間
                 post.createdAt = adjustTimeForBookmarks(post.createdAt);
-                await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
+                allPosts.push(post);
             }
+        }
+
+        allPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        for (const post of allPosts) {
+            await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
         }
 
         setupPostInteractions(userId, postsList);
@@ -166,11 +173,25 @@ function setupSearchAndFilter(userId) {
 }
 
 function filterBookmarkedPosts(searchKeyword) {
-    const posts = document.querySelectorAll('.post');
+    const posts = Array.from(document.querySelectorAll('.post'));
+    posts.sort((a, b) => {
+        const dateA = new Date(a.querySelector('.post-actual-time').textContent);
+        const dateB = new Date(b.querySelector('.post-actual-time').textContent);
+        return dateB - dateA;
+    });
+
     posts.forEach(post => {
         const postContent = post.textContent.toLowerCase();
         const isVisible = postContent.includes(searchKeyword.toLowerCase());
         post.style.display = isVisible ? 'block' : 'none';
+    });
+
+    const postsList = document.getElementById('bookmarks-list');
+    postsList.innerHTML = '';
+    posts.forEach(post => {
+        if (post.style.display !== 'none') {
+            postsList.appendChild(post);
+        }
     });
 
     updatePostsTitle(searchKeyword);

@@ -144,11 +144,17 @@ async function fetchAndDisplayUserPosts(userId, searchKeyword = null) {
     try {
         const { likedPosts, bookmarkedPosts } = await fetchLikedAndBookmarkedPosts(userId);
         const response = await fetch(`api/1.0/post/user/${userId}`, { credentials: 'include' });
-        const posts = await response.json();
+        let posts = await response.json();
         const postsList = document.getElementById('posts-list');
         postsList.innerHTML = '';
         console.log(posts);
         console.log(postsList);
+
+        posts = posts.map(post => ({
+            ...post,
+            createdAt: adjustTimeForBookmarks(post.createdAt)
+        }));
+        posts.sort((a, b) => b.createdAt - a.createdAt);
 
         for (const post of posts) {
             if (!searchKeyword || post.content.includes(searchKeyword) || post.tag.includes(searchKeyword)) {
@@ -183,16 +189,26 @@ function setupSearchAndFilter(userId) {
 }
 
 function filterUserPosts(searchKeyword) {
-    const posts = document.querySelectorAll('.post');
+    const posts = Array.from(document.querySelectorAll('.post'));
+    posts.sort((a, b) => {
+        const dateA = adjustTimeForBookmarks(a.querySelector('.post-actual-time').textContent);
+        const dateB = adjustTimeForBookmarks(b.querySelector('.post-actual-time').textContent);
+        return dateB - dateA;
+    });
+
+    const postsList = document.getElementById('posts-list');
+    postsList.innerHTML = '';
+
     posts.forEach(post => {
         const postContent = post.textContent.toLowerCase();
         const isVisible = postContent.includes(searchKeyword.toLowerCase());
-        post.style.display = isVisible ? 'block' : 'none';
+        if (isVisible) {
+            postsList.appendChild(post);
+        }
     });
 
     updatePostsTitle(searchKeyword);
 }
-
 function updatePostsTitle(searchKeyword) {
     const postTitle = document.querySelector('#posts h2');
     if (searchKeyword) {
@@ -261,4 +277,10 @@ function handleDeleteComment(content) {
         commentElement.remove();
         updateCommentCount(postId, false);
     }
+}
+
+function adjustTimeForBookmarks(dateString) {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 8);
+    return date;
 }
