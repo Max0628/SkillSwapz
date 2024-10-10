@@ -105,4 +105,21 @@ public class PostSearchRepository {
         return template.query(sql, params, new BeanPropertyRowMapper<>(CommentForm.class));
     }
 
+
+    public int getLikeCountByPostId(int postId) {
+        String sql = "SELECT like_count FROM post WHERE id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("postId", postId);
+        return template.queryForObject(sql, params, Integer.class);
+    }
+
+    public int getCommentCountByPostId(int postId) {
+        String sql = "SELECT COUNT(*) FROM comment WHERE post_id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("postId", postId);
+        return template.queryForObject(sql, params, Integer.class);
+    }
+
+
+
 }
