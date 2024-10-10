@@ -89,6 +89,15 @@ public class PostSearchRepository {
         List<PostForm> posts = template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
 
         for (PostForm post : posts) {
+            // 獲取該文章的按讚數
+            int likeCount = getLikeCountByPostId(post.getId());
+            post.setLikeCount(likeCount);
+
+            // 獲取該文章的留言數
+            int commentCount = getCommentCountByPostId(post.getId());
+            post.setCommentCount(commentCount);
+
+            // 獲取並設置每篇文章的留言
             List<CommentForm> comments = commentRepository.getCommentsForPost(post.getId());
             post.setComments(comments);
         }
