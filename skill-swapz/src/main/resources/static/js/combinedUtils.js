@@ -849,7 +849,14 @@ export async function handleDeleteComment(commentId, userId, postId) {
         return;
     }
 
-    // 移除 DOM 中的评论
+    if (userId !== undefined) {
+        // 用户确认删除操作
+        if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
+            return; // 如果用户选择取消，直接返回
+        }
+    }
+
+    // 移除 DOM 中的评论 - 只有用户确认后才执行
     const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
     if (commentElement) {
         commentElement.remove();
@@ -869,11 +876,6 @@ export async function handleDeleteComment(commentId, userId, postId) {
     }
 
     if (userId !== undefined) {
-        // 用户确认删除操作
-        if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
-            return;
-        }
-
         try {
             const response = await fetch(`/api/1.0/post/comment/${commentId}?userId=${userId}`, {
                 method: 'DELETE',
