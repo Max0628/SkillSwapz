@@ -110,7 +110,12 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 console.log("EXECUTING CREATE_POST");
                 console.log("New post:", newPost.postId);
                 newPost.likeCount = 0;
-                // newPost.createdAt = formatTimeAgo(newPost.createdAt); // 格式化創建時間
+
+                // 調整 WebSocket 接收到的時間
+                const adjustedDate = new Date(newPost.createdAt);
+                adjustedDate.setHours(adjustedDate.getHours() + 8);
+                newPost.createdAt = adjustedDate.toISOString();
+
                 displayPost(newPost, userId, postsList, [], [], true);
                 break;
             }
