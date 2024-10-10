@@ -200,17 +200,31 @@ public class PostService {
 
         if (deleted) {
             try {
+                // 刪除 Redis sorted set 中的文章ID
                 redisTemplate.opsForZSet().remove(REDIS_KEY, String.valueOf(postId));
                 log.info("Deleted post from Redis with postId: {}", postId);
+
+                // 刪除 Redis 中具體的文章數據
+                redisTemplate.delete("post:" + postId);
+                log.info("Deleted post content from Redis for postId: {}", postId);
+
+                // 檢查 Redis 中剩下的文章數量
                 Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
                 log.info("Current number of posts in Redis after deletion: {}", zCard);
+
+                // 如果文章數量少於 30，從資料庫中補充文章
                 if (zCard != null && zCard < 30) {
-                    List<PostForm> additionalPosts = postRepo.findLatestPostsAfter(0, 1);
-                    if (!additionalPosts.isEmpty()) {
-                        savePostsToRedis(additionalPosts);
-                        log.info("Added new post to Redis after deletion to maintain 30 posts.");
-                    } else {
-                        log.info("No more posts available in the database to add to Redis.");
+                    // 獲取 Redis 中最後一篇文章
+                    Set<Object> lastPostIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, -1, -1);
+                    if (lastPostIds != null && !lastPostIds.isEmpty()) {
+                        Integer lastPostId = Integer.parseInt(lastPostIds.iterator().next().toString());
+                        PostForm lastPost = getPostFromRedis(lastPostId);
+                        if (lastPost != null) {
+                            // 根據最後一篇文章的 createdAt 補充更早的文章
+                            List<PostForm> additionalPosts = postRepo.findPostsBefore(lastPost.getCreatedAt(), 30 - zCard.intValue());
+                            savePostsToRedis(additionalPosts);
+                            log.info("Added new posts to Redis after deletion to maintain 30 posts.");
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -221,6 +235,7 @@ public class PostService {
         }
         return deleted;
     }
+
 
     public List<PostForm> getLatestPosts(int page, int size) {
         long start = (long) page * size;
@@ -245,25 +260,30 @@ public class PostService {
             int remaining = size - validPostIds.size();
             long totalCount = redisTemplate.opsForZSet().size(REDIS_KEY);
 
-            List<PostForm> additionalPosts;
-            if (start >= 30) {
-                additionalPosts = postRepo.findLatestPostsAfter((int) (start), remaining);
-            } else {
-                additionalPosts = postRepo.findLatestPostsAfter((int) totalCount, remaining);
-                savePostsToRedis(additionalPosts);
-                log.info("Saved {} additional posts to Redis", additionalPosts.size());
+            // 獲取 Redis 最後一篇文章的 createdAt
+            Set<Object> lastPostIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, -1, -1);
+            if (lastPostIds != null && !lastPostIds.isEmpty()) {
+                Integer lastPostId = Integer.parseInt(lastPostIds.iterator().next().toString());
+                PostForm lastPost = getPostFromRedis(lastPostId);
+                if (lastPost != null) {
+                    // 根據 createdAt 補充更早的文章
+                    List<PostForm> additionalPosts = postRepo.findPostsBefore(lastPost.getCreatedAt(), remaining);
+                    savePostsToRedis(additionalPosts);
+                    log.info("Saved {} additional posts to Redis", additionalPosts.size());
 
-                Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
-                if (zCard > 30) {
-                    redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, zCard - 31);
-                    log.info("Trimmed Redis to keep only the latest 30 posts");
+                    Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
+                    if (zCard > 30) {
+                        redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, zCard - 31);
+                        log.info("Trimmed Redis to keep only the latest 30 posts");
+                    }
+                    validPostIds.addAll(additionalPosts.stream().map(PostForm::getId).collect(Collectors.toList()));
                 }
             }
-            validPostIds.addAll(additionalPosts.stream().map(PostForm::getId).collect(Collectors.toList()));
         }
 
         return postRepo.getPostsByIds(validPostIds);
     }
+
 
     private void savePostsToRedis(List<PostForm> posts) {
         for (PostForm post : posts) {

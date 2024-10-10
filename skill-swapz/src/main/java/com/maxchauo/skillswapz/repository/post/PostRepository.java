@@ -232,11 +232,12 @@ public class PostRepository {
         }
     }
 
-    public List<PostForm> findLatestPostsAfter(int offset, int limit) {
-        String sql = "SELECT * FROM post ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
+    public List<PostForm> findPostsBefore(LocalDateTime createdAt, int limit) {
+        String sql = "SELECT * FROM post WHERE created_at < :createdAt ORDER BY created_at DESC LIMIT :limit";
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("limit", limit)
-                .addValue("offset", offset);
+                .addValue("createdAt", createdAt)
+                .addValue("limit", limit);
         return template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
     }
+
 }
