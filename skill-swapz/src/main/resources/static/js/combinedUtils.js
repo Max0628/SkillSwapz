@@ -538,6 +538,12 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
 
             const commentsContainer = postDiv.querySelector('.comments-container');
+            postDiv.querySelector(`#comment-input-${postId}`).addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {  // Shift+Enter 換行，Enter 發送留言
+                    event.preventDefault();  // 防止換行
+                    handleComment(postId, userId);  // 發送留言
+                }
+            });
 
             if (commentSection.style.display === 'block' && !commentsLoaded) {
                 try {
