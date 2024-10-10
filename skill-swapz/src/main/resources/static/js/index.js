@@ -37,12 +37,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const urlParams = new URLSearchParams(window.location.search);
         const searchKeyword = urlParams.get('search') || null;
-
+        currentSearchKeyword = searchKeyword; // 新增這行
         const postTitle = document.querySelector('#posts h2');
         postTitle.textContent = searchKeyword ? decodeURIComponent(searchKeyword) : '所有文章';
 
         const postsList = document.getElementById('posts-list');
         const stompClient = await connectWebSocket(userId);
+
+
 
         await setupWebSocketSubscriptions(stompClient, userId);
 
@@ -63,6 +65,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const searchKeyword = event.detail.keyword;
             updateURLAndFetchPosts(userId, searchKeyword);
         });
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.searchKeyword) {
+                const searchKeyword = event.data.searchKeyword;
+                (async () => {
+                    const userId = await getUserId(); // 使用 await
+                    updateURLAndFetchPosts(userId, searchKeyword);
+                })().catch(error => console.error('Error handling message event:', error));
+            }
+        });
+
 
     } catch (error) {
         console.error('Error in main execution:', error);

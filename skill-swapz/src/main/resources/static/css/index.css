@@ -22,12 +22,22 @@ h2 {
 
 /* 貼文樣式 */
 .post {
-    border: 1px solid #ddd;
-    padding: 20px 20px 0px 20px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    background-color: #fff;
+    border: 1px solid #e0e0e0;  /* 淡灰色邊框，減少對比度 */
+    padding: 20px;
+    margin-bottom: 20px;  /* 加大間距 */
+    border-radius: 10px;  /* 稍微增加圓角 */
+    background-color: #f9f9f9;  /* 柔和的背景色 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 增加輕微陰影，增加層次感 */
+    transition: box-shadow 0.3s ease;  /* 添加過渡效果讓陰影變化更平滑 */
 }
+
+/* 當滑鼠懸停在卡片上時，加強陰影效果 */
+.post:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  /* hover 時增加陰影強度 */
+    transform: translateY(-5px);  /* 輕微上升效果 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;  /* 平滑過渡 */
+}
+
 
 .post img {
     border-radius: 50%;
@@ -341,8 +351,9 @@ p {
 
 
 .comment-box .comment-btn {
-    background-color: transparent;  /* 讓背景透明 */
-    border: 1px solid #ccc;  /* 添加邊框 */
+    background-color: black;  /* 設定黑色背景 */
+    color: white;  /* 設定白色文字 */
+    border: 1px solid black;  /* 設定黑色邊框 */
     padding: 8px 12px;  /* 讓按鈕有內邊距 */
     border-radius: 5px;  /* 圓角邊框 */
     margin-bottom: 20px;
@@ -354,14 +365,15 @@ p {
 }
 
 .comment-box .comment-btn i {
-    margin-right: 5px;  /* 讓圖標和文字有一些間距 */
+    color: white;  /* 設定圖標為白色 */
 }
 
-.comment-box .comment-btn:hover {
-    background-color: #007bff;  /* hover 時變成藍色 */
-    color: white;  /* 讓字體變成白色 */
-    border-color: #007bff;  /* 邊框也變成藍色 */
-}
+
+/*.comment-box .comment-btn:hover {*/
+/*    background-color: black;  !* hover 時變成藍色 *!*/
+/*    color: white;  !* 讓字體變成白色 *!*/
+/*    border-color: white;  !* 邊框也變成藍色 *!*/
+/*}*/
 
 
 /*留言按鈕*/
