@@ -420,7 +420,7 @@ textarea::placeholder {
 
 
 .delete-comment-btn {
-    background-color: white;   /* 背景設為白色 */
+    background-color: #f9f9f9;   /* 背景設為白色 */
     border: none;              /* 移除按鈕的預設邊框 */
     cursor: pointer;           /* 鼠標移上去時變成點擊手勢 */
     padding: 5px;              /* 調整按鈕內間距 */
