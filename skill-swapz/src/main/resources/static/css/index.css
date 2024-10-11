@@ -257,16 +257,17 @@ h3 {
     margin-right: 5px;  /* 與內容之間的距離 */
 }
 
-.label-tag {
-    font-weight: bold;
-    background-color: #f0f0f0;  /* 灰色背景 */
-    color: #333;  /* 文字顏色 */
-    padding: 2px 6px;  /* 調整內邊距 */
-    border-radius: 4px;  /* 圓角邊框 */
-    font-size: 1.25rem;  /* 調整字體大小 */
-    margin-right: 5px;  /* 與內容之間的距離 */
-    display: inline-block;  /* 讓背景只套用在標頭上 */
-}
+
+/*.label-tag {*/
+/*    font-weight: bold;*/
+/*    background-color: #f0f0f0;  !* 灰色背景 *!*/
+/*    color: #333;  !* 文字顏色 *!*/
+/*    padding: 2px 6px;  !* 調整內邊距 *!*/
+/*    border-radius: 4px;  !* 圓角邊框 *!*/
+/*    font-size: 1.25rem;  !* 調整字體大小 *!*/
+/*    margin-right: 5px;  !* 與內容之間的距離 *!*/
+/*    display: inline-block;  !* 讓背景只套用在標頭上 *!*/
+/*}*/
 .tags{
     border-radius: 10px !important;  /* 圓角邊框 */
 }
@@ -278,7 +279,6 @@ p {
     color: #333;
     padding-bottom: 0;
     font-size: 1.25rem;
-    cursor: pointer;
     margin: 0.5rem 0;  /* 縮小段落之間的行距 */
 }
 /* 針對這些標題，減少它們之間的行距 */
@@ -489,7 +489,7 @@ textarea::placeholder {
     transition: width 0.5s ease;
     min-width: 150px; /* 保持最小寬度 */
     max-width: 250px; /* 保持最大寬度 */
-    max-height: 400px; /* 設置最大高度，避免過長 */
+    height: 450px; /* 設置最大高度，避免過長 */
     overflow-y: auto; /* 當內容超出時出現捲動條 */
 }
 
