@@ -6,6 +6,7 @@ import com.maxchauo.skillswapz.service.user.UserService;
 
 import io.jsonwebtoken.Claims;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -55,6 +56,22 @@ public class AuthController {
                 .body(Map.of("message", "登入成功"));
 
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+
+        ResponseCookie clearJwtCookie = ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearJwtCookie.toString())
+                .body(Map.of("message", "登出成功"));
+    }
+
 
     @PostMapping("/me")
     public ResponseEntity<Map<String, String>> getUserInfoFromToken(@CookieValue(value = "access_token", required = false) String token) {

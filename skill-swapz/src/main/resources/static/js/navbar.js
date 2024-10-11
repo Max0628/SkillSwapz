@@ -169,14 +169,20 @@ function createUserMenu() {
         { name: '個人資料', href: '/profile.html' },
         { name: '我的文章', href: '/my-post.html' },
         { name: '收藏文章', href: '/my-bookmark.html' },
-        { name: '登出', href: '/logout' }
+        { name: '登出', onClick: handleLogout }
     ];
 
     menuItems.forEach(item => {
         const menuItem = createElementWithClass('a', '');
         menuItem.href = item.href;
         menuItem.textContent = item.name;
-
+        if (item.onClick) {
+            menuItem.textContent = item.name;
+            menuItem.addEventListener('click', item.onClick);
+        } else {
+            menuItem.href = item.href;
+            menuItem.textContent = item.name;
+        }
         if (item.id === 'messageMenuItem') {
             dropdownUnreadBadge = createUnreadCountBadge();
             dropdownUnreadBadge.id = 'dropdown-unread-badge';
@@ -202,6 +208,23 @@ function hideDropdownOnClick(event) {
         dropdownContent.style.display = 'none';
     }
 }
+async function handleLogout() {
+    try {
+        const response = await fetch('/api/1.0/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            window.location.href = 'landingPage.html'; // 登出成功後跳轉到登入頁面
+        } else {
+            console.error('登出失敗');
+        }
+    } catch (error) {
+        console.error('登出請求失敗:', error);
+    }
+}
+
 
 export function addNavbarStyles() {
     const style = document.createElement('style');
