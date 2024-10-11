@@ -20,10 +20,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
         public void registerStompEndpoints(StompEndpointRegistry registry) {
             registry.addEndpoint("/ws")
                     .setAllowedOrigins(
-                            "https://maxchauo0628.com",
-                            "https://www.maxchauo0628.com",
-                            "http://maxchauo0628.com",
-                            "http://www.maxchauo0628.com",
+                            "https://skillswapz.com",
+                            "https://www.skillswapz.com",
+                            "http://skillswapz.com",
+                            "http://www.skillswapz.com",
                             "http://localhost:8080"
                     )
                     .addInterceptors(new UserHandshakeInterceptor())
