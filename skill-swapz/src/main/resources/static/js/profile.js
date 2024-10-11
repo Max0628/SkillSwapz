@@ -32,7 +32,7 @@ async function loadUserProfile() {
         });
 
         if (!response.ok) {
-            window.location.href = "auth.html";
+            window.location.href = "landingPage.html";
             throw new Error('Failed to fetch profile');
         }
 

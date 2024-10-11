@@ -409,11 +409,11 @@ textarea::placeholder {
 }
 
 .comment-btn i {
-    color: #000; /* 按鈕圖標顏色為黑色 */
+    color: white; /* 按鈕圖標顏色為黑色 */
 }
 
 .textarea-container textarea:focus + .comment-btn i {
-    color: #333; /* 當聚焦在輸入框時按鈕顏色變為深灰 */
+    color: white; /* 當聚焦在輸入框時按鈕顏色變為深灰 */
 }
 /*留言按鈕*/
 

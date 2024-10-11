@@ -17,7 +17,7 @@ export async function getUserId() {
         return data.user_id;
     } catch (error) {
         console.error('Error fetching user ID:', error);
-        window.location.href = "auth.html";
+        window.location.href = "landingPage.html";
         return null;
     }
 }

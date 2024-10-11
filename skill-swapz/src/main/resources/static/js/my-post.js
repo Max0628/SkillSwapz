@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterUserPosts(searchKeyword);
         });
     } else {
-        window.location.href = "auth.html";
+        window.location.href = "landingPage.html";
         console.log('User not logged in');
         return null;
     }

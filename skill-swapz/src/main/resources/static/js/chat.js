@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     currentUserId = await getUserId();  // 確保獲取當前用戶 ID
     if (!currentUserId) {
-        window.location.href = "auth.html";
+        window.location.href = "landingPage.html";
         console.log('User not logged in');
         return;
     }

@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await addNavbarStyles();
 
+    const userId = await getUserId();
+    if (!userId) {
+        window.location.href = "landingPage.html";
+        console.log('User not logged in');
+        return;
+    }
     const typeSelect = document.getElementById('type');
     const dynamicFieldsContainer = document.getElementById('dynamic-fields');
     const postForm = document.getElementById('postForm');
