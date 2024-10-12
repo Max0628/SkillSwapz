@@ -467,21 +467,25 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
         if (post.type === '找學生') {
             postContent += `
+        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
         <p><span class="label-tag">擅長技能</span> ${escapeHtml(post.skillOffered)}</p>
         <p><span class="label-tag">薪資</span> ${escapeHtml(post.salary)}</p>
         `;
         } else if (post.type === '找老師') {
             postContent += `
+        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
         <p><span class="label-tag">想學技能</span> ${escapeHtml(post.skillWanted)}</p>
         <p><span class="label-tag">薪資</span> ${escapeHtml(post.salary)}</p>
         `;
         } else if (post.type === '交換技能') {
             postContent += `
+        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
         <p><span class="label-tag">擅長技能</span> ${escapeHtml(post.skillOffered)}</p>
         <p><span class="label-tag">想學技能</span> ${escapeHtml(post.skillWanted)}</p>
         `;
         } else if (post.type === '讀書會') {
             postContent += `
+        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
         <p><span class="label-tag">讀書會目的</span> ${escapeHtml(post.bookClubPurpose || post.skillOffered)}</p>
         `;
         }
