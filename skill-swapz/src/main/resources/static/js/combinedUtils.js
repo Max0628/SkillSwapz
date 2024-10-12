@@ -444,18 +444,25 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
 
         let postContent = `
-          <div class="post-header" style="display: flex; align-items: center;">
-            <div class="post-avatar-container" style="display: flex; align-items: center;">
-                <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" alt="User Avatar" class="post-avatar" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
-                <strong class="post-author" style="margin-left: 10px;">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
-            </div>
-            <div class="post-info" style="margin-left: 20px;">
-                <div class="post-type">${escapeHtml(post.type)}</div>
-                <span class="post-time">${escapeHtml(postCreatedAt)}</span>
-                <div class="post-actual-time">${escapeHtml(post.time || '')}</div>
+      <div class="post-header" style="display: flex; align-items: center;">
+        <div class="post-avatar-container" style="display: flex; align-items: center; cursor: pointer;" data-user-id="${post.userId}">
+            <img src="${escapeHtml(authorDetails?.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp')}" 
+                 alt="User Avatar" 
+                 class="post-avatar" 
+                 style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+            <div style="margin-left: 10px;">
+                <strong class="post-author">${escapeHtml(authorDetails?.username || 'Unknown User')}</strong>
+                <div class="post-job-title" style="font-size: 0.9rem; color: gray;">
+                    ${escapeHtml(authorDetails?.jobTitle || '')}
+                </div>
             </div>
         </div>
-        <p><span class="label-tag">地點</span> ${escapeHtml(post.location)}</p>
+        <div class="post-info" style="margin-left: 20px;">
+            <div class="post-type">${escapeHtml(post.type)}</div>
+            <span class="post-time">${escapeHtml(postCreatedAt)}</span>
+            <div class="post-actual-time">${escapeHtml(post.time || '')}</div>
+        </div>
+      </div>
     `;
 
         if (post.type === '找學生') {
@@ -531,6 +538,10 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         postDiv.innerHTML = postContent;
 
         let commentsLoaded = false;
+        postDiv.querySelector('.post-avatar-container').addEventListener('click', function () {
+            const userId = this.getAttribute('data-user-id');
+            window.location.href = `/user.html?userId=${userId}`;
+        });
         postDiv.querySelector(`#like-btn-${postId}`).addEventListener('click', () => handleLike(postId, userId));
         postDiv.querySelector(`#bookmark-btn-${postId}`).addEventListener('click', () => handleBookmark(postId, userId));
         postDiv.querySelector(`#comment-toggle-btn-${postId}`).addEventListener('click', async () => {

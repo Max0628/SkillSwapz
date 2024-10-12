@@ -19,4 +19,5 @@ public class UserDto {
     private String avatarUrl;
     private String jobTitle;
     private String bio;
+    private String createdAt;
 }

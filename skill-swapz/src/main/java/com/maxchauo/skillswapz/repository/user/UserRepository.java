@@ -24,6 +24,7 @@ public class UserRepository {
             user.setEmail(rs.getString("email"));
             user.setAvatarUrl(rs.getString("avatar_url"));
             user.setJobTitle(rs.getString("job_title"));
+            user.setCreatedAt(rs.getString("created_at"));
             user.setBio(rs.getString("bio"));
             return user;
         });
