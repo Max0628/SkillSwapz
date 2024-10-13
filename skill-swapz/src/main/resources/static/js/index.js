@@ -237,7 +237,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                     // **更新標籤（tags）**
                     const tagsElement = postElement.querySelector('.post-tags');
                     if (tagsElement) {
-                        const updatedTags = updatedPost.tag ? updatedPost.tag.map(tag => `<button class="tag-btn">#${tag}</button>`).join(' ') : '';
+                        const updatedTags = updatedPost.tag ? updatedPost.tag.map(tag => `<button class="tag-btn label-tag tags">#${tag}</button>`).join(' ') : '';
                         tagsElement.innerHTML = updatedTags;
                     }
                 } else {
