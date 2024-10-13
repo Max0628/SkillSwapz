@@ -14,7 +14,6 @@
     <nav class="container">
         <img src="https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/logo2-removebg-preview.png" alt="SkillSwapz Logo" class="logo">
         <div class="nav-links">
-            <a href="#features">功能</a>
             <a href="#" class="cta-button">立即註冊</a>
         </div>
     </nav>
@@ -22,21 +21,20 @@
 
 <main class="container">
     <section class="hero">
-        <h1>SkillSwapz - 連接技能，創造價值</h1>
+        <h1>SkillSwapz - 互相學習，互相成長</h1>
         <p>在這裡，你可以分享你的專長，學習新技能，認識志同道合的人。</p>
-        <a href="/auth.html" class="cta-button">開始探索</a>
     </section>
 
     <section id="features" class="features">
         <div class="feature">
             <img src="https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/submit-button.png" alt="技能交換圖標">
             <h2>發布文章</h2>
-            <p>找到適合你的技能交換對象，互相學習成長。</p>
+            <p>找到適合你的技能交換對象，互相學習成長，找老師、找學生、組讀書會。</p>
         </div>
         <div class="feature">
             <img src="https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/Search-like-a-pro_1130x616.jpg" alt="個人檔案圖標">
             <h2>快速搜尋</h2>
-            <p>透過關鍵字快速找到您的夥伴。</p>
+            <p>透過關鍵字快速找到符合您需求的文章。</p>
         </div>
         <div class="feature">
             <img src="https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/chat.jpg" alt="即時聊天圖標">
@@ -46,9 +44,38 @@
     </section>
 </main>
 
+<!-- Modal 結構 -->
+<div class="modal-overlay" id="modal-overlay"></div>
+<div class="modal-container" id="forms-wrapper">
+    <!-- 登入表單 -->
+    <form id="login-form" style="display: none;">
+        <h2>登入</h2>
+        <label for="login-email">電子郵件</label>
+        <input type="email" id="login-email" required>
+        <label for="login-password">密碼</label>
+        <input type="password" id="login-password" required>
+        <button type="submit">登入</button>
+        <a href="#" id="show-register">還沒有帳戶？前往註冊</a>
+    </form>
+
+    <!-- 註冊表單 -->
+    <form id="register-form" style="display: block;">
+        <h2>註冊</h2>
+        <label for="register-username">用戶名</label>
+        <input type="text" id="register-username" required>
+        <label for="register-email">電子郵件</label>
+        <input type="email" id="register-email" required>
+        <label for="register-password">密碼</label>
+        <input type="password" id="register-password" required>
+        <button type="submit">註冊</button>
+        <a href="#" id="show-login">已經有帳戶？前往登入</a>
+    </form>
+</div>
+
 <footer>
     <p>&copy; 2024 SkillSwapz. 保留所有權利。</p>
 </footer>
+
 <script src="js/landingPage.js"></script>
 </body>
 </html>
