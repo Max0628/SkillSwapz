@@ -430,9 +430,14 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         console.error('Invalid input provided to displayPost');
         return;
     }
+    const postId = post.postId || post.id; // 確保獲取正確的 ID
+    post.postId = postId; // 保證 post 對象有 postId 屬性
 
-    const postId = post.postId || post.id;
-
+    // const postId = post.postId || post.id;
+    if (document.getElementById(`post-${postId}`)) {
+        console.log(`Post with ID ${postId} already exists, skipping addition.`);
+        return; // 如果已存在，則跳過添加
+    }
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
     postDiv.id = `post-${postId}`;
@@ -463,41 +468,41 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             <div class="post-actual-time">${escapeHtml(post.time || '')}</div>
         </div>
       </div>
-    `;
-
+        `;
         if (post.type === '找學生') {
             postContent += `
-        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
-        <p><span class="label-tag">擅長技能</span> ${escapeHtml(post.skillOffered)}</p>
-        <p><span class="label-tag">薪資</span> ${escapeHtml(post.salary)}</p>
+        <p><span class="label-tag">地點</span> <span class="post-location">${escapeHtml(post.location || '未提供')}</span></p>
+        <p><span class="label-tag">擅長技能</span> <span class="post-skill-offered">${escapeHtml(post.skillOffered)}</span></p>
+        <p><span class="label-tag">薪資</span> <span class="post-salary">${escapeHtml(post.salary)}</span></p>
         `;
-        } else if (post.type === '找老師') {
-            postContent += `
-        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
-        <p><span class="label-tag">想學技能</span> ${escapeHtml(post.skillWanted)}</p>
-        <p><span class="label-tag">薪資</span> ${escapeHtml(post.salary)}</p>
+            } else if (post.type === '找老師') {
+                postContent += `
+        <p><span class="label-tag">地點</span> <span class="post-location">${escapeHtml(post.location || '未提供')}</span></p>
+        <p><span class="label-tag">想學技能</span> <span class="post-skill-wanted">${escapeHtml(post.skillWanted)}</span></p>
+        <p><span class="label-tag">薪資</span> <span class="post-salary">${escapeHtml(post.salary)}</span></p>
         `;
-        } else if (post.type === '交換技能') {
-            postContent += `
-        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
-        <p><span class="label-tag">擅長技能</span> ${escapeHtml(post.skillOffered)}</p>
-        <p><span class="label-tag">想學技能</span> ${escapeHtml(post.skillWanted)}</p>
+            } else if (post.type === '交換技能') {
+                postContent += `
+        <p><span class="label-tag">地點</span> <span class="post-location">${escapeHtml(post.location || '未提供')}</span></p>
+        <p><span class="label-tag">擅長技能</span> <span class="post-skill-offered">${escapeHtml(post.skillOffered)}</span></p>
+        <p><span class="label-tag">想學技能</span> <span class="post-skill-wanted">${escapeHtml(post.skillWanted)}</span></p>
         `;
-        } else if (post.type === '讀書會') {
-            postContent += `
-        <p><span class="label-tag">地點</span> ${escapeHtml(post.location || '未提供')}</p>
-        <p><span class="label-tag">讀書會目的</span> ${escapeHtml(post.bookClubPurpose || post.skillOffered)}</p>
+            } else if (post.type === '讀書會') {
+                postContent += `
+        <p><span class="label-tag">地點</span> <span class="post-location">${escapeHtml(post.location || '未提供')}</span></p>
+        <p><span class="label-tag">讀書會目的</span> <span class="post-bookClubPurpose">${escapeHtml(post.bookClubPurpose )}</span></p>
         `;
-        }
+            }
 
-        postContent += `
-    <p><span class="label-tag">內容/進行方式</span> ${escapeHtml(post.content)}</p>
-    `;
+            postContent += `
+        <p><span class="label-tag">內容/進行方式</span> <span class="post-content">${escapeHtml(post.content)}</span></p>
+        `;
 
         if (post.tag && post.tag.length > 0) {
-            const tags = post.tag.map(tag => `<button class="tag-btn label-tag tags" > # ${escapeHtml(tag)}</button>`).join(' ');
-            postContent += `<p>${tags}</p>`;
+            const tags = post.tag.map(tag => `<button class="tag-btn label-tag tags">#${escapeHtml(tag)}</button>`).join(' ');
+            postContent += `<p class="post-tags">${tags}</p>`;
         }
+
 
         postContent += `
        <div class="action-buttons" style="margin-bottom: 16px;">
@@ -601,6 +606,20 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             if (deleteButton) {
                 deleteButton.addEventListener('click', () => handleDelete(postId, userId));
             }
+        }
+        if (String(post.userId).trim() === String(userId).trim()) {
+            const editButton = document.createElement('button');
+            editButton.classList.add('action-btn', 'edit-btn');
+            editButton.id = `edit-btn-${postId}`;
+            editButton.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>';
+
+            // 添加編輯按鈕到 action-buttons
+            postDiv.querySelector('.action-buttons').appendChild(editButton);
+
+            // 綁定點擊事件來觸發編輯邏輯
+            editButton.addEventListener('click', () => {
+                showEditForm(post);  // 這個函數將處理顯示表單
+            });
         }
 
         postDiv.querySelectorAll('.tag-btn').forEach(tagBtn => {
@@ -961,3 +980,183 @@ export function adjustReceivedTime(timeString) {
     console.log(`Original time: ${timeString}, Adjusted time: ${date}`);
     return date;
 }
+
+//edit post
+export async function editPost(postId, formData) {
+    console.log("formData.type: " + formData.type)
+    // 過濾掉空值的屬性
+    const filteredData = Object.fromEntries(
+        Object.entries(formData).filter(([key, value]) => value && value.trim() !== "" || key === 'type') // 保留 type
+    );
+
+    console.log("Editing post with ID:", postId);
+    console.log("Filtered form data being sent:", filteredData);  // 打印過濾後的數據
+
+    try {
+        const response = await fetch(`/api/1.0/post/${postId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(filteredData), // 傳遞過濾後的數據
+            credentials: 'include'
+        });
+
+
+        console.log("Server response:", response);
+        if (!response.ok) {
+            throw new Error('Failed to update post');
+        }
+
+        const updatedPost = await response.json();
+        return updatedPost;
+    } catch (error) {
+        console.error('Error updating post:', error);
+        throw error;
+    }
+}
+
+
+export function showEditForm(post) {
+    // 建立黑色半透明遮罩
+    const overlay = document.createElement('div');
+    overlay.classList.add('modal-overlay');
+
+    // 建立編輯表單容器
+    const modalContainer = document.createElement('div');
+    modalContainer.classList.add('modal-container');
+
+    // 根據文章類型，顯示不同的表單，並增加隱藏的 `type` 欄位
+    let formContent = `
+        <input type="hidden" id="edit-post-type" value="${post.type}">
+    `;
+
+    if (post.type === '交換技能') {
+        formContent += `
+            <label for="edit-location">地點</label><input type="text" id="edit-location" value="${post.location}">
+            <label for="edit-skill-offered">擅長技能</label><input type="text" id="edit-skill-offered" value="${post.skillOffered}">
+            <label for="edit-skill-wanted">想學技能</label><input type="text" id="edit-skill-wanted" value="${post.skillWanted}">
+            <label for="edit-content">內容/進行方式</label><textarea id="edit-content">${post.content}</textarea>
+            <label for="edit-tag">標籤</label><input type="text" id="edit-tag" value="${post.tag ? post.tag.join(', ') : ''}">
+        `;
+    } else if (post.type === '找老師') {
+        formContent += `
+            <label for="edit-location">地點</label><input type="text" id="edit-location" value="${post.location}">
+            <label for="edit-skill-wanted">想學技能</label><input type="text" id="edit-skill-wanted" value="${post.skillWanted}">
+            <label for="edit-salary">薪資</label><input type="text" id="edit-salary" value="${post.salary}">
+            <label for="edit-content">內容/進行方式</label><textarea id="edit-content">${post.content}</textarea>
+            <label for="edit-tag">標籤</label><input type="text" id="edit-tag" value="${post.tag ? post.tag.join(', ') : ''}">
+        `;
+    } else if (post.type === '找學生') {
+        formContent += `
+            <label for="edit-location">地點</label><input type="text" id="edit-location" value="${post.location}">
+            <label for="edit-skill-offered">擅長技能</label><input type="text" id="edit-skill-offered" value="${post.skillOffered}">
+            <label for="edit-salary">薪資</label><input type="text" id="edit-salary" value="${post.salary}">
+            <label for="edit-content">內容/進行方式</label><textarea id="edit-content">${post.content}</textarea>
+            <label for="edit-tag">標籤</label><input type="text" id="edit-tag" value="${post.tag ? post.tag.join(', ') : ''}">
+        `;
+    } else if (post.type === '讀書會') {
+        formContent += `
+            <label for="edit-location">地點</label><input type="text" id="edit-location" value="${post.location}">
+            <label for="edit-book-club-purpose">讀書會目的</label><input type="text" id="edit-book-club-purpose" value="${post.bookClubPurpose}">
+            <label for="edit-content">內容/進行方式</label><textarea id="edit-content">${post.content}</textarea>
+            <label for="edit-tag">標籤</label><input type="text" id="edit-tag" value="${post.tag ? post.tag.join(', ') : ''}">
+        `;
+    }
+
+    // 將表單內容插入到表單容器
+    modalContainer.innerHTML = `
+        <h2>編輯文章</h2>
+        <form>
+            ${formContent}
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="save-btn" type="button">儲存</button>
+                <button id="close-btn" type="button">取消</button>
+            </div>
+        </form>
+    `;
+
+    // 將遮罩和表單添加到頁面
+    document.body.appendChild(overlay);
+    document.body.appendChild(modalContainer);
+
+    // 當點擊「取消」按鈕或遮罩時，關閉表單
+    overlay.addEventListener('click', closeModal);
+    document.getElementById('close-btn').addEventListener('click', closeModal);
+
+    // 點擊儲存按鈕時，提交表單並呼叫 saveEditedPost
+    document.getElementById('save-btn').addEventListener('click', async () => {
+        try {
+            // 構建表單數據
+            const formData = {
+                location: document.getElementById('edit-location').value,
+                skillOffered: document.getElementById('edit-skill-offered')?.value || '',
+                skillWanted: document.getElementById('edit-skill-wanted')?.value || '',
+                salary: document.getElementById('edit-salary')?.value || '',
+                content: document.getElementById('edit-content').value,
+                bookClubPurpose: document.getElementById('edit-book-club-purpose')?.value || ''
+            };
+
+            // 呼叫 saveEditedPost，傳遞 postId 和 formData
+            await saveEditedPost(post.postId, formData);
+
+            // 更新頁面上的文章內容
+            const postElement = document.getElementById(`post-${post.postId}`);
+            if (postElement) {
+                postElement.querySelector('.post-location').textContent = formData.location;
+                postElement.querySelector('.post-skill-offered').textContent = formData.skillOffered || '';
+                postElement.querySelector('.post-skill-wanted').textContent = formData.skillWanted || '';
+                postElement.querySelector('.post-salary').textContent = formData.salary || '';
+                postElement.querySelector('.post-content').textContent = formData.content;
+                postElement.querySelector('.post-bookClubPurpose').textContent = formData.bookClubPurpose || '';
+            }
+        } catch (error) {
+            console.error('Error updating post:', error);
+            // alert('文章更新失敗，請稍後再試。');
+        }
+
+        // 關閉表單
+        closeModal();
+    });
+
+    function closeModal() {
+        overlay.remove();
+        modalContainer.remove();
+    }
+}
+
+// 儲存編輯後的文章
+function saveEditedPost(postId) {
+    const updatedPost = {
+        type: document.getElementById('edit-post-type').value, // 確保傳遞 type
+        location: document.getElementById('edit-location').value,
+        skillOffered: document.getElementById('edit-skill-offered') ? document.getElementById('edit-skill-offered').value : '',
+        skillWanted: document.getElementById('edit-skill-wanted') ? document.getElementById('edit-skill-wanted').value : '',
+        salary: document.getElementById('edit-salary') ? document.getElementById('edit-salary').value : '',
+        content: document.getElementById('edit-content').value,
+        bookClubPurpose: document.getElementById('edit-book-club-purpose') ? document.getElementById('edit-book-club-purpose').value : '',
+        tag: document.getElementById('edit-tag') ? document.getElementById('edit-tag').value.split(',') : [], // 這裡確保 tag 被傳遞
+        postId: postId // 傳送 postId
+    };
+
+    // 發送 PATCH 請求到後端
+    fetch(`/api/1.0/post/${postId}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedPost),
+        credentials: 'include'
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert('文章已更新');
+            // 這裡可以更新頁面中的文章內容
+        })
+        .catch(error => {
+            console.error('Error updating post:', error);
+            alert('文章更新失敗，請稍後再試。');
+        });
+}
+
+
+
+

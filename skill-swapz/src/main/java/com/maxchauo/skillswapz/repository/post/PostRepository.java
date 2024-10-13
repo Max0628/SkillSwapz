@@ -117,8 +117,8 @@ public class PostRepository {
     }
 
     public PostForm insertFindBookClubForm(PostForm postForm) {
-        String sql = "INSERT INTO post (type, user_id, location, skill_offered, skill_wanted, salary, content, tag) " +
-                "VALUES (:type, :userId, :location, :skillOffered, :skillWanted, :salary, :content, :tag)";
+        String sql = "INSERT INTO post (type, user_id, location, skill_offered, skill_wanted, salary, book_club_purpose, content, tag) " +
+                "VALUES (:type, :userId, :location, :skillOffered, :skillWanted, :salary, :bookClubPurpose, :content, :tag)";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("type", postForm.getType())
@@ -127,6 +127,7 @@ public class PostRepository {
                 .addValue("skillOffered", postForm.getSkillOffered())
                 .addValue("skillWanted", postForm.getSkillWanted())
                 .addValue("salary", postForm.getSalary())
+                .addValue("bookClubPurpose",postForm.getBookClubPurpose())
                 .addValue("content", postForm.getContent())
                 .addValue("tag", String.join(",", postForm.getTag()));
 
@@ -237,7 +238,64 @@ public class PostRepository {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("createdAt", createdAt)
                 .addValue("limit", limit);
-        return template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
+        try{
+            return template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
+
+    //update
+    public void updateExchangePost(int postId, PostForm postForm) {
+        String sql = "UPDATE post SET location = :location, skill_offered = :skillOffered, skill_wanted = :skillWanted, " +
+                "content = :content, tag = :tags WHERE id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("location", postForm.getLocation())
+                .addValue("skillOffered", postForm.getSkillOffered())
+                .addValue("skillWanted", postForm.getSkillWanted())
+                .addValue("content", postForm.getContent())
+                .addValue("tags", String.join(",", postForm.getTag()))
+                .addValue("postId", postId);
+        template.update(sql, params);
+    }
+
+    public void updateFindTutorPost(int postId, PostForm postForm) {
+        String sql = "UPDATE post SET location = :location, skill_wanted = :skillWanted, salary = :salary, " +
+                "content = :content, tag = :tags WHERE id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("location", postForm.getLocation())
+                .addValue("skillWanted", postForm.getSkillWanted())
+                .addValue("salary", postForm.getSalary())
+                .addValue("content", postForm.getContent())
+                .addValue("tags", String.join(",", postForm.getTag()))
+                .addValue("postId", postId);
+        template.update(sql, params);
+    }
+
+    public void updateFindStudentPost(int postId, PostForm postForm) {
+        String sql = "UPDATE post SET location = :location, skill_offered = :skillOffered, salary = :salary, " +
+                "content = :content, tag = :tags WHERE id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("location", postForm.getLocation())
+                .addValue("skillOffered", postForm.getSkillOffered())
+                .addValue("salary", postForm.getSalary())
+                .addValue("content", postForm.getContent())
+                .addValue("tags", String.join(",", postForm.getTag()))
+                .addValue("postId", postId);
+        template.update(sql, params);
+    }
+
+    public void updateBookClubPost(int postId, PostForm postForm) {
+        String sql = "UPDATE post SET location = :location, book_club_purpose = :bookClubPurpose, " +
+                "content = :content, tag = :tags WHERE id = :postId";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("location", postForm.getLocation())
+                .addValue("bookClubPurpose", postForm.getBookClubPurpose())
+                .addValue("content", postForm.getContent())
+                .addValue("tags", String.join(",", postForm.getTag()))
+                .addValue("postId", postId);
+        template.update(sql, params);
+    }
 }

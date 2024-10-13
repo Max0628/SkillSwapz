@@ -129,7 +129,7 @@ async function updateBasicProfile() {
         alert('基本資料更新成功！');
     } catch (error) {
         console.error('Error updating basic profile:', error);
-        alert('更新失敗，請稍後再試。');
+        // alert('更新失敗，請稍後再試。');
     }
 }
 

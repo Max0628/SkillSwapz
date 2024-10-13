@@ -241,5 +241,21 @@ public class PostController {
         List<Integer> bookmarkedPosts = service.getBookmarkedPostsByUserId(userId);
         return ResponseEntity.ok(bookmarkedPosts);
     }
-
+    //update
+    @PatchMapping("/{postId}")
+    public ResponseEntity<?> updatePost(@PathVariable int postId, @RequestBody PostForm postForm) {
+        System.out.println("postform: "+postForm);
+        try {
+            service.updatePost(postId, postForm);
+            Map<String, Object> message = Map.of(
+                    "type", "UPDATE_POST",
+                    "content", postForm
+            );
+            messagingTemplate.convertAndSend("/topic/post", message);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("type", "ERROR", "content", e.getMessage()));
+        }
+    }
 }

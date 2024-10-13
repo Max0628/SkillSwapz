@@ -11,7 +11,7 @@ import {
     subscribeToPostEvents,
     updateCommentCount,
     updateLikeCount,
-    formatTimeAgo
+    formatTimeAgo, showEditForm
 } from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 let currentSearchKeyword = null;
@@ -101,6 +101,23 @@ function setupPostListeners(postsList, userId) {
                 }
             }
         }
+        // 新增編輯按鈕處理
+        if (event.target.classList.contains('edit-btn')) {
+            event.preventDefault();
+            try {
+                const postId = event.target.id.split('-')[2];
+                const post = await fetchPostById(postId);
+                if (post && post.userId === userId) {
+                    // 顯示編輯表單
+                    showEditForm(post);
+                } else {
+                    // alert('您無權編輯此文章');
+                }
+            } catch (error) {
+                console.error('Error fetching post or showing edit form:', error);
+                alert('無法編輯此文章，請稍後再試。');
+            }
+        }
     });
 }
 
@@ -174,6 +191,64 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 break;
             }
 
+            case 'UPDATE_POST': {
+                const updatedPost = postEvent.content;
+                console.log("Updating post with ID:", updatedPost.postId);
+
+                // 找到對應的 DOM 元素
+                const postElement = document.getElementById(`post-${updatedPost.postId}`);
+                if (postElement) {
+                    // 更新地點
+                    const locationElement = postElement.querySelector('.post-location');
+                    if (locationElement) {
+                        locationElement.textContent = updatedPost.location || '未提供';
+                    }
+
+                    // 更新擅長技能
+                    const skillOfferedElement = postElement.querySelector('.post-skill-offered');
+                    if (skillOfferedElement) {
+                        skillOfferedElement.textContent = updatedPost.skillOffered || '';
+                    }
+
+                    // 更新想學技能
+                    const skillWantedElement = postElement.querySelector('.post-skill-wanted');
+                    if (skillWantedElement) {
+                        skillWantedElement.textContent = updatedPost.skillWanted || '';
+                    }
+
+                    // 更新薪資
+                    const salaryElement = postElement.querySelector('.post-salary');
+                    if (salaryElement) {
+                        salaryElement.textContent = updatedPost.salary || '';
+                    }
+
+                    // **更新內容/進行方式**
+                    const contentElement = postElement.querySelector('.post-content');
+                    if (contentElement) {
+                        contentElement.textContent = updatedPost.content || '';
+                    }
+
+                    // **更新讀書會目的**
+                    const bookClubPurposeElement = postElement.querySelector('.post-bookClubPurpose');
+                    if (bookClubPurposeElement) {
+                        bookClubPurposeElement.textContent = updatedPost.bookClubPurpose || '';
+                    }
+
+                    // **更新標籤（tags）**
+                    const tagsElement = postElement.querySelector('.post-tags');
+                    if (tagsElement) {
+                        const updatedTags = updatedPost.tag ? updatedPost.tag.map(tag => `<button class="tag-btn">#${tag}</button>`).join(' ') : '';
+                        tagsElement.innerHTML = updatedTags;
+                    }
+                } else {
+                    console.warn('Post element not found, cannot update DOM.');
+                }
+                break;
+            }
+
+
+
+
             case 'ERROR': {
                 console.error('Error event received:', postEvent.content);
                 break;
@@ -208,9 +283,6 @@ function showNotification(message) {
 }
 
 async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts) {
-    // for (const post of posts) {
-    //     await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
-    // }
     if (Array.isArray(posts)) {
         for (const post of posts) {
             await displayPost(post, userId, postsList, likedPosts, bookmarkedPosts);
@@ -218,7 +290,6 @@ async function renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts
     } else {
         console.error("Posts is not an array:", posts);
     }
-
 }
 
 

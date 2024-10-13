@@ -11,6 +11,7 @@ import com.maxchauo.skillswapz.repository.post.*;
 
 import lombok.extern.log4j.Log4j2;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,9 +33,21 @@ public class PostService {
     private final BookMarkRepository bookMarkRepository;
     private final PostSearchRepository postSearchRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
     private static final String REDIS_KEY = "latestPosts"; // Redis Key
 
-    public PostService(PostRepository postRepo, CommentRepository commentRepo, LikeRepository likeRepo, BookMarkRepository bookMarkRepo, BookMarkRepository bookMarkRepository, PostSearchRepository postSearchRepository, LikeRepository likeRepository, CategoryRepository categoryRepository, PostSearchRepository searchRepo, RedisTemplate<String, Object> redisTemplate) {
+    public PostService(
+            PostRepository postRepo,
+            CommentRepository commentRepo,
+            LikeRepository likeRepo,
+            BookMarkRepository bookMarkRepo,
+            BookMarkRepository bookMarkRepository,
+            PostSearchRepository postSearchRepository,
+            LikeRepository likeRepository,
+            CategoryRepository categoryRepository,
+            PostSearchRepository searchRepo,
+            RedisTemplate<String, Object> redisTemplate,
+            ObjectMapper objectMapper) {
         this.postRepo = postRepo;
         this.commentRepo = commentRepo;
         this.likeRepo = likeRepo;
@@ -45,6 +58,7 @@ public class PostService {
         this.categoryRepository = categoryRepository;
         this.searchRepo = searchRepo;
         this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public Integer getPostId(PostForm postForm) {
@@ -319,5 +333,103 @@ public class PostService {
         }
         return null;
     }
+
+    // update
+    public void updatePost(int postId, PostForm postForm) {
+        try {
+            // 檢查 postForm 是否為空，防止空參數
+            if (postForm == null) {
+                throw new IllegalArgumentException("Post form data cannot be null");
+            }
+
+            // 根據文章類型調用對應的更新方法
+            String type = postForm.getType();
+            if (type == null || type.isEmpty()) {
+                throw new IllegalArgumentException("Post type cannot be null or empty");
+            }
+
+            // 更新 MySQL 資料庫中的文章
+            switch (type) {
+                case "交換技能":
+                    postRepo.updateExchangePost(postId, postForm);
+                    break;
+                case "找老師":
+                    postRepo.updateFindTutorPost(postId, postForm);
+                    break;
+                case "找學生":
+                    postRepo.updateFindStudentPost(postId, postForm);
+                    break;
+                case "讀書會":
+                    postRepo.updateBookClubPost(postId, postForm);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown post type: " + type);
+            }
+
+            // 更新 Redis 緩存
+            String redisKey = "post:" + postId;
+            Object redisPostObj = redisTemplate.opsForValue().get(redisKey);
+
+            if (redisPostObj != null) {
+                PostForm existingPost;
+                if (redisPostObj instanceof LinkedHashMap) {
+                    // 如果 Redis 返回的是 LinkedHashMap，將其轉換為 PostForm
+                    existingPost = objectMapper.convertValue(redisPostObj, PostForm.class);
+                } else if (redisPostObj instanceof String) {
+                    // 如果 Redis 返回的是 String，將其解析為 PostForm
+                    existingPost = objectMapper.readValue((String) redisPostObj, PostForm.class);
+                } else {
+                    throw new ClassCastException("Unsupported Redis data type for post: " + redisPostObj.getClass().getName());
+                }
+
+                // 合併新的數據與現有的數據，保留未改變的欄位
+                if (postForm.getUserId() == null) {
+                    postForm.setUserId(existingPost.getUserId());
+                }
+                if (postForm.getCreatedAt() == null) {
+                    postForm.setCreatedAt(existingPost.getCreatedAt());
+                }
+                if (postForm.getLocation() == null) {
+                    postForm.setLocation(existingPost.getLocation());
+                }
+                if (postForm.getSkillOffered() == null) {
+                    postForm.setSkillOffered(existingPost.getSkillOffered());
+                }
+                if (postForm.getSkillWanted() == null) {
+                    postForm.setSkillWanted(existingPost.getSkillWanted());
+                }
+                if (postForm.getSalary() == null) {
+                    postForm.setSalary(existingPost.getSalary());
+                }
+                if (postForm.getBookClubPurpose() == null) {
+                    postForm.setBookClubPurpose(existingPost.getBookClubPurpose());
+                }
+                if (postForm.getContent() == null) {
+                    postForm.setContent(existingPost.getContent());
+                }
+                if (postForm.getTag() == null || postForm.getTag().isEmpty()) {
+                    postForm.setTag(existingPost.getTag());
+                }
+
+                // 將合併後的資料重新寫回 Redis
+                String updatedPostJson = objectMapper.writeValueAsString(postForm);
+                redisTemplate.opsForValue().set(redisKey, updatedPostJson);
+                log.info("Updated post in Redis: postId = {}", postId);
+            } else {
+                log.info("Post not found in Redis, skipping Redis update: postId = {}", postId);
+            }
+
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid input for updating post: {}", e.getMessage());
+            throw e; // 重新拋出異常，並由上層捕捉
+        } catch (DataAccessException e) {
+            log.error("Database error occurred while updating post: {}", e.getMessage());
+            throw new RuntimeException("Failed to update post in database", e);
+        } catch (Exception e) {
+            log.error("Unexpected error occurred while updating post: {}", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }
 
