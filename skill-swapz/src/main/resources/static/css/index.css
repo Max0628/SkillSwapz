@@ -304,7 +304,7 @@ p {
 }
 
 .comment-avatar {
-        width: 10px;
+    width: 10px;
     height: 10px;
     border-radius: 50%;
     margin-right: 10px;
@@ -641,83 +641,79 @@ textarea::placeholder {
 
 #bookmarks-list:empty::after {
     content: "暫無文章";
+}
 
-    .post-job-title {
-        margin: 5px 0 0 10px;
-    }
+.post-job-title{
+    margin: 5px 0 0 10px;
+}
 
-    /*edit-post*/
-    /* 黑色半透明遮罩 */
+/*edit-post*/
+/* 黑色半透明遮罩 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
+    z-index: 1000; /* 保證在最上層 */
+}
 
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
-        z-index: 1000; /* 保證在最上層 */
-    }
+/* 表單容器樣式 */
+.modal-container {
+    flex-direction: column;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px; /* 增加內邊距 */
+    z-index: 1001; /* 確保在遮罩上層 */
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+    max-width: 80%; /* 設置最大寬度，讓畫面大一點 */
+    width: 600px; /* 增加寬度 */
+}
 
-    /* 表單容器樣式 */
+/* 表單容器的樣式 */
+.modal-container form {
+    display: flex;
+    flex-direction: column; /* 讓元素垂直排列 */
+    gap: 15px; /* 每個表單項目之間的間距 */
+}
 
-    .modal-container {
-        flex-direction: column;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px; /* 增加內邊距 */
-        z-index: 1001; /* 確保在遮罩上層 */
-        border-radius: 8px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-        max-width: 80%; /* 設置最大寬度，讓畫面大一點 */
-        width: 600px; /* 增加寬度 */
-    }
+.modal-container label {
+    font-weight: bold;
+    margin-bottom: 8px; /* 標籤與輸入框之間的間距 */
+    font-size: 18px; /* 增大標籤字體大小 */
+}
 
-    /* 表單容器的樣式 */
+.modal-container input,
+.modal-container textarea {
+    width: 100%; /* 讓輸入框和文字框填滿容器寬度 */
+    padding: 15px; /* 增加內填充，使輸入框變大 */
+    font-size: 16px; /* 增大字體 */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* 防止內填充影響大小 */
+}
 
-    .modal-container form {
-        display: flex;
-        flex-direction: column; /* 讓元素垂直排列 */
-        gap: 15px; /* 每個表單項目之間的間距 */
-    }
+.modal-container textarea {
+    resize: vertical; /* 允許使用者垂直調整大小 */
+    min-height: 100px; /* 增加最小高度，讓文字框不會太小 */
+}
 
-    .modal-container label {
-        font-weight: bold;
-        margin-bottom: 8px; /* 標籤與輸入框之間的間距 */
-        font-size: 18px; /* 增大標籤字體大小 */
-    }
+.modal-container button {
+    padding: 12px 20px; /* 調整按鈕大小 */
+    font-size: 16px; /* 增大按鈕文字大小 */
+    border-radius: 4px;
+    background-color: black; /* 設置按鈕背景為黑色 */
+    color: white; /* 設置按鈕文字為白色 */
+    border: none; /* 移除按鈕邊框 */
+    cursor: pointer; /* 設置鼠標懸停時的手型 */
+}
 
-    .modal-container input,
-    .modal-container textarea {
-        width: 100%; /* 讓輸入框和文字框填滿容器寬度 */
-        padding: 15px; /* 增加內填充，使輸入框變大 */
-        font-size: 16px; /* 增大字體 */
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box; /* 防止內填充影響大小 */
-    }
-
-    .modal-container textarea {
-        resize: vertical; /* 允許使用者垂直調整大小 */
-        min-height: 100px; /* 增加最小高度，讓文字框不會太小 */
-    }
-
-    .modal-container button {
-        padding: 12px 20px; /* 調整按鈕大小 */
-        font-size: 16px; /* 增大按鈕文字大小 */
-        border-radius: 4px;
-        background-color: black; /* 設置按鈕背景為黑色 */
-        color: white; /* 設置按鈕文字為白色 */
-        border: none; /* 移除按鈕邊框 */
-        cursor: pointer; /* 設置鼠標懸停時的手型 */
-    }
-
-    /* 增加按鈕懸停效果 */
-
-    .modal-container button:hover {
-        background-color: #333; /* 懸停時變成較淺的黑色 */
-    }
+/* 增加按鈕懸停效果 */
+.modal-container button:hover {
+    background-color: #333; /* 懸停時變成較淺的黑色 */
 }
