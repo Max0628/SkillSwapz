@@ -316,20 +316,26 @@ p {
 
 .comment-header {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    /*justify-content: space-between;*/
+    /*align-items: baseline;*/
     margin-bottom: 5px;
+    align-items: center; /* Align username and time vertically */
+    justify-content: flex-start; /* Align elements to the left */
 }
 
 .comment-username {
     font-weight: bold;
     font-size: 14px;
+    margin-right: 10px; /* Add 10px space between username and time */
+    display: inline-block; /* Ensure username and time are in the same line */
 }
 
 .comment-time {
     font-size: 12px;
-    margin-right: 2rem;
+    /*margin-right: 2rem;*/
     color: #888;
+    display: inline-block; /* Ensure time stays in the same line */
+
 }
 
 .comment-text {
