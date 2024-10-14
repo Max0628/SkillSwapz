@@ -84,8 +84,6 @@ public class PostService {
         }
 
         String postIdString = postId.toString().replaceAll("^\"|\"$", "");
-        // redisTemplate.opsForZSet().add(REDIS_KEY, postIdString,
-        // postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
         redisTemplate
                 .opsForZSet()
                 .add(
@@ -95,9 +93,12 @@ public class PostService {
         log.info("Added post to Redis with postId: {} and score: {}", postIdString, postForm.getCreatedAt().toEpochSecond(ZoneOffset.UTC));
         Long zCard = redisTemplate.opsForZSet().zCard(REDIS_KEY);
         log.info("Current number of posts in Redis: {}", zCard);
-        if (zCard > 30) {
+        if (zCard != null) {
+            log.info("Current number of posts in Redis: {}", zCard);
+            if (zCard > 30) {
             redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, 0);
             log.info("Removed oldest post, keeping only the latest 30.");
+            }
         }
     }
 
@@ -249,6 +250,7 @@ public class PostService {
 
 
     public List<PostForm> getLatestPosts(int page, int size) {
+        long startTime = System.currentTimeMillis(); // 開始時間
         long start = (long) page * size;
         long end = (long) (page + 1) * size - 1;
         Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, start, Math.min(end, 29));
@@ -289,7 +291,8 @@ public class PostService {
                 }
             }
         }
-
+        long duration = System.currentTimeMillis() - startTime; // 記錄總耗時
+        log.info("Total time taken to fetch latest posts for page {}: {} ms", page, duration);
         return postRepo.getPostsByIds(validPostIds);
     }
 
@@ -309,8 +312,12 @@ public class PostService {
     }
 
     public PostForm getPostFromRedis(int postId) {
+        long startTime = System.currentTimeMillis(); // 記錄開始時間
         try {
             Object redisData = redisTemplate.opsForValue().get("post:" + postId);
+            long duration = System.currentTimeMillis() - startTime; // 記錄讀取結束時間並計算耗時
+            log.info("Time taken to fetch postId {} from Redis: {} ms", postId, duration); // 紀錄耗時
+
             if (redisData != null) {
                 if (redisData instanceof LinkedHashMap) {
 
