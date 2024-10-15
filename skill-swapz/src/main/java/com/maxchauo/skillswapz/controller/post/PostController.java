@@ -6,6 +6,7 @@ import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
 import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import com.maxchauo.skillswapz.repository.post.LikeRepository;
+import com.maxchauo.skillswapz.repository.post.PostRepository;
 import com.maxchauo.skillswapz.service.post.PostService;
 
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,14 +28,16 @@ public class PostController {
     private final PostService service;
     private final LikeRepository likeRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final PostRepository postRepo;
 
     public PostController(
             PostService service,
             LikeRepository likeRepository,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate, PostRepository postRepo) {
         this.service = service;
         this.likeRepository = likeRepository;
         this.messagingTemplate = messagingTemplate;
+        this.postRepo = postRepo;
     }
 
 
@@ -258,4 +262,16 @@ public class PostController {
                     .body(Map.of("type", "ERROR", "content", e.getMessage()));
         }
     }
+
+    @GetMapping("/tags/popular")
+    public ResponseEntity<List<Map<String, Object>>> getPopularTags() {
+        try {
+            List<Map<String, Object>> popularTags = postRepo.getPopularTags();
+            return ResponseEntity.ok(popularTags);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.emptyList());
+        }
+    }
+
 }

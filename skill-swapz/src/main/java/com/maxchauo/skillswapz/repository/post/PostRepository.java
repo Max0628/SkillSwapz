@@ -14,10 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 @Log4j2
 @Repository
@@ -298,4 +295,29 @@ public class PostRepository {
                 .addValue("postId", postId);
         template.update(sql, params);
     }
+
+    public List<Map<String, Object>> getPopularTags() {
+        String sql = "WITH RECURSIVE tag_split AS (" +
+                "  SELECT id, SUBSTRING_INDEX(tag, ',', 1) AS tag, " +
+                "    SUBSTRING(tag, LOCATE(',', tag) + 1) AS rest_tags " +
+                "  FROM post WHERE tag IS NOT NULL " +
+                "  UNION ALL " +
+                "  SELECT id, SUBSTRING_INDEX(rest_tags, ',', 1), " +
+                "    IF(LOCATE(',', rest_tags) > 0, SUBSTRING(rest_tags, LOCATE(',', rest_tags) + 1), NULL) " +
+                "  FROM tag_split WHERE rest_tags != '' " +
+                ") " +
+                "SELECT LOWER(TRIM(tag)) AS tag, COUNT(*) AS count " +
+                "FROM tag_split " +
+                "GROUP BY tag " +
+                "ORDER BY count DESC " +
+                "LIMIT 5";
+
+        return template.query(sql, (rs, rowNum) -> {
+            Map<String, Object> tagMap = new HashMap<>();
+            tagMap.put("tag", rs.getString("tag"));
+            tagMap.put("count", rs.getInt("count"));
+            return tagMap;
+        });
+    }
+
 }

@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setupSearchAndFilter(currentUserId);
 
+        // Fetch and display popular tags
+        await fetchPopularTags();
+
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
             filterBookmarkedPosts(searchKeyword);
@@ -31,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return null;
     }
 });
+
 
 async function setupWebSocketSubscriptions(stompClient, userId) {
     await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
@@ -275,4 +279,30 @@ function adjustTimeForBookmarks(dateString) {
     const date = new Date(dateString);
     date.setHours(date.getHours() + 8);
     return date;
+}
+
+async function fetchPopularTags() {
+    try {
+        const response = await fetch('/api/1.0/post/tags/popular');
+        const popularTags = await response.json();
+        const popularTagsList = document.querySelector('.popular-tags');
+        popularTagsList.innerHTML = ''; // 清空現有的標籤
+
+        popularTags.forEach(tagObj => {
+            const li = document.createElement('li');
+            li.textContent = `#${tagObj.tag}`;  // 加上 # 符號
+            popularTagsList.appendChild(li);
+        });
+
+        // 添加點擊事件監聽器
+        document.querySelectorAll('.popular-tags li').forEach(tag => {
+            tag.addEventListener('click', (event) => {
+                const searchKeyword = event.target.innerText.replace('#', '').trim();
+                filterBookmarkedPosts(searchKeyword);
+            });
+        });
+
+    } catch (error) {
+        console.error('Error fetching popular tags:', error);
+    }
 }
