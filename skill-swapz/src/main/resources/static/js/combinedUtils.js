@@ -279,7 +279,7 @@ export async function handleLike(postId, userId) {
         likeCount.textContent = isCurrentlyLiked ?
             parseInt(likeCount.textContent) + 1 :
             parseInt(likeCount.textContent) - 1;
-        alert('操作失敗，請稍後再試。');
+        // alert('操作失敗，請稍後再試。');
     }
 }
 
@@ -318,7 +318,7 @@ export async function handleBookmark(postId, userId) {
         bookmarkButton.classList.toggle('bookmarked');
         bookmarkIcon.classList.toggle('fa-solid');
         bookmarkIcon.classList.toggle('fa-regular');
-        alert('收藏操作失敗，請稍後再試。');
+        // alert('收藏操作失敗，請稍後再試。');
     }
 }
 export async function handleComment(postId, userId) {
@@ -358,11 +358,11 @@ export async function handleComment(postId, userId) {
         } else {
             const errorData = await response.json();
             console.error('Error commenting on post:', errorData.content || 'Unknown error');
-            alert(`發表評論失敗: ${errorData.content || '請稍後再試。'}`);
+            // alert(`發表評論失敗: ${errorData.content || '請稍後再試。'}`);
         }
     } catch (error) {
         console.error('Error commenting:', error);
-        alert('發表評論失敗，請稍後再試。');
+        // alert('發表評論失敗，請稍後再試。');
     }
 }
 export async function createCommentElement(commentData, currentUserId) {
@@ -703,17 +703,17 @@ export async function handleDelete(postId, userId) {
 
         if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.message || '刪除貼文失敗');
+            // throw new Error(data.message || '刪除貼文失敗');
         }
 
         const postElement = document.getElementById(`post-${postId}`);
         if (postElement) {
             postElement.remove();
         }
-        alert('貼文已成功刪除');
+        // alert('貼文已成功刪除');
     } catch (error) {
         console.error('Error deleting post:', error);
-        alert(`刪除貼文失敗: ${error.message}`);
+        // alert(`刪除貼文失敗: ${error.message}`);
     }
 }
 
@@ -925,13 +925,13 @@ export async function handleDeleteComment(commentId, userId, postId) {
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.message || '刪除評論失敗');
+                // throw new Error(data.message || '刪除評論失敗');
             }
 
-            alert('評論已成功刪除');
+            // alert('評論已成功刪除');
         } catch (error) {
             console.error('Error deleting comment:', error);
-            alert(`刪除評論失敗: ${error.message || '請稍後再試。'}`);
+            // alert(`刪除評論失敗: ${error.message || '請稍後再試。'}`);
         }
     }
 }
@@ -1148,7 +1148,7 @@ function saveEditedPost(postId) {
     })
         .then(response => response.json())
         .then(data => {
-            alert('文章已更新');
+            // alert('文章已更新');
             // 這裡可以更新頁面中的文章內容
         })
         .catch(error => {

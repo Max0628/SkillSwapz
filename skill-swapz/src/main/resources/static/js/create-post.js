@@ -107,16 +107,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const postId = responseData.content.postId;  // 從 content 中提取 postId
 
                 console.log("Post ID:", postId);
-                alert('文章發表成功！');
+                // alert('文章發表成功！');
                 window.location.href = "index.html";
             } else {
                 const errorText = await response.text();
                 console.error('Error creating post:', errorText);
-                alert('發表文章失敗。');
+                // alert('發表文章失敗。');
             }
         } catch (error) {
             console.error('Submission error:', error);
-            alert('發表文章時發生錯誤，請稍後再試。');
+            // alert('發表文章時發生錯誤，請稍後再試。');
         }
     });
 });

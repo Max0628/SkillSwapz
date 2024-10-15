@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             chatContent.scrollTop = chatContent.scrollHeight;
         } catch (error) {
             console.error('Error loading chat history:', error);
-            alert('無法加載聊天記錄，請刷新頁面重試。');
+            // alert('無法加載聊天記錄，請刷新頁面重試。');
         }
     }
 
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error sending/saving message:', error);
-            alert('發送消息失敗，請稍後再試。錯誤詳情：' + error.message);
+            // alert('發送消息失敗，請稍後再試。錯誤詳情：' + error.message);
         }
     }
 

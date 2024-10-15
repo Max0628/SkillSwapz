@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Error in main execution:', error);
-        alert('發生錯誤，請刷新頁面或稍後再試。');
+        // alert('發生錯誤，請刷新頁面或稍後再試。');
     }
 });
 
@@ -115,7 +115,7 @@ function setupPostListeners(postsList, userId) {
                 }
             } catch (error) {
                 console.error('Error fetching post or showing edit form:', error);
-                alert('無法編輯此文章，請稍後再試。');
+                // alert('無法編輯此文章，請稍後再試。');
             }
         }
     });
