@@ -310,7 +310,7 @@ public class PostRepository {
                 "FROM tag_split " +
                 "GROUP BY tag " +
                 "ORDER BY count DESC " +
-                "LIMIT 5";
+                "LIMIT 7";
 
         return template.query(sql, (rs, rowNum) -> {
             Map<String, Object> tagMap = new HashMap<>();
