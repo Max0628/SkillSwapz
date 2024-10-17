@@ -58,8 +58,8 @@ public class ChatController {
     public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
         try {
             String chatUuid = (String) request.get("chatUuid");
-            Integer senderId = Integer.valueOf(String.valueOf(request.get("sender_id")));
-            Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiver_id")));
+            Integer senderId = Integer.valueOf(String.valueOf(request.get("senderId")));
+            Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiverId")));
             String content = (String) request.get("content");
 
             if (chatUuid == null || senderId == null || receiverId == null || content == null) {
@@ -104,11 +104,11 @@ public class ChatController {
         log.info("startChat called with message: {}", chatMessage);
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "newChat");
-        notification.put("senderId", chatMessage.getSender_id());
+        notification.put("senderId", chatMessage.getSenderId());
         notification.put("chatUuid", chatMessage.getChatUuid());
         log.info("Sending newChat notification: {}", notification);
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getReceiver_id().toString(),
+                chatMessage.getReceiverId().toString(),
                 "/queue/notifications",
                 notification
         );

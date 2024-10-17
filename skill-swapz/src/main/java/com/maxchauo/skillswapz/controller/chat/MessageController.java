@@ -25,7 +25,7 @@ public class MessageController {
         }
         
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getReceiver_id().toString(),
+                chatMessage.getReceiverId().toString(),
                 "/queue/private/" + chatUuid,
                 chatMessage);
     }

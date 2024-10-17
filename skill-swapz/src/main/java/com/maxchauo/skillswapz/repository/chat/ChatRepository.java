@@ -85,10 +85,10 @@ public class ChatRepository {
         return template.query(sql, params, (rs, rowNum) -> {
             Map<String, Object> message = new HashMap<>();
             message.put("id", rs.getInt("id"));
-            message.put("sender_id", rs.getInt("sender_id"));
-            message.put("receiver_id", rs.getInt("receiver_id"));
+            message.put("senderId", rs.getInt("sender_id"));
+            message.put("receiverId", rs.getInt("receiver_id"));
             message.put("content", rs.getString("content"));
-            message.put("created_at", rs.getTimestamp("created_at").toString());
+            message.put("createdAt", rs.getTimestamp("created_at").toString());
             return message;
         });
     }
