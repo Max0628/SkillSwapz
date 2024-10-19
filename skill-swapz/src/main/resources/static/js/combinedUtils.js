@@ -5,7 +5,7 @@ const commentCache = {}; // 格式: { postId1: [comment1, comment2], postId2: [c
 export async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
-            method: 'POST',
+            method: 'GET',
             credentials: 'include',
         });
 

@@ -1,11 +1,11 @@
 package com.maxchauo.skillswapz.service.user;
 
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
-import com.maxchauo.skillswapz.data.form.user.User;
 import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
 import com.maxchauo.skillswapz.repository.auth.AuthRepository;
 import com.maxchauo.skillswapz.repository.user.UserRepository;
 import com.maxchauo.skillswapz.service.utils.S3Util;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,9 +27,6 @@ public class UserService {
         this.s3Util = s3Util;
     }
 
-
-
-
     public boolean registerUser(UserDto userDto) {
         if (authRepo.getUserByEmail(userDto.getEmail()) != null) {
             return false;
@@ -46,19 +43,13 @@ public class UserService {
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            return "密碼錯誤";
+            return null;
         }
-
-        // 如果密碼正確，生成 JWT Token 並返回
+        
         return jwtTokenUtil.generateToken(user.getEmail(), user.getId().toString());
     }
 
-
-    public UserDto getUserById(Integer id) {
-        return authRepo.getUserById(id);
-    }
-
-        public UserDto getUserProfile(Integer userId) {
+    public UserDto getUserProfile(Integer userId) {
             return userRepo.findById(userId);
         }
 
@@ -96,24 +87,19 @@ public class UserService {
     public UserDto uploadUserAvatar(Integer userId, MultipartFile avatar) throws IOException {
         UserDto user = getUserProfile(userId);
 
-        // 刪除舊的頭像文件
         if (user.getAvatarUrl() != null) {
             s3Util.deleteFile(user.getAvatarUrl());
         }
 
-        // 上傳新的頭像文件
         String avatarUrl = s3Util.uploadFile(avatar);
 
-        // 更新資料庫
         userRepo.updateAvatarUrl(userId, avatarUrl);
 
-        // 返回更新後的用戶資料
         return getUserProfile(userId);
     }
 
     public String getUserAvatar(Integer userId) {
-        // 從資料庫中獲取用戶的頭像 URL
         UserDto user = userRepo.findById(userId);
-        return user.getAvatarUrl(); // 返回頭像的 URL
+        return user.getAvatarUrl();
     }
 }

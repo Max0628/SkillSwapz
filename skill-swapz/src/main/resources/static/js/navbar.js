@@ -78,7 +78,7 @@ export function updateNavbarUnreadCount(unreadCount) {
 async function getUserId() {
     try {
         const response = await fetch('api/1.0/auth/me', {
-            method: 'POST',
+            method: 'GET',
             credentials: 'include',
         });
         if (!response.ok) {
@@ -211,12 +211,12 @@ function hideDropdownOnClick(event) {
 async function handleLogout() {
     try {
         const response = await fetch('/api/1.0/auth/logout', {
-            method: 'POST',
+            method: 'DELETE',
             credentials: 'include',
         });
 
         if (response.ok) {
-            window.location.href = 'landingPage.html'; // 登出成功後跳轉到登入頁面
+            window.location.href = 'landingPage.html';
         } else {
             console.error('登出失敗');
         }

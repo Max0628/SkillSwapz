@@ -7,6 +7,7 @@ import com.maxchauo.skillswapz.service.user.UserService;
 import io.jsonwebtoken.Claims;
 
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -30,7 +31,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
         boolean result = userService.registerUser(userDto);
         if (result) {
-            return ResponseEntity.ok(Map.of("message","用戶註冊成功"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "用戶註冊成功"));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message","用戶註冊失敗"));
         }
@@ -57,7 +58,7 @@ public class AuthController {
 
     }
 
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
 
         ResponseCookie clearJwtCookie = ResponseCookie.from("access_token", "")
@@ -72,9 +73,9 @@ public class AuthController {
                 .body(Map.of("message", "登出成功"));
     }
 
-
-    @PostMapping("/me")
-    public ResponseEntity<Map<String, String>> getUserInfoFromToken(@CookieValue(value = "access_token", required = false) String token) {
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> getUserInfoFromToken(
+            @CookieValue(value = "access_token", required = false) String token) {
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "缺少 access_token"));
         }
@@ -87,5 +88,4 @@ public class AuthController {
         String userId = claims.get("userId", String.class);
         return ResponseEntity.ok(Map.of("userId", userId));
     }
-
 }
