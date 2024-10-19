@@ -14,7 +14,7 @@ export async function getUserId() {
         }
 
         const data = await response.json();
-        return data.user_id;
+        return data.userId;
     } catch (error) {
         console.error('Error fetching user ID:', error);
         window.location.href = "landingPage.html";
@@ -54,7 +54,7 @@ export function connectWebSocket(userId) {
         return Promise.reject(new Error('Invalid userId'));
     }
 
-    const socket = new SockJS(`/ws?user_id=${encodeURIComponent(userId)}`);
+    const socket = new SockJS(`/ws?userId=${encodeURIComponent(userId)}`);
     stompClient = Stomp.over(socket);
 
     const maxReconnectAttempts = 5;
@@ -173,13 +173,13 @@ export async function startChat(receiverId, senderId) {
         const response = await fetch('/api/1.0/chat/channel', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id_1: senderId, user_id_2: receiverId }),
+            body: JSON.stringify({ userId1: senderId, userId2: receiverId }),
             credentials: 'include'
         });
         const data = await response.json();
-        if (response.ok && data.chat_uuid) {
+        if (response.ok && data.chatUuid) {
             await getUnreadMessageCounts(senderId);
-            return data.chat_uuid;
+            return data.chatUuid;
         } else {
             throw new Error('Failed to create chat channel: ' + data.message);
         }
@@ -344,8 +344,8 @@ export async function handleComment(postId, userId) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                post_id: postId,
-                user_id: userId,
+                postId: postId,
+                userId: userId,
                 content: commentContent
             }),
             credentials: 'include'
@@ -393,7 +393,7 @@ export async function createCommentElement(commentData, currentUserId) {
             </div>
             <p class="comment-text">${escapeHtml(commentData.content)}</p>
         </div>
-        ${String(commentData.user_id) === String(currentUserId) ?
+        ${String(commentData.userId) === String(currentUserId) ?
         `<button class="delete-comment-btn">
             <span class="material-icons-outlined">remove_circle_outline</span>
         </button>` : ''}
@@ -401,7 +401,7 @@ export async function createCommentElement(commentData, currentUserId) {
     `;
 
     // 異步加載用戶詳情
-    fetchUserDetails(commentData.user_id).then(userDetails => {
+    fetchUserDetails(commentData.userId).then(userDetails => {
         const avatarImg = commentElement.querySelector('.comment-avatar');
         const usernameSpan = commentElement.querySelector('.comment-username');
 
@@ -413,11 +413,11 @@ export async function createCommentElement(commentData, currentUserId) {
         console.error("Error fetching user details:", error);
     });
 
-    if (String(currentUserId) === String(commentData.user_id)) {
+    if (String(currentUserId) === String(commentData.userId)) {
         const deleteButton = commentElement.querySelector('.delete-comment-btn');
         if (deleteButton) {
             deleteButton.addEventListener('click', () => {
-                handleDeleteComment(commentData.id, currentUserId, commentData.post_id);
+                handleDeleteComment(commentData.id, currentUserId, commentData.postId);
             });
         }
     }
@@ -832,33 +832,33 @@ function handleCreateComment(commentData, currentUserId) {
         return;
     }
 
-    const commentSection = document.querySelector(`#comment-section-${commentData.post_id}`);
+    const commentSection = document.querySelector(`#comment-section-${commentData.postId}`);
     if (!commentSection) {
-        console.warn(`Comment section not found for postId: ${commentData.post_id}`);
+        console.warn(`Comment section not found for postId: ${commentData.postId}`);
         return;
     }
 
     const commentContainer = commentSection.querySelector('.comments-container');
     if (!commentContainer) {
-        console.warn(`Comment container not found for postId: ${commentData.post_id}`);
+        console.warn(`Comment container not found for postId: ${commentData.postId}`);
         return;
     }
 
     // 使用 getComputedStyle 判斷留言區是否展開
     if (getComputedStyle(commentSection).display === 'none') {
         // 留言區未展開，暫存評論
-        if (!commentCache[commentData.post_id]) {
-            commentCache[commentData.post_id] = [];
+        if (!commentCache[commentData.postId]) {
+            commentCache[commentData.postId] = [];
         }
-        commentCache[commentData.post_id].push(commentData);
-        console.log(`Comment cached for postId ${commentData.post_id}`);
+        commentCache[commentData.postId].push(commentData);
+        console.log(`Comment cached for postId ${commentData.postId}`);
     } else {
         // 留言區已展開，直接添加評論到 DOM
         addCommentToDOM(commentData, currentUserId, commentContainer);
     }
 
     // 更新評論數量
-    updateCommentCount(commentData.post_id, true);
+    updateCommentCount(commentData.postId, true);
 }
 
 

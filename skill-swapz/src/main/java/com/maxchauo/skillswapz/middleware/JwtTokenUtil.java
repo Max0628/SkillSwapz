@@ -31,7 +31,7 @@ public class JwtTokenUtil {
     public String generateToken(String subject, String userId) {
         return Jwts.builder()
                 .setSubject(subject)
-                .claim("user_id", userId)
+                .claim("userId", userId)
                 .setIssuedAt(new Date())
                 .setExpiration(Date.from(Instant.now().plusSeconds(jwtExpireTimeAsSec)))
                 .signWith(Keys.hmacShaKeyFor(jwtSignKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS512)
@@ -55,7 +55,7 @@ public class JwtTokenUtil {
     }
 
     public String getUserIdFromToken(String token) {
-        return parseToken(token).get("user_id", String.class);
+        return parseToken(token).get("userId", String.class);
     }
 
 

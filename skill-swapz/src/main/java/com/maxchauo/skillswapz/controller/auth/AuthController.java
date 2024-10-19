@@ -84,8 +84,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid token"));
         }
 
-        String userId = claims.get("user_id", String.class);
-        return ResponseEntity.ok(Map.of("user_id", userId));
+        String userId = claims.get("userId", String.class);
+        return ResponseEntity.ok(Map.of("userId", userId));
     }
 
 }

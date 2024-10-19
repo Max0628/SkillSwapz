@@ -7,6 +7,7 @@ import com.maxchauo.skillswapz.service.chat.ChatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -37,22 +38,43 @@ public class ChatController {
 
     @PostMapping("/channel")
     public ResponseEntity<Map<String, Object>> createOrGetChannel(@RequestBody Map<String, Integer> request) {
-        Integer userId1 = request.get("user_id_1");
-        Integer userId2 = request.get("user_id_2");
-        log.info("createOrGetChannel called with request: {}", request);
-        String chatUuid = chatService.createOrGetChatChannel(userId1, userId2);
         Map<String, Object> response = new HashMap<>();
-        response.put("chat_uuid", chatUuid);
+        try {
+            Integer userId1 = request.get("userId1");
+            Integer userId2 = request.get("userId2");
 
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("chatUuid", chatUuid);
-        notification.put("sender", userId1);
-        log.info("Sending notification to user {}: {}", userId2, notification);
-        messagingTemplate.convertAndSendToUser(
-                userId2.toString(), "/queue/subscribe", notification);
-        log.info("createOrGetChannel completed. Response: {}", response);
-        return ResponseEntity.ok(response);
+            if (userId1 == null || userId2 == null) {
+                log.error("Invalid userId1 or userId2: {}", request);
+                response.put("error", "Invalid userId1 or userId2 provided");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            log.info("createOrGetChannel called with request: {}", request);
+            String chatUuid = chatService.createOrGetChatChannel(userId1, userId2);
+
+            response.put("chatUuid", chatUuid);
+
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("chatUuid", chatUuid);
+            notification.put("sender", userId1);
+            log.info("Sending notification to user {}: {}", userId2, notification);
+            messagingTemplate.convertAndSendToUser(
+                    userId2.toString(), "/queue/subscribe", notification);
+            log.info("createOrGetChannel completed. Response: {}", response);
+
+            return ResponseEntity.ok(response);
+        } catch (InvalidDataAccessApiUsageException e) {
+            log.error("Database error while creating or fetching chat channel", e);
+            response.put("error", "Database error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (Exception e) {
+            log.error("Unexpected error occurred", e);
+            e.printStackTrace();
+            response.put("error", "An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
+
 
     @PostMapping("/sendMessage")
     public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
@@ -89,8 +111,8 @@ public class ChatController {
     }
 
     @GetMapping("/messages")
-    public ResponseEntity<List<Map<String, Object>>> getMessages(@RequestParam String chat_uuid) {
-        List<Map<String, Object>> messages = chatService.getMessages(chat_uuid);
+    public ResponseEntity<List<Map<String, Object>>> getMessages(@RequestParam String chatUuid) {
+        List<Map<String, Object>> messages = chatService.getMessages(chatUuid);
         try{
             return ResponseEntity.ok(messages);
         }catch (Exception e){

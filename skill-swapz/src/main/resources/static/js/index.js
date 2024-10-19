@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Error in main execution:', error);
-        // alert('發生錯誤，請刷新頁面或稍後再試。');
+        alert('發生錯誤，請刷新頁面或稍後再試。');
     }
 });
 
@@ -98,8 +98,8 @@ function setupPostListeners(postsList, userId) {
                     window.location.href = redirectUrl;
                 } catch (error) {
                     return null;
-                    // console.error('Error starting chat:', error);
-                    // alert('無法啟動聊天，請稍後再試。');
+                    console.error('Error starting chat:', error);
+                    alert('無法啟動聊天，請稍後再試。');
                 }
             }
         }
@@ -171,17 +171,17 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
             case 'CREATE_COMMENT': {
                 console.log("CREATING COMMENT in setupWebSocketSubscriptions", postEvent.content);
                 const commentData = postEvent.content;
-                const commentSection = document.getElementById(`comment-section-${commentData.post_id}`);
+                const commentSection = document.getElementById(`comment-section-${commentData.postId}`);
                 if (commentSection) {
                     console.log("commentSection is true");
                     createCommentElement(commentData, userId)
                         .then(newComment => {
                             commentSection.appendChild(newComment);
-                            updateCommentCount(commentData.post_id, true);
+                            updateCommentCount(commentData.postId, true);
                         })
                         .catch(error => console.error('Error creating comment element:', error));
                 } else {
-                    console.warn(`Comment section not found for postId: ${commentData.post_id}`);
+                    console.warn(`Comment section not found for postId: ${commentData.postId}`);
                 }
                 break;
             }
@@ -339,9 +339,9 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         console.log('Finished processing posts');
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
     } catch (error) {
-        // console.error('Error in fetchAndDisplayPosts:', error);
-        // alert('獲取貼文失敗，請稍後再試。');
-        // return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
+        console.error('Error in fetchAndDisplayPosts:', error);
+        alert('獲取貼文失敗，請稍後再試。');
+        return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
     }
 }
 

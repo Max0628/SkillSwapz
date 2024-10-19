@@ -21,7 +21,7 @@ public class UserHandshakeInterceptor implements HandshakeInterceptor {
 
         String userId = getUserIdFromRequest(request);
         if (userId != null && !userId.isEmpty()) {
-            attributes.put("user_id", userId);
+            attributes.put("userId", userId);
         } else {
             return false;
         }
@@ -39,6 +39,6 @@ public class UserHandshakeInterceptor implements HandshakeInterceptor {
     private String getUserIdFromRequest(ServerHttpRequest request) {
         URI uri = request.getURI();
         MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
-        return queryParams.getFirst("user_id");
+        return queryParams.getFirst("userId");
     }
 }

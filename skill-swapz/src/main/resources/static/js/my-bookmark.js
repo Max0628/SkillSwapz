@@ -237,7 +237,7 @@ function handleLikeUpdate(content) {
 }
 
 async function handleCommentUpdate(content) {
-    const { post_id: postId, id: commentId } = content;
+    const { postId: postId, id: commentId } = content;
     const commentSection = document.getElementById(`comment-section-${postId}`);
     if (commentSection) {
         const newComment = await createCommentElement(content, currentUserId);

@@ -14,7 +14,7 @@ public class UserHandshakeHandler extends DefaultHandshakeHandler {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
 
-        String userId = (String) attributes.get("user_id");
+        String userId = (String) attributes.get("userId");
         if (userId == null) {
             throw new IllegalArgumentException("User ID not found in handshake attributes");
         }

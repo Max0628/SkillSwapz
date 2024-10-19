@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 如果 URL 中沒有指定聊天，加載第一個聊天（如果有的話）
         const firstChat = await loadFirstChat();
         if (firstChat) {
-            await openChat(firstChat.other_user_id, firstChat.chat_uuid, firstChat.username);
+            await openChat(firstChat.otherUserId, firstChat.chatUuid, firstChat.username);
         }
     }
 
@@ -90,13 +90,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const chatList = await response.json();
-            const filteredChatList = chatList.filter(chat => chat.other_user_id.toString() !== currentUserId.toString());
+            const filteredChatList = chatList.filter(chat => chat.otherUserId.toString() !== currentUserId.toString());
             if (filteredChatList.length > 0) {
                 const firstChat = filteredChatList[0];
-                const userInfo = await fetchUserDetails(firstChat.other_user_id);
+                const userInfo = await fetchUserDetails(firstChat.otherUserId);
                 return {
-                    other_user_id: firstChat.other_user_id,
-                    chat_uuid: firstChat.chat_uuid,
+                    otherUserId: firstChat.otherUserId,
+                    chatUuid: firstChat.chatUuid,
                     username: userInfo.username
                 };
             }
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadChatHistory() {
         try {
-            const response = await fetch(`/api/1.0/chat/messages?chat_uuid=${currentChatUuid}`, {
+            const response = await fetch(`/api/1.0/chat/messages?chatUuid=${currentChatUuid}`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -277,11 +277,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ user_id_1: currentUserId, user_id_2: userId }),
+                    body: JSON.stringify({ userId1: currentUserId, userId2: userId }),
                     credentials: 'include'
                 });
                 const data = await response.json();
-                chatUuid = data.chat_uuid;
+                chatUuid = data.chatUuid;
             } catch (error) {
                 console.error('Error starting new chat:', error);
                 return;
@@ -484,22 +484,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const chatList = await response.json();
 
             await Promise.all(chatList.map(async (chat) => {
-                const userInfo = await fetchUserDetails(chat.other_user_id);
+                const userInfo = await fetchUserDetails(chat.otherUserId);
                 chat.username = userInfo.username;
                 chat.avatarUrl = userInfo.avatarUrl;
 
                 // 傳遞未讀消息數量
                 addUserToList(
-                    chat.other_user_id,
+                    chat.otherUserId,
                     chat.username,
-                    chat.chat_uuid,
-                    chat.last_message,
+                    chat.chatUuid,
+                    chat.lastMessage,
                     chat.avatarUrl,
-                    chat.unread_count  // 新增
+                    chat.unreadCount  // 新增
                 );
 
                 // 訂閱每個聊天頻道
-                subscribeToPrivateChat(chat.chat_uuid);
+                subscribeToPrivateChat(chat.chatUuid);
             }));
 
         } catch (error) {
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function displayChatList(chatList) {
         userList.innerHTML = '';
         chatList.forEach(chat => {
-            addUserToList(chat.other_user_id, chat.username, chat.chat_uuid, chat.last_message, chat.avatarUrl);
+            addUserToList(chat.otherUserId, chat.username, chat.chatUuid, chat.lastMessage, chat.avatarUrl);
         });
     }
 });

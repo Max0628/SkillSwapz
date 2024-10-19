@@ -85,7 +85,7 @@ async function getUserId() {
             throw new Error('Failed to fetch user ID');
         }
         const data = await response.json();
-        return data.user_id;
+        return data.userId;
     } catch (error) {
         console.error('Error fetching user ID:', error);
         return null;
