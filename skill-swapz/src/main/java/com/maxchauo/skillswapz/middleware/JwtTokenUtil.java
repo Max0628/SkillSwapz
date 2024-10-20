@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,12 +54,7 @@ public class JwtTokenUtil {
     public String getUsernameFromToken(String token) {
         return parseToken(token).getSubject();
     }
-
-    public String getUserIdFromToken(String token) {
-        return parseToken(token).get("userId", String.class);
-    }
-
-
+    
     public Date getExpirationDateFromToken(String token) {
         return parseToken(token).getExpiration();
     }

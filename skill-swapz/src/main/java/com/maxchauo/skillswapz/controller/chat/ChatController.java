@@ -77,10 +77,10 @@ public class ChatController {
         try {
             String chatUuid = (String) request.get("chatUuid");
             Integer senderId = Integer.valueOf(String.valueOf(request.get("senderId")));
-            Integer receiverId = Integer.valueOf(String.valueOf(request.get("receiverId")));
+            int receiverId = Integer.parseInt(String.valueOf(request.get("receiverId")));
             String content = (String) request.get("content");
 
-            if (chatUuid == null || senderId == null || receiverId == null || content == null) {
+            if (chatUuid == null || content == null) {
                 throw new IllegalArgumentException("Missing required fields");
             }
 
@@ -91,7 +91,7 @@ public class ChatController {
 
             int unreadCount = chatService.getUnreadMessageCountForUser(receiverId);
             messagingTemplate.convertAndSendToUser(
-                    receiverId.toString(),
+                    Integer.toString(receiverId),
                     "/queue/unreadCount",
                     unreadCount
             );

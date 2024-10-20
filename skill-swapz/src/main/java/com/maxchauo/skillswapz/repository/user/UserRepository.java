@@ -1,6 +1,7 @@
 package com.maxchauo.skillswapz.repository.user;
 
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

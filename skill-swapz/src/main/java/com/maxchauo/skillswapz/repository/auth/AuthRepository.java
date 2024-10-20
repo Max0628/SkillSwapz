@@ -36,14 +36,7 @@ public class AuthRepository {
         }
     }
 
-    public UserDto getUserById(Integer id) {
-        String sql = "SELECT * FROM `user` WHERE id = :id";
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("id", id);
-        return template.queryForObject(sql, params, new UserRowMapper());
-    }
-
-    public Integer saveUser(UserDto user) {
+    public void saveUser(UserDto user) {
         String sql = "INSERT INTO `user` (username,email,password,avatar_url,job_title,bio)" +
                 "VALUES(:username,:email,:password,:avatar_url,:job_title,:bio)";
 
@@ -54,7 +47,7 @@ public class AuthRepository {
                 .addValue("avatar_url", user.getAvatarUrl())
                 .addValue("job_title", user.getJobTitle())
                 .addValue("bio", user.getBio());
-        return template.update(sql, params);
+        template.update(sql, params);
     }
 
     public UserDetails getUserDetailsByToken(String token) {
