@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatContent.scrollTop = chatContent.scrollHeight;
 
         try {
-            const response = await fetch('/api/1.0/chat/sendMessage', {
+            const response = await fetch('/api/1.0/chat/message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Message saved:', data);
 
             if (stompClient && stompClient.connected) {
-                stompClient.send("/app/sendMessage", {}, JSON.stringify(chatMessage));
+                stompClient.send("/app/message", {}, JSON.stringify(chatMessage));
             } else {
                 console.warn('WebSocket is not connected. Message sent via HTTP only.');
             }

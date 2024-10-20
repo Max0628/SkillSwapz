@@ -24,16 +24,13 @@ import java.util.Map;
 @RequestMapping("/api/1.0/chat")
 public class ChatController {
     private static final Logger log = LoggerFactory.getLogger(ChatController.class);
-    @Autowired
     private final ChatService chatService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
-
-    @Autowired
-    public ChatController(ChatService chatService) {
+    public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
         this.chatService = chatService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/channel")
@@ -69,15 +66,14 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         } catch (Exception e) {
             log.error("Unexpected error occurred", e);
-            e.printStackTrace();
             response.put("error", "An unexpected error occurred: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-
-    @PostMapping("/sendMessage")
-    public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody Map<String, Object> request) {
+    @PostMapping("/message")
+    public ResponseEntity<Map<String, Object>> sendMessage(
+            @RequestBody Map<String, Object> request) {
         try {
             String chatUuid = (String) request.get("chatUuid");
             Integer senderId = Integer.valueOf(String.valueOf(request.get("senderId")));
@@ -93,7 +89,6 @@ public class ChatController {
             response.put("message_id", messageId);
             response.put("status", "Message sent");
 
-            // 更新未讀消息計數
             int unreadCount = chatService.getUnreadMessageCountForUser(receiverId);
             messagingTemplate.convertAndSendToUser(
                     receiverId.toString(),
@@ -103,7 +98,6 @@ public class ChatController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to send message: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -112,13 +106,13 @@ public class ChatController {
 
     @GetMapping("/messages")
     public ResponseEntity<List<Map<String, Object>>> getMessages(@RequestParam String chatUuid) {
-        List<Map<String, Object>> messages = chatService.getMessages(chatUuid);
-        try{
+        try {
+            List<Map<String, Object>> messages = chatService.getMessages(chatUuid);
             return ResponseEntity.ok(messages);
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("Failed to get messages for chatUuid: {}", chatUuid, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        return null;
     }
 
     @MessageMapping("/startChat")
@@ -157,15 +151,10 @@ public class ChatController {
     public void markAsRead(@Payload ReadMessage readMessage) {
         chatService.markMessagesAsRead(readMessage.getChatUuid(), readMessage.getUserId());
 
-        // 發送更新的未讀消息計數
         int unreadCount = chatService.getUnreadMessageCountForUser(readMessage.getUserId());
         messagingTemplate.convertAndSendToUser(
-                readMessage.getUserId().toString(),
-                "/queue/unreadCount",
-                unreadCount
-        );
+                readMessage.getUserId().toString(), "/queue/unreadCount", unreadCount);
 
-        // 發送特定聊天的未讀消息計數
         int chatUnreadCount = chatService.getUnreadMessageCountForChat(readMessage.getChatUuid(), readMessage.getUserId());
         messagingTemplate.convertAndSendToUser(
                 readMessage.getUserId().toString(),

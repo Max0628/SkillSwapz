@@ -19,6 +19,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.Objects;
 
 @Configuration
 public class RedisConfig {
@@ -83,10 +84,9 @@ public class RedisConfig {
     public void testRedisConnection() {
         try {
             StringRedisTemplate stringRedisTemplate = stringRedisTemplate(redisConnectionFactory());
-            String pong = stringRedisTemplate.getConnectionFactory().getConnection().ping();
+            String pong = Objects.requireNonNull(stringRedisTemplate.getConnectionFactory()).getConnection().ping();
             System.out.println("Redis connection test successful, PING: " + pong);
         } catch (Exception e) {
-            e.printStackTrace();
             System.err.println("Redis connection failed: " + e.getMessage());
         }
     }

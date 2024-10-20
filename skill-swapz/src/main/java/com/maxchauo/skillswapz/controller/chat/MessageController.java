@@ -16,7 +16,7 @@ public class MessageController {
         this.messagingTemplate = messagingTemplate;
     }
 
-    @MessageMapping("/sendMessage")
+    @MessageMapping("/message")
     public void sendMessage(@Payload ChatMessage chatMessage) {
         String chatUuid = chatMessage.getChatUuid();
         System.out.println(chatMessage);
