@@ -64,7 +64,6 @@ public class S3Util {
             System.out.println("File deleted successfully from S3: " + key);
         } catch (Exception e) {
             System.err.println("Failed to delete file from S3: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }

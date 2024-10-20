@@ -5,8 +5,6 @@ import com.maxchauo.skillswapz.data.form.post.CommentForm;
 import com.maxchauo.skillswapz.data.form.post.PostBookmarkForm;
 import com.maxchauo.skillswapz.data.form.post.PostForm;
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
-import com.maxchauo.skillswapz.repository.post.LikeRepository;
-import com.maxchauo.skillswapz.repository.post.PostRepository;
 import com.maxchauo.skillswapz.service.post.PostService;
 
 import lombok.extern.log4j.Log4j2;
@@ -26,18 +24,11 @@ import java.util.Map;
 @RequestMapping("api/1.0/post")
 public class PostController {
     private final PostService service;
-    private final LikeRepository likeRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    private final PostRepository postRepo;
 
-    public PostController(
-            PostService service,
-            LikeRepository likeRepository,
-            SimpMessagingTemplate messagingTemplate, PostRepository postRepo) {
+    public PostController(PostService service, SimpMessagingTemplate messagingTemplate) {
         this.service = service;
-        this.likeRepository = likeRepository;
         this.messagingTemplate = messagingTemplate;
-        this.postRepo = postRepo;
     }
 
 
@@ -135,7 +126,7 @@ public class PostController {
     public ResponseEntity<Map<String, Object>> toggleLike(@RequestBody PostLikeForm likeForm) {
         try {
             boolean isLiked = service.toggleLike(likeForm);
-            int likeCount = likeRepository.getLikeCount(likeForm.getPostId());
+            int likeCount = service.getLikeCountByPostId(likeForm.getPostId());
             Map<String, Object> message;
             if (isLiked) {
                 message =
@@ -186,7 +177,6 @@ public class PostController {
             log.info("Returning {} posts", posts.size());
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Error fetching posts", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error fetching posts: " + e.getMessage());
@@ -266,7 +256,7 @@ public class PostController {
     @GetMapping("/tags/popular")
     public ResponseEntity<List<Map<String, Object>>> getPopularTags() {
         try {
-            List<Map<String, Object>> popularTags = postRepo.getPopularTags();
+            List<Map<String, Object>> popularTags = service.getPopularTags();
             return ResponseEntity.ok(popularTags);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

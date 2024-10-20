@@ -176,11 +176,9 @@ public class PostRepository {
             }
         } catch (DataAccessException e) {
             System.err.println("Error occurred while deleting post with id " + postId + " and user_id " + userId);
-            e.printStackTrace();
             return false;
         } catch (Exception e) {
             System.err.println("Unexpected error occurred while deleting post with id " + postId + " and user_id " + userId);
-            e.printStackTrace();
             return false;
         }
     }
@@ -238,7 +236,7 @@ public class PostRepository {
         try{
             return template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Error occurred while finding posts before createdAt: {} with limit: {}. Error: {}", createdAt, limit, e.getMessage(), e);
         }
         return null;
     }
