@@ -32,8 +32,13 @@ SkillSwapz is a platform designed to help you find learning partners or exchange
 ## Demo
 [![](https://img.youtube.com/vi/UO7GLO4puak/maxresdefault.jpg)](https://youtu.be/UO7GLO4puak)
 
-## Contact me
+## Demo Accounts
+| Name      | Email               | Password |
+|-----------|---------------------|----------|
+| 周杰倫   | jc@gmail.com         | pwd123   |
+| 林志玲   | lcl@gmail.com        | pwd123   |
 
+## Contact me
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2.svg?style=for-the-badge&logo=LinkedIn&logoColor=white)](https://www.linkedin.com/in/%E5%A4%A7%E6%81%95-%E9%82%B1-058348283/)
 [![Gmail](https://img.shields.io/badge/Gmail-EA4335.svg?style=for-the-badge&logo=Gmail&logoColor=white)](mailto:maxchauo0628@gmail.com)
 
