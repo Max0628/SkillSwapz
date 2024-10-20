@@ -2,9 +2,9 @@ package com.maxchauo.skillswapz.repository.auth;
 
 import com.maxchauo.skillswapz.data.form.auth.UserDto;
 import com.maxchauo.skillswapz.middleware.JwtTokenUtil;
-import com.maxchauo.skillswapz.rowmapper.UserRowMapper;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.userdetails.User;
@@ -30,11 +30,12 @@ public class AuthRepository {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("email", email);
         try {
-            return template.queryForObject(sql, params, new UserRowMapper());
+            return template.queryForObject(sql, params, new BeanPropertyRowMapper<>(UserDto.class));
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
+
 
     public void saveUser(UserDto user) {
         String sql = "INSERT INTO `user` (username,email,password,avatar_url,job_title,bio)" +

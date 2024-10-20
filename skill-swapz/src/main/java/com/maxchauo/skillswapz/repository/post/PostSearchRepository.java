@@ -39,7 +39,7 @@ public class PostSearchRepository {
                 "ORDER BY CASE WHEN :sort = 'likes' THEN like_count ELSE created_at END DESC " +
                 "LIMIT :size OFFSET :offset";
 
-        int offset = page * size;  // 计算偏移量，用于跳过前几页的数据
+        int offset = page * size;
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("keyword", keyword)
                 .addValue("sort", sortType)
@@ -48,7 +48,6 @@ public class PostSearchRepository {
 
         List<PostForm> posts = template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
 
-        // 为每个帖子获取对应的评论
         for (PostForm post : posts) {
             List<CommentForm> comments = commentRepository.getCommentsForPost(post.getId());
             post.setComments(comments);
@@ -89,15 +88,12 @@ public class PostSearchRepository {
         List<PostForm> posts = template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
 
         for (PostForm post : posts) {
-            // 獲取該文章的按讚數
             int likeCount = getLikeCountByPostId(post.getId());
             post.setLikeCount(likeCount);
 
-            // 獲取該文章的留言數
             int commentCount = getCommentCountByPostId(post.getId());
             post.setCommentCount(commentCount);
 
-            // 獲取並設置每篇文章的留言
             List<CommentForm> comments = commentRepository.getCommentsForPost(post.getId());
             post.setComments(comments);
         }
@@ -128,7 +124,4 @@ public class PostSearchRepository {
         params.addValue("postId", postId);
         return template.queryForObject(sql, params, Integer.class);
     }
-
-
-
 }

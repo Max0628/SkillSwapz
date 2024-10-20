@@ -2,6 +2,7 @@ package com.maxchauo.skillswapz.repository.post;
 
 import com.maxchauo.skillswapz.data.dto.post.CategoryDto;
 import com.maxchauo.skillswapz.rowmapper.CategoryResultSetExtractor;
+
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;

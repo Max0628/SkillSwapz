@@ -25,7 +25,6 @@ public class CommentRepository {
     }
 
     public CommentForm insertComment(CommentForm commentForm) {
-        // 插入評論
         String sql =
                 "INSERT INTO `comment` (post_id, user_id, content) VALUES (:postId, :userId, :content)";
         MapSqlParameterSource params = new MapSqlParameterSource();

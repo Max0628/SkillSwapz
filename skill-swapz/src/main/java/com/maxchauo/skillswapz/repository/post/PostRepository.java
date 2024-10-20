@@ -1,7 +1,9 @@
 package com.maxchauo.skillswapz.repository.post;
 
 import com.maxchauo.skillswapz.data.form.post.PostForm;
+
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -15,7 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+
 @Log4j2
 @Repository
 public class PostRepository {

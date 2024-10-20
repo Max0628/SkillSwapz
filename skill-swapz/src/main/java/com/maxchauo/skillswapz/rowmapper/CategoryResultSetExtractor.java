@@ -2,6 +2,7 @@ package com.maxchauo.skillswapz.rowmapper;
 
 import com.maxchauo.skillswapz.data.dto.post.CategoryDto;
 import com.maxchauo.skillswapz.data.dto.post.TagDto;
+
 import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.ResultSet;
