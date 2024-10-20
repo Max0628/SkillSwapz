@@ -10,9 +10,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -35,7 +35,7 @@ public class CommentRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         template.update(sql, params, keyHolder, new String[] {"id"});
 
-        Integer commentId = keyHolder.getKey().intValue();
+        Integer commentId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         commentForm.setId(commentId);
 
         String fetchSql = "SELECT created_at FROM `comment` WHERE id = :commentId";

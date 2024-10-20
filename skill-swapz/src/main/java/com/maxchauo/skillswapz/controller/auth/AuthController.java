@@ -6,8 +6,6 @@ import com.maxchauo.skillswapz.service.user.UserService;
 
 import io.jsonwebtoken.Claims;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -59,7 +57,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<?> logout() {
 
         ResponseCookie clearJwtCookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)

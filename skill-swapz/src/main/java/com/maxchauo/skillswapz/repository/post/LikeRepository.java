@@ -2,12 +2,12 @@ package com.maxchauo.skillswapz.repository.post;
 
 import com.maxchauo.skillswapz.data.form.post.PostLikeForm;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @Repository
@@ -52,9 +52,10 @@ public class LikeRepository {
         String sql = "SELECT COUNT(*) FROM `post_like` WHERE post_id = :postId";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("postId", postId);
-
-        return template.queryForObject(sql, params, Integer.class);
+        Integer count = template.queryForObject(sql, params, Integer.class);
+        return Optional.ofNullable(count).orElse(0);
     }
+
 
 
     public List<Integer> findLikedPostIdsByUserId(Integer userId) {

@@ -4,7 +4,6 @@ package com.maxchauo.skillswapz.repository.post;
 import com.maxchauo.skillswapz.data.form.post.CommentForm;
 import com.maxchauo.skillswapz.data.form.post.PostForm;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;

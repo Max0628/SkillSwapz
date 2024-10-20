@@ -53,7 +53,7 @@ public class UserService {
             return userRepo.findById(userId);
         }
 
-    public UserDto updateUserProfile(UserDto userDto) throws IOException {
+    public UserDto updateUserProfile(UserDto userDto) {
         UserDto user = userRepo.findById(userDto.getId());
 
         if (userDto.getUsername() != null) {

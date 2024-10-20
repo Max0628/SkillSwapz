@@ -44,10 +44,9 @@ public class PostRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         template.update(sql, params, keyHolder, new String[] { "id" });
 
-        Integer postId = keyHolder.getKey().intValue();
+        Integer postId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         postForm.setPostId(postId);
         postForm.setId(postId);
-        // 查詢並設置 createdAt
         String fetchSql = "SELECT created_at FROM post WHERE id = :postId";
         MapSqlParameterSource fetchParams = new MapSqlParameterSource().addValue("postId", postId);
         LocalDateTime createdAt = template.queryForObject(fetchSql, fetchParams, LocalDateTime.class);
@@ -74,10 +73,9 @@ public class PostRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         template.update(sql, params, keyHolder, new String[] { "id" });
 
-        Integer postId = keyHolder.getKey().intValue();
+        Integer postId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         postForm.setPostId(postId);
         postForm.setId(postId);
-        // 查詢並設置 createdAt
         String fetchSql = "SELECT created_at FROM post WHERE id = :postId";
         MapSqlParameterSource fetchParams = new MapSqlParameterSource().addValue("postId", postId);
         LocalDateTime createdAt = template.queryForObject(fetchSql, fetchParams, LocalDateTime.class);
@@ -103,10 +101,9 @@ public class PostRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         template.update(sql, params, keyHolder, new String[] { "id" });
 
-        Integer postId = keyHolder.getKey().intValue();
+        Integer postId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         postForm.setPostId(postId);
         postForm.setId(postId);
-        // 查詢並設置 createdAt
         String fetchSql = "SELECT created_at FROM post WHERE id = :postId";
         MapSqlParameterSource fetchParams = new MapSqlParameterSource().addValue("postId", postId);
         LocalDateTime createdAt = template.queryForObject(fetchSql, fetchParams, LocalDateTime.class);
@@ -133,7 +130,7 @@ public class PostRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         template.update(sql, params, keyHolder, new String[] { "id" });
 
-        Integer postId = keyHolder.getKey().intValue();
+        Integer postId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         postForm.setPostId(postId);
         postForm.setId(postId);
         // 查詢並設置 createdAt
@@ -186,12 +183,12 @@ public class PostRepository {
     }
 
 
-    public List<PostForm> findLatestPosts(int limit) {
-        String sql = "SELECT * FROM post ORDER BY created_at DESC LIMIT :limit";
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("limit", limit);
-        return template.query(sql, params, new PostRowMapper());
-    }
+//    public List<PostForm> findLatestPosts(int limit) {
+//        String sql = "SELECT * FROM post ORDER BY created_at DESC LIMIT :limit";
+//        MapSqlParameterSource params = new MapSqlParameterSource();
+//        params.addValue("limit", limit);
+//        return template.query(sql, params, new PostRowMapper());
+//    }
 
     public List<PostForm> getPostsByIds(List<Integer> postIds) {
         if (postIds.isEmpty()) return List.of();

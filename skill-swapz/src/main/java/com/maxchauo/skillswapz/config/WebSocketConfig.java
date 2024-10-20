@@ -22,8 +22,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
                     .setAllowedOrigins(
                             "https://skillswapz.com",
                             "https://www.skillswapz.com",
-                            "http://skillswapz.com",
-                            "http://www.skillswapz.com",
                             "http://localhost:8080"
                     )
                     .addInterceptors(new UserHandshakeInterceptor())

@@ -1,7 +1,7 @@
 package com.maxchauo.skillswapz.config;
 
-import java.net.URI;
-import java.util.Map;
+import io.micrometer.common.lang.NonNull;
+
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.util.MultiValueMap;
@@ -9,15 +9,17 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.Map;
+
 public class UserHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
-            Map<String, Object> attributes) throws Exception {
-
+            @NonNull ServerHttpRequest request,
+            @NonNull ServerHttpResponse response,
+            @NonNull WebSocketHandler wsHandler,
+            @NonNull Map<String, Object> attributes) {
 
         String userId = getUserIdFromRequest(request);
         if (userId != null && !userId.isEmpty()) {
@@ -30,11 +32,10 @@ public class UserHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public void afterHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
-            Exception exception) {
-    }
+            @NonNull ServerHttpRequest request,
+            @NonNull ServerHttpResponse response,
+            @NonNull WebSocketHandler wsHandler,
+            Exception exception) {}
 
     private String getUserIdFromRequest(ServerHttpRequest request) {
         URI uri = request.getURI();

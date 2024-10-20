@@ -238,7 +238,6 @@ public class PostController {
     //update
     @PatchMapping("/{postId}")
     public ResponseEntity<?> updatePost(@PathVariable int postId, @RequestBody PostForm postForm) {
-        System.out.println("postform: "+postForm);
         try {
             service.updatePost(postId, postForm);
             Map<String, Object> message = Map.of(

@@ -2,10 +2,13 @@ package com.maxchauo.skillswapz.middleware;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxchauo.skillswapz.repository.auth.AuthRepository;
+
+import io.micrometer.common.lang.NonNull;
+
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -36,8 +39,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain chain)
+            throws IOException {
         try {
             final String token = retrieveToken(request);
             if (token == null || !jwtTokenUtil.validate(token)) {
@@ -52,7 +58,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             authAfterSuccessLogin.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authAfterSuccessLogin);
-            logger.debug("Token verify OK: " + userDetails.getUsername());
+            logger.debug("Token verify OK: {}", userDetails.getUsername());
 
             chain.doFilter(request, response);
         } catch (Exception e) {

@@ -115,16 +115,20 @@ public class ChatRepository {
         String sql = "SELECT COUNT(*) FROM chat_messages WHERE receiver_id = :userId AND is_read = 0";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);
-        return template.queryForObject(sql, params, Integer.class);
+        Integer count = template.queryForObject(sql, params, Integer.class);
+        return Optional.ofNullable(count).orElse(0);
     }
+
 
     public int countUnreadMessagesForChat(String chatUuid, int userId) {
         String sql = "SELECT COUNT(*) FROM chat_messages WHERE chat_uuid = :chatUuid AND receiver_id = :userId AND is_read = 0";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("chatUuid", chatUuid)
                 .addValue("userId", userId);
-        return template.queryForObject(sql, params, Integer.class);
+        Integer count = template.queryForObject(sql, params, Integer.class);
+        return Optional.ofNullable(count).orElse(0);
     }
+
 
     public void markMessagesAsRead(String chatUuid, int userId) {
         String sql = "UPDATE chat_messages SET is_read = 1 WHERE chat_uuid = :chatUuid AND receiver_id = :userId AND is_read = 0";

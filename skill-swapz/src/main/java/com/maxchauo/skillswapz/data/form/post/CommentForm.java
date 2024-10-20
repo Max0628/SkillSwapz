@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
 @Data
 public class CommentForm {
     private Integer id;
-//    @JsonProperty("post_id")
     private Integer postId;
-//    @JsonProperty("user_id")
     private Integer userId;
     private String content;
     private LocalDateTime createdAt;

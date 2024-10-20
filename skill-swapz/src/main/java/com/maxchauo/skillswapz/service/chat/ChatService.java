@@ -1,19 +1,20 @@
 package com.maxchauo.skillswapz.service.chat;
 
 import com.maxchauo.skillswapz.repository.chat.ChatRepository;
+
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 @Log4j2
 @Service
 public class ChatService {
     private final ChatRepository chatRepo;
-
-    @Autowired
+    
     public ChatService(ChatRepository chatDao) {
         this.chatRepo = chatDao;
     }

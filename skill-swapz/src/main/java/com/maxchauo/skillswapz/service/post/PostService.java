@@ -159,7 +159,7 @@ public class PostService {
     }
 
     public PostForm getPostDetail(int postId) throws Exception {
-        PostForm post = null;
+        PostForm post ;
         try {
             post = getPostFromRedis(postId);
             if (post == null) {
@@ -234,7 +234,7 @@ public class PostService {
                 if (zCard != null && zCard < 30) {
                     Set<Object> lastPostIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, -1, -1);
                     if (lastPostIds != null && !lastPostIds.isEmpty()) {
-                        Integer lastPostId = Integer.parseInt(lastPostIds.iterator().next().toString());
+                        int lastPostId = Integer.parseInt(lastPostIds.iterator().next().toString());
                         PostForm lastPost = getPostFromRedis(lastPostId);
                         if (lastPost != null) {
                             List<PostForm> additionalPosts = postRepo.findPostsBefore(lastPost.getCreatedAt(), 30 - zCard.intValue());
@@ -279,7 +279,7 @@ public class PostService {
 
             Set<Object> lastPostIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, -1, -1);
             if (lastPostIds != null && !lastPostIds.isEmpty()) {
-                Integer lastPostId = Integer.parseInt(lastPostIds.iterator().next().toString());
+                int lastPostId = Integer.parseInt(lastPostIds.iterator().next().toString());
                 PostForm lastPost = getPostFromRedis(lastPostId);
                 if (lastPost != null) {
                     List<PostForm> additionalPosts = postRepo.findPostsBefore(lastPost.getCreatedAt(), remaining);
@@ -291,7 +291,7 @@ public class PostService {
                         redisTemplate.opsForZSet().removeRange(REDIS_KEY, 0, zCard - 31);
                         log.info("Trimmed Redis to keep only the latest 30 posts");
                     }
-                    validPostIds.addAll(additionalPosts.stream().map(PostForm::getId).collect(Collectors.toList()));
+                    validPostIds.addAll(additionalPosts.stream().map(PostForm::getId).toList());
                 }
             }
         }
