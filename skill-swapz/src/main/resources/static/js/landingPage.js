@@ -85,6 +85,17 @@ document.addEventListener('DOMContentLoaded', function() {
         await register(username, email, password);
     });
 
+    document.getElementById('demo-login-button1').addEventListener('click', async function() {
+        const demoEmail = 'jc@gmail.com';
+        const demoPassword = 'pwd123'; // 請替換為正確的密碼
+        await login(demoEmail, demoPassword);
+    });
+
+    document.getElementById('demo-login-button2').addEventListener('click', async function() {
+        const demoEmail = 'lcl@gmail.com';
+        const demoPassword = 'pwd123'; // 請替換為正確的密碼
+        await login(demoEmail, demoPassword);
+    });
     function showModal() {
         modalOverlay.style.display = 'block';
         formsWrapper.style.display = 'block';

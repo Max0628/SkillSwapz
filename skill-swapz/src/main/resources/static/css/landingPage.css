@@ -321,3 +321,10 @@ footer {
 .modal-container a:hover {
     color: #000111;
 }
+/* 增加表單按鈕之間的間距 */
+#register-form button {
+    margin: 10px 0; /* 上下間距10px，左右間距0 */
+    padding: 10px; /* 調整內部空白 */
+    width: 100%; /* 調整按鈕的寬度以便更美觀 */
+    box-sizing: border-box; /* 讓寬度包含內邊距和邊框 */
+}
