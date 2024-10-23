@@ -73,11 +73,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 打開聊天並顯示正確的用戶名
         await openChat(receiverIdFromUrl, chatUuidFromUrl, decodeURIComponent(usernameFromUrl));
     } else {
-        // 如果 URL 中沒有指定聊天，加載第一個聊天（如果有的話）
-        const firstChat = await loadFirstChat();
-        if (firstChat) {
-            await openChat(firstChat.otherUserId, firstChat.chatUuid, firstChat.username);
-        }
+        // // 如果 URL 中沒有指定聊天，加載第一個聊天（如果有的話）
+        // const firstChat = await loadFirstChat();
+        // if (firstChat) {
+        //     await openChat(firstChat.otherUserId, firstChat.chatUuid, firstChat.username);
+        // }
     }
 
     async function loadFirstChat() {
