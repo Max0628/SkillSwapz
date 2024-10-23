@@ -48,9 +48,12 @@ public class PostSearchRepository {
         List<PostForm> posts = template.query(sql, params, new BeanPropertyRowMapper<>(PostForm.class));
 
         for (PostForm post : posts) {
+            int commentCount = getCommentCountByPostId(post.getId());
+            post.setCommentCount(commentCount);
             List<CommentForm> comments = commentRepository.getCommentsForPost(post.getId());
             post.setComments(comments);
         }
+
 
         return posts;
     }

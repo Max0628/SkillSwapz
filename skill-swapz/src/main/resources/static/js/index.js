@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const urlParams = new URLSearchParams(window.location.search);
         const searchKeyword = urlParams.get('search') || null;
-        currentSearchKeyword = searchKeyword; // 新增這行
+        currentSearchKeyword = searchKeyword;
         const postTitle = document.querySelector('#posts h2');
         postTitle.textContent = searchKeyword ? decodeURIComponent(searchKeyword) : '所有文章';
 
@@ -340,7 +340,6 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
     } catch (error) {
         console.error('Error in fetchAndDisplayPosts:', error);
-        alert('獲取貼文失敗，請稍後再試。');
         return { likedPosts: [], bookmarkedPosts: [], hasMore: false };
     }
 }

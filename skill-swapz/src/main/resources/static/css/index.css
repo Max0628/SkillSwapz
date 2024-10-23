@@ -493,10 +493,10 @@ textarea::placeholder {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     transition: width 0.5s ease;
-    min-width: 150px; /* 保持最小寬度 */
-    max-width: 250px; /* 保持最大寬度 */
-    height: 400px; /* 設置最大高度，避免過長 */
-    overflow-y: auto; /* 當內容超出時出現捲動條 */
+    min-width: 150px;
+    max-width: 250px;
+    height: 450px;
+    overflow-y: auto;
 }
 
 
