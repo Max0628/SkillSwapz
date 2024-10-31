@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     currentUserId = await getUserId();
     if (currentUserId) {
-        console.log('Login User Id:', currentUserId);
+        ('Login User Id:', currentUserId);
 
         stompClient = await connectWebSocket(currentUserId);
         await setupWebSocketSubscriptions(stompClient, currentUserId);
@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setupSearchAndFilter(currentUserId);
 
-        // Fetch and display popular tags
-        await fetchPopularTags();
+                await fetchPopularTags();
 
         window.addEventListener('tagSearch', (event) => {
             const searchKeyword = event.detail.keyword;
@@ -30,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     } else {
         window.location.href = "landingPage.html";
-        console.log('User not logged in');
+        ('User not logged in');
         return null;
     }
 });
@@ -40,7 +39,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
     await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
     subscribeToPostEvents(stompClient, (postEvent) => {
-        console.log("Received postEvent: ", postEvent);
+        ("Received postEvent: ", postEvent);
 
         if (!postEvent || !postEvent.content) {
             console.warn("Invalid postEvent or missing content");
@@ -69,7 +68,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 removePostFromUI(postEvent.content.postId);
                 break;
             default:
-                console.log('Received unknown post event type:', postEvent.type);
+                ('Received unknown post event type:', postEvent.type);
         }
     }, userId);
 }
@@ -136,9 +135,7 @@ function setupPostInteractions(userId, postsList) {
                     window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
                 } catch (error) {
                     return null;
-                    // console.error('Error starting chat:', error);
-                    // alert('無法啟動聊天，請稍後再試。');
-                }
+                                                        }
             }
         } else if (target.classList.contains('bookmark-btn')) {
             const postId = target.id.split('-')[2];
@@ -286,16 +283,13 @@ async function fetchPopularTags() {
         const response = await fetch('/api/1.0/post/tags/popular');
         const popularTags = await response.json();
         const popularTagsList = document.querySelector('.popular-tags');
-        popularTagsList.innerHTML = ''; // 清空現有的標籤
-
+        popularTagsList.innerHTML = '';
         popularTags.forEach(tagObj => {
             const li = document.createElement('li');
-            li.textContent = `#${tagObj.tag}`;  // 加上 # 符號
-            popularTagsList.appendChild(li);
+            li.textContent = `#${tagObj.tag}`;              popularTagsList.appendChild(li);
         });
 
-        // 添加點擊事件監聽器
-        document.querySelectorAll('.popular-tags li').forEach(tag => {
+                document.querySelectorAll('.popular-tags li').forEach(tag => {
             tag.addEventListener('click', (event) => {
                 const searchKeyword = event.target.innerText.replace('#', '').trim();
                 filterBookmarkedPosts(searchKeyword);

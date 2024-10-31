@@ -19,7 +19,7 @@ let currentUserId;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const userId = getQueryParam('userId');  // 獲取 URL 中的 userId
+    const userId = getQueryParam('userId');
     if (!userId) {
         console.error('No userId found in URL');
         return;
@@ -29,18 +29,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.insertBefore(navbar, document.body.firstChild);
     addNavbarStyles();
 
-    // 設置 WebSocket 並獲取登入使用者 id
+
     currentUserId = await getUserId();
     if (currentUserId) {
-        console.log('Login User Id:', currentUserId);
+        ('Login User Id:', currentUserId);
 
         stompClient = await connectWebSocket(currentUserId);
         await setupWebSocketSubscriptions(stompClient, currentUserId);
 
-        // 根據 URL 中的 userId 加載並顯示使用者資料
+
         await fetchAndDisplayUserProfile(userId);
 
-        // 根據 URL 中的 userId 加載並顯示該使用者發文
+
         await fetchAndDisplayUserPosts(userId);
 
     } else {
@@ -54,12 +54,12 @@ function getQueryParam(param) {
 }
 
 
-// 移出到全局作用範圍
+
 async function setupWebSocketSubscriptions(stompClient, userId) {
     stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
     subscribeToPostEvents(stompClient, (postEvent) => {
-        console.log("Received postEvent: ", postEvent);
+        ("Received postEvent: ", postEvent);
 
         if (!postEvent || !postEvent.content) {
             console.warn("Invalid postEvent or missing content");
@@ -87,7 +87,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 handleDeleteComment(postEvent.content);
                 break;
             default:
-                console.log('Received unknown post event type:', postEvent.type);
+                ('Received unknown post event type:', postEvent.type);
         }
     }, userId);
 }
@@ -129,9 +129,9 @@ function setupPostInteractions(postsList, userId) {
             }
         } else if (target.classList.contains('tag-btn')) {
             event.preventDefault();
-            let tag = target.textContent.trim();  // 去除多餘的空格
-            tag = tag.replace(/^#/, '');  // 移除開頭的 #
-            console.log("Processed tag: " + tag);
+            let tag = target.textContent.trim();
+            tag = tag.replace(/^#/, '');
+            ("Processed tag: " + tag);
             navigateToSearchPage(tag);
         } else if (target.classList.contains('delete-btn')) {
             const postId = target.id.split('-')[2];
@@ -146,12 +146,12 @@ function setupPostInteractions(postsList, userId) {
     });
 }
 function navigateToSearchPage(tag) {
-    console.log("Navigating to search with tag: " + tag);
+    ("Navigating to search with tag: " + tag);
     if (!tag) {
         console.error('Invalid tag provided to navigateToSearchPage');
         return;
     }
-    const cleanTag = tag.trim();  // 再次確保標籤已被處理乾淨
+    const cleanTag = tag.trim();
     const searchKeyword = encodeURIComponent(cleanTag);
     window.location.href = `/index.html?search=${searchKeyword}`;
 }
@@ -264,27 +264,27 @@ async function fetchAndDisplayUserProfile(profileUserId) {
         }
 
         const userData = await response.json();
-        console.log('User Profile Data:', userData);
+        ('User Profile Data:', userData);
 
-        // 渲染使用者的個人資料到頁面
+
         document.querySelector('.user-name').textContent = userData.username;
         document.querySelector('.user-job-title').textContent = userData.jobTitle;
 
-        // 使用 formatTimeAgo 函數來計算加入時間
+
         const timeAgo = formatTimeAgo(userData.createdAt);
         document.querySelector('.user-create-time').textContent = `${timeAgo}`;
 
         document.querySelector('.user-intro p').textContent = userData.bio;
 
-        // 預設佔位圖片
+
         let avatarUrl = userData.avatarUrl || 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
 
-        // 使用 <img> 顯示大頭貼
+
         const avatarElement = document.querySelector('.user-avatar');
         avatarElement.src = avatarUrl;
         avatarElement.alt = `${userData.username}'s avatar`;
 
-        // 如果是當前登入的使用者，顯示編輯按鈕或其他功能
+
         if (currentUserId === profileUserId) {
             document.querySelector('.edit-profile-btn').style.display = 'block';
         }
@@ -304,27 +304,27 @@ export function formatTimeAgo(dateString) {
     const date = new Date(dateString);
     const now = new Date();
 
-    // 計算時間差（秒）
+
     const diffInSeconds = Math.floor((now - date) / 1000);
 
-    console.log(`Now: ${now}, Date: ${date}, Diff in seconds: ${diffInSeconds}`);
+    (`Now: ${now}, Date: ${date}, Diff in seconds: ${diffInSeconds}`);
 
-    // 如果時間差小於 60 秒，顯示「剛剛加入」
+
     if (diffInSeconds < 60) {
         return '剛剛加入';
-    } else if (diffInSeconds < 3600) { // 小於 1 小時，顯示多少分鐘前
+    } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
         return `${minutes} 分鐘前加入`;
-    } else if (diffInSeconds < 86400) { // 小於 24 小時，顯示多少小時前
+    } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
         return `${hours} 小時前加入`;
-    } else if (diffInSeconds < 2592000) { // 小於 30 天，顯示多少天前
+    } else if (diffInSeconds < 2592000) {
         const days = Math.floor(diffInSeconds / 86400);
         return `${days} 天前加入`;
-    } else if (diffInSeconds < 31536000) { // 小於一年，顯示多少個月前
+    } else if (diffInSeconds < 31536000) {
         const months = Math.floor(diffInSeconds / 2592000);
         return `${months} 個月前加入`;
-    } else { // 超過一年，顯示多少年前
+    } else {
         const years = Math.floor(diffInSeconds / 31536000);
         return `${years} 年前加入`;
     }

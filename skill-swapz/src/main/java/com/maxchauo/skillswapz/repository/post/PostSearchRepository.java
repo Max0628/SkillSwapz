@@ -105,7 +105,7 @@ public class PostSearchRepository {
 
 
     public List<CommentForm> findCommentsByPostId(int postId) {
-        String sql = "SELECT * FROM comment WHERE post_id = :postId ORDER BY created_at ASC"; // 由舊到新
+        String sql = "SELECT * FROM comment WHERE post_id = :postId ORDER BY created_at ASC";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("postId", postId);
 

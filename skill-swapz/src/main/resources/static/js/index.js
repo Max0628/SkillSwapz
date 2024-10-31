@@ -1,4 +1,3 @@
-// index.js
 import {
     connectWebSocket,
     createCommentElement,
@@ -29,11 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userId = await getUserId();
         if (!userId) {
             window.location.href = "landingPage.html";
-            console.log('User not logged in');
+            ('User not logged in');
             return;
         }
 
-        console.log('Login User Id:', userId);
+        ('Login User Id:', userId);
 
         const urlParams = new URLSearchParams(window.location.search);
         const searchKeyword = urlParams.get('search') || null;
@@ -52,15 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fetchPopularTags();
 
 
-        // 設置滾動監聽器（只需要設置一次）
-        setupScrollListener(userId);
+                setupScrollListener(userId);
 
-        // 加載初始的貼文
-        await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
+                await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 
-        // const { likedPosts, bookmarkedPosts } = await fetchAndDisplayPosts(userId, searchKeyword);
-        // setupScrollListener(userId, searchKeyword);
-        setupSearchAndFilter(userId);
+                        setupSearchAndFilter(userId);
 
 
         window.addEventListener('tagSearch', (event) => {
@@ -72,8 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (event.data && event.data.searchKeyword) {
                 const searchKeyword = event.data.searchKeyword;
                 (async () => {
-                    const userId = await getUserId(); // 使用 await
-                    updateURLAndFetchPosts(userId, searchKeyword);
+                    const userId = await getUserId();                     updateURLAndFetchPosts(userId, searchKeyword);
                 })().catch(error => console.error('Error handling message event:', error));
             }
         });
@@ -103,32 +97,28 @@ function setupPostListeners(postsList, userId) {
                 }
             }
         }
-        // 新增編輯按鈕處理
-        if (event.target.classList.contains('edit-btn')) {
+                if (event.target.classList.contains('edit-btn')) {
             event.preventDefault();
             try {
                 const postId = event.target.id.split('-')[2];
                 const post = await fetchPostById(postId);
                 if (post && post.userId === userId) {
-                    // 顯示編輯表單
-                    showEditForm(post);
+                                        showEditForm(post);
                 } else {
-                    // alert('您無權編輯此文章');
-                }
+                                    }
             } catch (error) {
                 console.error('Error fetching post or showing edit form:', error);
-                // alert('無法編輯此文章，請稍後再試。');
-            }
+                            }
         }
     });
 }
 
 async function setupWebSocketSubscriptions(stompClient, userId) {
-    console.log("setupWebSocketSubscriptions is called with userId:", userId);
+    ("setupWebSocketSubscriptions is called with userId:", userId);
     await stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
     subscribeToPostEvents(stompClient, (postEvent) => {
-        console.log("Received postEvent: ", postEvent);
+        ("Received postEvent: ", postEvent);
 
         if (!postEvent || !postEvent.content) {
             console.warn("Invalid postEvent or missing content");
@@ -139,12 +129,11 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
         switch (postEvent.type) {
             case 'CREATE_POST': {
                 const newPost = postEvent.content;
-                console.log("EXECUTING CREATE_POST");
-                console.log("New post:", newPost.postId);
+                ("EXECUTING CREATE_POST");
+                ("New post:", newPost.postId);
                 newPost.likeCount = 0;
 
-                // 調整 WebSocket 接收到的時間
-                const adjustedDate = new Date(newPost.createdAt);
+                                const adjustedDate = new Date(newPost.createdAt);
                 adjustedDate.setHours(adjustedDate.getHours() + 8);
                 newPost.createdAt = adjustedDate.toISOString();
 
@@ -154,7 +143,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
 
             case 'DELETE_POST': {
                 const postId = postEvent.content.postId;
-                console.log("Deleting post with ID:", postId);
+                ("Deleting post with ID:", postId);
                 removePostFromUI(postId);
                 break;
             }
@@ -163,17 +152,17 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
             case 'UNLIKE_POST': {
                 const likedPostId = postEvent.content.postId;
                 const likeCount = postEvent.content.likeCount;
-                console.log("UNLIKE A POST");
+                ("UNLIKE A POST");
                 updateLikeCount(likedPostId, likeCount);
                 break;
             }
 
             case 'CREATE_COMMENT': {
-                console.log("CREATING COMMENT in setupWebSocketSubscriptions", postEvent.content);
+                ("CREATING COMMENT in setupWebSocketSubscriptions", postEvent.content);
                 const commentData = postEvent.content;
                 const commentSection = document.getElementById(`comment-section-${commentData.postId}`);
                 if (commentSection) {
-                    console.log("commentSection is true");
+                    ("commentSection is true");
                     createCommentElement(commentData, userId)
                         .then(newComment => {
                             commentSection.appendChild(newComment);
@@ -187,7 +176,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
             }
 
             case 'DELETE_COMMENT': {
-                console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", userId);
+                ("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", userId);
                 const {commentId, postId} = postEvent.content;
                 handleDeleteComment(commentId, undefined, postId);
                 break;
@@ -195,49 +184,41 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
 
             case 'UPDATE_POST': {
                 const updatedPost = postEvent.content;
-                console.log("Updating post with ID:", updatedPost.postId);
+                ("Updating post with ID:", updatedPost.postId);
 
-                // 找到對應的 DOM 元素
-                const postElement = document.getElementById(`post-${updatedPost.postId}`);
+                                const postElement = document.getElementById(`post-${updatedPost.postId}`);
                 if (postElement) {
-                    // 更新地點
-                    const locationElement = postElement.querySelector('.post-location');
+                                        const locationElement = postElement.querySelector('.post-location');
                     if (locationElement) {
                         locationElement.textContent = updatedPost.location || '未提供';
                     }
 
-                    // 更新擅長技能
-                    const skillOfferedElement = postElement.querySelector('.post-skill-offered');
+                                        const skillOfferedElement = postElement.querySelector('.post-skill-offered');
                     if (skillOfferedElement) {
                         skillOfferedElement.textContent = updatedPost.skillOffered || '';
                     }
 
-                    // 更新想學技能
-                    const skillWantedElement = postElement.querySelector('.post-skill-wanted');
+                                        const skillWantedElement = postElement.querySelector('.post-skill-wanted');
                     if (skillWantedElement) {
                         skillWantedElement.textContent = updatedPost.skillWanted || '';
                     }
 
-                    // 更新薪資
-                    const salaryElement = postElement.querySelector('.post-salary');
+                                        const salaryElement = postElement.querySelector('.post-salary');
                     if (salaryElement) {
                         salaryElement.textContent = updatedPost.salary || '';
                     }
 
-                    // **更新內容/進行方式**
-                    const contentElement = postElement.querySelector('.post-content');
+                                        const contentElement = postElement.querySelector('.post-content');
                     if (contentElement) {
                         contentElement.textContent = updatedPost.content || '';
                     }
 
-                    // **更新讀書會目的**
-                    const bookClubPurposeElement = postElement.querySelector('.post-bookClubPurpose');
+                                        const bookClubPurposeElement = postElement.querySelector('.post-bookClubPurpose');
                     if (bookClubPurposeElement) {
                         bookClubPurposeElement.textContent = updatedPost.bookClubPurpose || '';
                     }
 
-                    // **更新標籤（tags）**
-                    const tagsElement = postElement.querySelector('.post-tags');
+                                        const tagsElement = postElement.querySelector('.post-tags');
                     if (tagsElement) {
                         const updatedTags = updatedPost.tag ? updatedPost.tag.map(tag => `<button class="tag-btn label-tag tags">#${tag}</button>`).join(' ') : '';
                         tagsElement.innerHTML = updatedTags;
@@ -257,7 +238,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
             }
 
             default: {
-                console.log('Received unknown post event type:', postEvent.type);
+                ('Received unknown post event type:', postEvent.type);
             }
         }
     }, userId);
@@ -301,16 +282,16 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         if (searchKeyword) {
             apiUrl += `&keyword=${encodeURIComponent(searchKeyword)}`;
         }
-        console.log('Fetching posts from URL:', apiUrl);
+        ('Fetching posts from URL:', apiUrl);
 
         const [likedAndBookmarkedData, postResponse] = await Promise.all([
             fetchLikedAndBookmarkedPosts(userId),
             fetch(apiUrl, { credentials: 'include' })
         ]);
 
-        console.log('Liked and Bookmarked data:', likedAndBookmarkedData);
-        console.log('Post response status:', postResponse.status);
-        console.log('Post response headers:', Object.fromEntries(postResponse.headers.entries()));
+        ('Liked and Bookmarked data:', likedAndBookmarkedData);
+        ('Post response status:', postResponse.status);
+        ('Post response headers:', Object.fromEntries(postResponse.headers.entries()));
 
         if (!postResponse.ok) {
             console.error('Error response from server:', await postResponse.text());
@@ -318,25 +299,25 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
         }
 
         const posts = await postResponse.json();
-        console.log('Fetched posts:', posts);
+        ('Fetched posts:', posts);
 
         const { likedPosts, bookmarkedPosts } = likedAndBookmarkedData;
         const postsList = document.getElementById('posts-list');
 
         if (page === 0) {
             postsList.innerHTML = '';
-            console.log('Cleared existing posts');
+            ('Cleared existing posts');
         }
 
         if (posts.length === 0) {
-            console.log('No posts received from server');
+            ('No posts received from server');
             postsList.innerHTML += '<p>No posts found</p>';
         } else {
-            console.log('Rendering posts');
+            ('Rendering posts');
             await renderPosts(posts, userId, postsList, likedPosts, bookmarkedPosts);
         }
 
-        console.log('Finished processing posts');
+        ('Finished processing posts');
         return { likedPosts, bookmarkedPosts, hasMore: posts.length === size };
     } catch (error) {
         console.error('Error in fetchAndDisplayPosts:', error);
@@ -347,17 +328,14 @@ async function fetchAndDisplayPosts(userId, searchKeyword = null, page = 0, size
 function setupSearchAndFilter(userId) {
     const searchInput = document.querySelector('.search-input');
 
-    // 偵測使用者按下 Enter 鍵來觸發搜尋
-    searchInput.addEventListener('keydown', (event) => {
+        searchInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-            event.preventDefault(); // 防止預設的 Enter 行為 (例如表單提交)
-            const searchKeyword = event.target.value.trim();
+            event.preventDefault();             const searchKeyword = event.target.value.trim();
             updateURLAndFetchPosts(userId, searchKeyword);
         }
     });
 
-    // 讓熱門標籤點擊時也能觸發搜尋
-    document.querySelectorAll('.popular-tags li').forEach(tag => {
+        document.querySelectorAll('.popular-tags li').forEach(tag => {
         tag.addEventListener('click', (event) => {
             const searchKeyword = event.target.innerText.replace('#', '').trim();
             updateURLAndFetchPosts(userId, searchKeyword);
@@ -367,11 +345,7 @@ function setupSearchAndFilter(userId) {
 
 
 async function updateURLAndFetchPosts(userId, searchKeyword = null) {
-    currentSearchKeyword = searchKeyword;  // 更新全域的搜尋關鍵字
-    currentPage = 0;  // 重置頁碼
-    hasMorePosts = true;  // 重置是否有更多貼文的標誌
-    isLoading = false;  // 確保加載狀態正確
-    let newUrl = '/index.html';
+    currentSearchKeyword = searchKeyword;      currentPage = 0;      hasMorePosts = true;      isLoading = false;      let newUrl = '/index.html';
     if (searchKeyword) {
         newUrl += `?search=${encodeURIComponent(searchKeyword)}`;
     }
@@ -381,10 +355,8 @@ async function updateURLAndFetchPosts(userId, searchKeyword = null) {
     postTitle.textContent = searchKeyword ? decodeURIComponent(searchKeyword) : '所有文章';
 
     const postsList = document.getElementById('posts-list');
-    postsList.innerHTML = ''; // 清空現有的帖子
-
-    // 加載第一頁的搜尋結果
-    await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
+    postsList.innerHTML = '';
+        await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 }
 
 
@@ -397,7 +369,7 @@ export function removePostFromUI(postId) {
     const postElement = document.getElementById(`post-${postId}`);
     if (postElement) {
         postElement.remove();
-        console.log(`Post with ID ${postId} successfully removed from UI`);
+        (`Post with ID ${postId} successfully removed from UI`);
     } else {
         console.warn(`Post element with ID ${postId} not found in the DOM`);
     }
@@ -408,14 +380,12 @@ function setupScrollListener(userId) {
     window.addEventListener('scroll', async () => {
         const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-        // 如果滾動接近底部且不是正在加載，則加載下一頁資料
-        if (scrollTop + clientHeight >= scrollHeight - 50 && !isLoading && hasMorePosts) {
+                if (scrollTop + clientHeight >= scrollHeight - 50 && !isLoading && hasMorePosts) {
             isLoading = true;
             currentPage++;
 
             const { hasMore } = await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
-            hasMorePosts = hasMore;  // 如果返回的資料小於 size，表示沒有更多資料了
-            isLoading = false;
+            hasMorePosts = hasMore;              isLoading = false;
         }
     });
 }
@@ -427,16 +397,13 @@ export async function fetchPopularTags() {
         const response = await fetch('/api/1.0/post/tags/popular');
         const popularTags = await response.json();
         const popularTagsList = document.querySelector('.popular-tags');
-        popularTagsList.innerHTML = ''; // 清空現有的標籤
-
+        popularTagsList.innerHTML = '';
         popularTags.forEach(tagObj => {
             const li = document.createElement('li');
-            li.textContent = `#${tagObj.tag}`;  // 加上 # 符號
-            popularTagsList.appendChild(li);
+            li.textContent = `#${tagObj.tag}`;              popularTagsList.appendChild(li);
         });
 
-        // 添加點擊事件監聽器
-        document.querySelectorAll('.popular-tags li').forEach(tag => {
+                document.querySelectorAll('.popular-tags li').forEach(tag => {
             tag.addEventListener('click', (event) => {
                 const searchKeyword = event.target.innerText.replace('#', '').trim();
                 updateURLAndFetchPosts(currentUserId, searchKeyword);

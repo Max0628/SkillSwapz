@@ -111,8 +111,7 @@ public class PostController {
         } catch (Exception e) {
             log.error("Error fetching comments for postId: {}", postId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);  // 或者可以自定義一個錯誤訊息
-        }
+                    .body(null);          }
     }
 
 

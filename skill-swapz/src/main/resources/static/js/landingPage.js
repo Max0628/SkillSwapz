@@ -1,4 +1,3 @@
-/* JavaScript 部分 */
 document.addEventListener('DOMContentLoaded', function() {
     const features = document.querySelectorAll('.feature');
     const loginForm = document.getElementById('login-form');
@@ -22,8 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(feature);
     });
 
-    // 滾動效果
-    const scrollElements = document.querySelectorAll('.scroll-fade');
+        const scrollElements = document.querySelectorAll('.scroll-fade');
 
     const elementInView = (el, dividend = 1) => {
         const elementTop = el.getBoundingClientRect().top;
@@ -87,13 +85,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('demo-login-button1').addEventListener('click', async function() {
         const demoEmail = 'jc@gmail.com';
-        const demoPassword = 'pwd123'; // 請替換為正確的密碼
+        const demoPassword = 'pwd123';
         await login(demoEmail, demoPassword);
     });
 
     document.getElementById('demo-login-button2').addEventListener('click', async function() {
         const demoEmail = 'lcl@gmail.com';
-        const demoPassword = 'pwd123'; // 請替換為正確的密碼
+        const demoPassword = 'pwd123';
         await login(demoEmail, demoPassword);
     });
     function showModal() {
@@ -106,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formsWrapper.style.display = 'none';
     }
 
-    modalOverlay.addEventListener('click', hideModal); // 點擊遮罩隱藏 Modal
+    modalOverlay.addEventListener('click', hideModal);
 
     function toggleForms(hideForm, showForm) {
         hideForm.classList.add('fade-out');

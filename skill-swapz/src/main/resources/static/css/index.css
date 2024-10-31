@@ -4,7 +4,7 @@ body {
     "Helvetica Neue", sans-serif;
     background-color: #f4f4f4;
     margin: 0;
-    padding-top: 100px; /* 調整這個值以匹配你的 navbar 高度 */
+    padding-top: 100px;
 }
 code {
     font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -20,22 +20,21 @@ h2 {
     flex-direction: column;
 }
 
-/* 貼文樣式 */
 .post {
-    border: 1px solid #e0e0e0;  /* 淡灰色邊框，減少對比度 */
+    border: 1px solid #e0e0e0;
     padding: 20px;
-    margin-bottom: 20px;  /* 加大間距 */
-    border-radius: 10px;  /* 稍微增加圓角 */
-    background-color: #f9f9f9;  /* 柔和的背景色 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 增加輕微陰影，增加層次感 */
-    transition: box-shadow 0.3s ease;  /* 添加過渡效果讓陰影變化更平滑 */
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
 }
 
-/* 當滑鼠懸停在卡片上時，加強陰影效果 */
+
 .post:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  /* hover 時增加陰影強度 */
-    transform: translateY(-5px);  /* 輕微上升效果 */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;  /* 平滑過渡 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 
@@ -59,9 +58,9 @@ h2 {
 
 
 .post-avatar {
-    width: 50px;          /* 根據需要調整頭像大小 */
+    width: 50px;
     height: 50px;
-    border-radius: 50%;   /* 圓形頭像 */
+    border-radius: 50%;
     object-fit: cover;
 }
 
@@ -72,19 +71,19 @@ h2 {
 }
 
 .post-author-info {
-    margin-left: 10px;    /* 調整作者與頭像的間距 */
+    margin-left: 10px;
 }
 
 .post-info {
     display: flex;
-    flex-direction: column;  /* 讓時間等資訊垂直排列 */
+    flex-direction: column;
 }
 
 .post-type {
     background-color: #000;
     color: #fff;
     padding: 5px 10px;
-    border-radius: 20px; /* 這將會使背景變圓 */
+    border-radius: 20px;
     font-size: 0.9em;
     display: inline-block;
     text-align: center;
@@ -94,8 +93,8 @@ h2 {
 .post-time {
     font-size: 0.8em;
     color: gray;
-    margin-top: 5px; /* 與交換類型有些距離 */
-    text-align: right; /* 右對齊保持一致 */
+    margin-top: 5px;
+    text-align: right;
 }
 
 .post-header .username {
@@ -117,7 +116,7 @@ h2 {
 
 }
 
-/* 按讚按鈕 */
+
 .post-footer .actions button {
     background-color: transparent;
     border: none;
@@ -159,7 +158,7 @@ h3 {
     text-decoration: underline;
 }
 
-/* 調整按鈕區域 */
+
 .action-buttons {
     display: flex;
     justify-content: flex-start;
@@ -170,7 +169,7 @@ h3 {
     padding: 0;
 }
 
-/* 按鈕樣式，增加圓角長方形外框 */
+
 .action-btn {
     background-color: transparent;
     border: none;
@@ -178,44 +177,37 @@ h3 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /*padding: 3px 1px ;  !* 增加內邊距使得內容不緊貼邊緣 *!*/
-    /*font-size: 16px;*/
     color: #666;
-    padding: 8px 12px 8px 0; /* 增加內邊距使按鈕變大 */
-    font-size: 20px; /* 調整按鈕內文字的大小 */
+    padding: 8px 12px 8px 0;
+    font-size: 20px;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* 圖標與數字之間的距離 */
 .action-btn i {
     font-size: 22px;
-    margin-right: 5px;  /* 圖標與數字保持距離 */
+    margin-right: 5px;
 }
 
 .action-btn span {
     font-size: 16px;
 }
 
-/* 按下後顏色變化的樣式 */
+
 .like-btn.liked {
     color: #ff4500;
 }
 
 .bookmark-btn.bookmarked {
-    /*background-color: #fff9e6;*/
     color: #FFD700;
     justify-content: center;
-    /*border-color: #FFD700;  !* 收藏後變黃色 *!*/
 }
 
 .delete-btn.clicked {
-    /*background-color: #e6f7e6;*/
     color: #28a745;
 }
 
-/* 滑過按鈕的樣式 */
+
 .action-btn:hover {
-    /*background-color: #f0f0f0;*/
     color: #000;
     border-color: #ccc;
 }
@@ -228,25 +220,23 @@ h3 {
     justify-content: center;
 }
 .chat-icon, .chat-text .material-icons-outlined {
-    pointer-events: none; /* 確保事件總是觸發在按鈕上 */
+    pointer-events: none;
 }
 
 
 
-/* 特殊狀態的 hover */
 .like-btn:hover {
-    color: #ff4500;  /* 滑過按讚按鈕時 */
+    color: #ff4500;
 }
 
 .bookmark-btn:hover {
-    color: #FFD700;  /* 滑過收藏按鈕時 */
+    color: #FFD700;
 }
 
 .delete-btn:hover {
-    color: #28a745;  /* 滑過刪除按鈕時 */
+    color: #28a745;
 }
 
-/* 標籤樣式 */
 .tag-btn {
     display: inline-block;
     border: none;
@@ -254,22 +244,13 @@ h3 {
     color: #333;
     font-size: 1.25rem;
     cursor: pointer;
-    margin-right: 5px;  /* 與內容之間的距離 */
+    margin-right: 5px;
 }
 
 
-/*.label-tag {*/
-/*    font-weight: bold;*/
-/*    background-color: #f0f0f0;  !* 灰色背景 *!*/
-/*    color: #333;  !* 文字顏色 *!*/
-/*    padding: 2px 6px;  !* 調整內邊距 *!*/
-/*    border-radius: 4px;  !* 圓角邊框 *!*/
-/*    font-size: 1.25rem;  !* 調整字體大小 *!*/
-/*    margin-right: 5px;  !* 與內容之間的距離 *!*/
-/*    display: inline-block;  !* 讓背景只套用在標頭上 *!*/
-/*}*/
+
 .tags{
-    border-radius: 10px !important;  /* 圓角邊框 */
+    border-radius: 10px !important;
 }
 
 p {
@@ -279,24 +260,23 @@ p {
     color: #333;
     padding-bottom: 0;
     font-size: 1.25rem;
-    margin: 0.5rem 0;  /* 縮小段落之間的行距 */
+    margin: 0.5rem 0;
 }
-/* 針對這些標題，減少它們之間的行距 */
 .post p {
-    margin-bottom: 0.5rem;  /* 段落之間更小的行距 */
+    margin-bottom: 0.5rem;
 }
 .label-tag {
     font-weight: bold;
-    background-color: #e0e0e0;  /* 標頭背景灰色 */
-    color: #333;  /* 標頭字體顏色 */
-    padding: 4px 6px;  /* 內邊距 */
-    border-radius: 4px;  /* 圓角 */
-    font-size: 1.25rem;  /* 字體大小 */
-    margin-right: 8px;  /* 與內容的距離 */
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 1.25rem;
+    margin-right: 8px;
     display: inline-block;
 }
 
-/*留言相關*/
+
 .comment-container {
     display: flex;
     align-items: flex-start;
@@ -316,25 +296,23 @@ p {
 
 .comment-header {
     display: flex;
-    /*justify-content: space-between;*/
-    /*align-items: baseline;*/
     margin-bottom: 5px;
-    align-items: center; /* Align username and time vertically */
-    justify-content: flex-start; /* Align elements to the left */
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .comment-username {
     font-weight: bold;
     font-size: 14px;
-    margin-right: 10px; /* Add 10px space between username and time */
-    display: inline-block; /* Ensure username and time are in the same line */
+    margin-right: 10px;
+    display: inline-block;
 }
 
 .comment-time {
     font-size: 12px;
-    /*margin-right: 2rem;*/
+
     color: #888;
-    display: inline-block; /* Ensure time stays in the same line */
+    display: inline-block;
 
 }
 
@@ -345,44 +323,29 @@ p {
 }
 
 .comment-box textarea {
-    width: 100%;  /* 讓輸入框佔滿可用寬度 */
-    padding: 10px;  /* 讓內部的文字與邊緣有間距 */
+    width: 100%;
+    padding: 10px;
     margin-bottom: 20px;
-    border: 1px solid #ccc;  /* 給輸入框添加邊框 */
-    border-radius: 5px;  /* 讓邊角變圓 */
-    resize: none;  /* 禁止手動調整輸入框大小 */
-    font-size: 14px;  /* 調整字體大小 */
-    box-sizing: border-box;  /* 確保內邊距不會影響寬度計算 */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
 
 .comment-box .comment-btn {
-    background-color: black;  /* 設定黑色背景 */
-    color: white;  /* 設定白色文字 */
-    border: 1px solid black;  /* 設定黑色邊框 */
-    padding: 8px 12px;  /* 讓按鈕有內邊距 */
-    border-radius: 5px;  /* 圓角邊框 */
+    background-color: black;
+    color: white;
+    border: 1px solid black;
+    padding: 8px 12px;
+    border-radius: 5px;
     margin-bottom: 20px;
-    display: flex;  /* 使用 flex 來對齊圖標和文字 */
-    align-items: center;  /* 垂直居中 */
-    cursor: pointer;  /* 讓按鈕有點擊手感 */
-    font-size: 14px;  /* 調整字體大小 */
-    transition: background-color 0.3s ease, color 0.3s ease;  /* 平滑的過渡效果 */
-}
+    display: flex;      align-items: center;      cursor: pointer;      font-size: 14px;      transition: background-color 0.3s ease, color 0.3s ease;  }
 
 .comment-box .comment-btn i {
-    color: white;  /* 設定圖標為白色 */
-}
+    color: white;  }
 
-
-/*.comment-box .comment-btn:hover {*/
-/*    background-color: black;  !* hover 時變成藍色 *!*/
-/*    color: white;  !* 讓字體變成白色 *!*/
-/*    border-color: white;  !* 邊框也變成藍色 *!*/
-/*}*/
-
-
-/*留言按鈕*/
 .textarea-container {
     position: relative;
     display: flex;
@@ -391,18 +354,12 @@ p {
 
 textarea {
     width: 100%;
-    padding-right: 40px; /* 給按鈕預留空間 */
-    box-sizing: border-box;
-    resize: none; /* 禁止調整大小 */
-    background-color: #fff; /* 背景為白色 */
-    color: #000; /* 字體顏色為黑色 */
-    border: 2px solid #000; /* 黑色邊框 */
-    border-radius: 5px;
+    padding-right: 40px;     box-sizing: border-box;
+    resize: none;     background-color: #fff;     color: #000;     border: 2px solid #000;     border-radius: 5px;
 }
 
 textarea::placeholder {
-    color: #666; /* 灰色佔位符 */
-}
+    color: #666; }
 
 .comment-btn {
     position: absolute;
@@ -410,50 +367,41 @@ textarea::placeholder {
     background: none;
     border: none;
     cursor: pointer;
-    color: #000; /* 按鈕顏色為黑色 */
-    font-size: 16px;
+    color: #000;     font-size: 16px;
 }
 
 .comment-btn i {
-    color: white; /* 按鈕圖標顏色為黑色 */
-}
+    color: white; }
 
 .textarea-container textarea:focus + .comment-btn i {
-    color: white; /* 當聚焦在輸入框時按鈕顏色變為深灰 */
-}
+    color: white; }
 /*留言按鈕*/
 
 
 
 .delete-comment-btn {
-    background-color: #f9f9f9;   /* 背景設為白色 */
-    border: none;              /* 移除按鈕的預設邊框 */
-    cursor: pointer;           /* 鼠標移上去時變成點擊手勢 */
-    padding: 5px;              /* 調整按鈕內間距 */
-}
+    background-color: #f9f9f9;       border: none;                  cursor: pointer;               padding: 5px;              }
 
 .delete-comment-btn .material-icons-outlined {
-    color: red;                /* 設置圖標顏色為紅色 */
-    font-size: 24px;           /* 調整圖標大小 */
-}
+    color: red;                    font-size: 24px;           }
 
 .delete-comment-btn:hover {
-    background-color: #f8f8f8; /* 當滑鼠移上去時改變背景顏色 */
+    background-color: #f8f8f8;
 }
 
 
 
 .post-info {
     display: flex;
-    flex-direction: column; /* 使內容垂直排列 */
-    align-items: center; /* 將內容置中對齊 */
-    text-align: center;  /* 確保文字也在容器內水平居中 */
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .post-actual-time {
-    font-size: 0.85rem; /* 可根據需要調整字體大小 */
-    color: #666;        /* 使用淡色字體來表示時間 */
-    margin-top: 4px;    /* 添加與 post-time 之間的間距 */
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 4px;
 }
 
 .post-time, .post-actual-time {
@@ -463,7 +411,7 @@ textarea::placeholder {
 }
 
 .post-time {
-    font-weight: bold;   /* 可選：讓 post-time 更加突出 */
+    font-weight: bold;
 }
 
 .container {
@@ -502,7 +450,7 @@ textarea::placeholder {
 
 
 .search-input {
-    width: 60%; /* 讓搜索框填滿 sidebar 寬度 */
+    width: 60%;
     padding: 8px;
     margin-bottom: 15px;
     border: 1px solid #ccc;
@@ -517,15 +465,15 @@ textarea::placeholder {
 
 .search-icon {
     position: absolute;
-    right: 50px;  /* 圖標靠右顯示 */
+    right: 50px;
     top: 35%;
-    transform: translateY(-50%);  /* 垂直居中 */
-    color: #808080;  /* 使用你指定的顏色 */
-    font-size: 24px;  /* 調整圖標大小 */
+    transform: translateY(-50%);
+    color: #808080;
+    font-size: 24px;
 }
 
 .section {
-    flex: 6; /* 增加主內容區域的比例 */
+    flex: 6;
     background-color: #fff;
     padding: 20px 20px 20px 20px;
     border-radius: 8px;
@@ -535,14 +483,14 @@ textarea::placeholder {
 #posts.section {
     background-color: #fff;
     width: 100%;
-    min-width: 300px; /* 設置最小寬度，防止縮得太小 */
+    min-width: 300px;
 }
 
-/* RWD 調整 */
+
 
 @media (min-width: 1400px) {
     .container {
-        width: 60%; /* 稍微增加寬度 */
+        width: 60%;
         max-width: 1600px;
     }
 
@@ -600,7 +548,7 @@ textarea::placeholder {
         width: 100%;
         position: relative;
         max-width: none;
-        height: auto; /* 自適應高度 */
+        height: auto;
     }
 
     .section {
@@ -612,15 +560,15 @@ textarea::placeholder {
         position: static;
         width: 100%;
         max-width: none;
-        /* 其他移動端樣式 */
+
     }
 }
 
 
 
-/* 新增：為空的 posts 區域設置最小高度 */
+
 #posts-list:empty {
-    min-height: 300px; /* 可以根據需要調整這個值 */
+    min-height: 300px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -635,7 +583,7 @@ textarea::placeholder {
 }
 
 #bookmarks-list:empty {
-    min-height: 300px; /* 可以根據需要調整這個值 */
+    min-height: 300px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -654,18 +602,18 @@ textarea::placeholder {
 }
 
 /*edit-post*/
-/* 黑色半透明遮罩 */
+
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
-    z-index: 1000; /* 保證在最上層 */
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
 }
 
-/* 表單容器樣式 */
+
 .modal-container {
     flex-direction: column;
     position: fixed;
@@ -673,53 +621,53 @@ textarea::placeholder {
     left: 50%;
     transform: translate(-50%, -50%);
     background: white;
-    padding: 30px; /* 增加內邊距 */
-    z-index: 1001; /* 確保在遮罩上層 */
+    padding: 30px;
+    z-index: 1001;
     border-radius: 8px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-    max-width: 80%; /* 設置最大寬度，讓畫面大一點 */
-    width: 600px; /* 增加寬度 */
+    max-width: 80%;
+    width: 600px;
 }
 
-/* 表單容器的樣式 */
+
 .modal-container form {
     display: flex;
-    flex-direction: column; /* 讓元素垂直排列 */
-    gap: 15px; /* 每個表單項目之間的間距 */
+    flex-direction: column;
+    gap: 15px;
 }
 
 .modal-container label {
     font-weight: bold;
-    margin-bottom: 8px; /* 標籤與輸入框之間的間距 */
-    font-size: 18px; /* 增大標籤字體大小 */
+    margin-bottom: 8px;
+    font-size: 18px;
 }
 
 .modal-container input,
 .modal-container textarea {
-    width: 100%; /* 讓輸入框和文字框填滿容器寬度 */
-    padding: 15px; /* 增加內填充，使輸入框變大 */
-    font-size: 16px; /* 增大字體 */
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box; /* 防止內填充影響大小 */
+    box-sizing: border-box;
 }
 
 .modal-container textarea {
-    resize: vertical; /* 允許使用者垂直調整大小 */
-    min-height: 100px; /* 增加最小高度，讓文字框不會太小 */
+    resize: vertical;
+    min-height: 100px;
 }
 
 .modal-container button {
-    padding: 12px 20px; /* 調整按鈕大小 */
-    font-size: 16px; /* 增大按鈕文字大小 */
+    padding: 12px 20px;
+    font-size: 16px;
     border-radius: 4px;
-    background-color: black; /* 設置按鈕背景為黑色 */
-    color: white; /* 設置按鈕文字為白色 */
-    border: none; /* 移除按鈕邊框 */
-    cursor: pointer; /* 設置鼠標懸停時的手型 */
+    background-color: black;
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
-/* 增加按鈕懸停效果 */
+
 .modal-container button:hover {
-    background-color: #333; /* 懸停時變成較淺的黑色 */
+    background-color: #333;
 }

@@ -55,8 +55,7 @@ async function loadUserProfile() {
 
     } catch (error) {
         console.error('Error loading profile:', error);
-        // alert('加載個人資料失敗，請稍後再試。');
-    }
+            }
 }
 
 async function uploadAvatar() {
@@ -84,8 +83,7 @@ async function uploadAvatar() {
 
         if (!response.ok) throw new Error('Failed to upload avatar');
 
-        // alert('照片上傳成功！');
-        window.location.reload();
+                window.location.reload();
 
         const avatarResponse = await fetch(`/api/1.0/user/avatar?userId=${userId}`, {
             method: 'GET',
@@ -126,11 +124,11 @@ async function updateBasicProfile() {
 
         if (!response.ok) throw new Error('Failed to update basic profile');
 
-        // alert('基本資料更新成功！');
+
         window.location.reload();
     } catch (error) {
         console.error('Error updating basic profile:', error);
-        // alert('更新失敗，請稍後再試。');
+
     }
 }
 

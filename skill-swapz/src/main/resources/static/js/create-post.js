@@ -1,4 +1,3 @@
-// create-post.js
 import {getUserId, updateUnreadMessageCount} from './combinedUtils.js';
 import {addNavbarStyles, createNavbar} from './navbar.js';
 
@@ -29,7 +28,7 @@ const postTypes = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOMContentLoaded event fired');
+    ('DOMContentLoaded event fired');
 
     const navbar = await createNavbar();
     document.body.insertBefore(navbar, document.body.firstChild);
@@ -39,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getUserId();
     if (!userId) {
         window.location.href = "landingPage.html";
-        console.log('User not logged in');
+        ('User not logged in');
         return;
     }
     const typeSelect = document.getElementById('type');
@@ -57,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderFieldsForType("交換技能");
 
     function renderFieldsForType(type) {
-        console.log('Rendering fields for type:', type);
+        ('Rendering fields for type:', type);
         dynamicFieldsContainer.innerHTML = '';
         const fields = postTypes[type] || [];
 
@@ -86,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     postForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('Form submitted');
+        ('Form submitted');
         const formData = new FormData(postForm);
         const userId = await getUserId();
         if (userId) {
@@ -104,19 +103,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (response.ok) {
                 const responseData = await response.json();
-                const postId = responseData.content.postId;  // 從 content 中提取 postId
-
-                console.log("Post ID:", postId);
-                // alert('文章發表成功！');
-                window.location.href = "index.html";
+                const postId = responseData.content.postId;
+                ("Post ID:", postId);
+                                window.location.href = "index.html";
             } else {
                 const errorText = await response.text();
                 console.error('Error creating post:', errorText);
-                // alert('發表文章失敗。');
-            }
+                            }
         } catch (error) {
             console.error('Submission error:', error);
-            // alert('發表文章時發生錯誤，請稍後再試。');
-        }
+                    }
     });
 });

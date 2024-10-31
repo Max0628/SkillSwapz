@@ -18,7 +18,7 @@ body {
     align-items: center;
     padding: 20px;
     box-sizing: border-box;
-    margin-top: 60px; /* 為 navbar 留出空間，根據實際 navbar 高度調整 */
+    margin-top: 60px;
 }
 
 form {
@@ -29,7 +29,7 @@ form {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-    max-height: calc(100vh - 120px); /* 減去 navbar 高度和一些額外空間 */
+    max-height: calc(100vh - 120px);
 }
 
 h2 {
@@ -101,7 +101,7 @@ button[type="button"]:hover {
     margin-top: 15px;
 }
 
-/* 適應小屏幕 */
+
 @media (max-height: 600px) {
     form {
         padding: 20px;

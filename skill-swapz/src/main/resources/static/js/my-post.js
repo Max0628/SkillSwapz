@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     currentUserId = await getUserId();
     if (currentUserId) {
-        console.log('Login User Id:', currentUserId);
+        ('Login User Id:', currentUserId);
 
         stompClient = await connectWebSocket(currentUserId);
         await setupWebSocketSubscriptions(stompClient, currentUserId);
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     } else {
         window.location.href = "landingPage.html";
-        console.log('User not logged in');
+        ('User not logged in');
         return null;
     }
 });
@@ -53,7 +53,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
     stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
 
     subscribeToPostEvents(stompClient, (postEvent) => {
-        console.log("Received postEvent: ", postEvent);
+        ("Received postEvent: ", postEvent);
 
         if (!postEvent || !postEvent.content) {
             console.warn("Invalid postEvent or missing content");
@@ -81,7 +81,7 @@ async function setupWebSocketSubscriptions(stompClient, userId) {
                 handleDeleteComment(postEvent.content);
                 break;
             default:
-                console.log('Received unknown post event type:', postEvent.type);
+                ('Received unknown post event type:', postEvent.type);
         }
     }, userId);
 }
@@ -119,8 +119,7 @@ function setupPostInteractions(postsList, userId) {
                     window.location.href = `/chat.html?chatUuid=${chatUuid}&receiverId=${post.userId}&username=User ${post.userId}`;
                 } catch (error) {
                     return null;
-                    // console.error('Error starting chat:', error);
-                    // alert('無法啟動聊天，請稍後再試。');
+
                 }
             }
         } else if (target.classList.contains('tag-btn')) {
@@ -132,7 +131,7 @@ function setupPostInteractions(postsList, userId) {
             await handleDelete(postId, userId);
         } else if (target.classList.contains('like-btn')) {
             const postId = target.id.split('-')[2];
-            // Assuming you have a handleLike function in combinedUtils.js
+
             await handleLike(postId, userId);
         } else if (target.classList.contains('bookmark-btn')) {
             const postId = target.id.split('-')[2];
@@ -148,8 +147,8 @@ async function fetchAndDisplayUserPosts(userId, searchKeyword = null) {
         let posts = await response.json();
         const postsList = document.getElementById('posts-list');
         postsList.innerHTML = '';
-        console.log(posts);
-        console.log(postsList);
+        (posts);
+        (postsList);
 
         posts = posts.map(post => ({
             ...post,
@@ -290,19 +289,19 @@ async function fetchPopularTags() {
         const response = await fetch('/api/1.0/post/tags/popular');
         const popularTags = await response.json();
         const popularTagsList = document.querySelector('.popular-tags');
-        popularTagsList.innerHTML = ''; // 清空現有的標籤
+        popularTagsList.innerHTML = '';
 
         popularTags.forEach(tagObj => {
             const li = document.createElement('li');
-            li.textContent = `#${tagObj.tag}`;  // 加上 # 符號
+            li.textContent = `#${tagObj.tag}`;
             popularTagsList.appendChild(li);
         });
 
-        // 在標籤生成後，綁定點擊事件
+
         popularTagsList.querySelectorAll('li').forEach(tag => {
             tag.addEventListener('click', (event) => {
                 const searchKeyword = event.target.innerText.replace('#', '').trim();
-                filterUserPosts(searchKeyword);  // 使用正確的過濾函數
+                filterUserPosts(searchKeyword);
             });
         });
 

@@ -11,11 +11,11 @@ let currentChatUuid = null;
 let receiverId = null;
 let subscribedChats = new Set();
 let userCache = new Map();
-let userList = null;  // 將 userList 定義為全局變數
+let userList = null;
 const DEFAULT_AVATAR_URL = "https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp";
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Page loaded at:', new Date().toISOString(), 'Local timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    ('Page loaded at:', new Date().toISOString(), 'Local timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const navbarContainer = document.querySelector('.navbar');
     await navbarContainer.appendChild(await createNavbar());
     await addNavbarStyles();
@@ -28,29 +28,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    currentUserId = await getUserId();  // 確保獲取當前用戶 ID
+    currentUserId = await getUserId();
     if (!currentUserId) {
         window.location.href = "landingPage.html";
-        console.log('User not logged in');
+        ('User not logged in');
         return;
     }
 
-    userList = document.getElementById('user-list');  // 初始化全局變數 userList
+    userList = document.getElementById('user-list');
 
     const chatContent = document.getElementById('chat-content');
     const sendButton = document.getElementById('send-button');
     const messageInput = document.getElementById('message-input');
 
     try {
-        stompClient = await connectWebSocket(currentUserId);  // 先連接 WebSocket
-        console.log('WebSocket connected successfully');  // 確認連接成功
+        stompClient = await connectWebSocket(currentUserId);
+        ('WebSocket connected successfully');
 
-        subscribeToNotifications();  // 連接成功後訂閱通知
-        await loadChatList();  // 等 WebSocket 連接成功後再加載聊天列表
+        subscribeToNotifications();
+        await loadChatList();
 
     } catch (error) {
         console.error('Failed to connect WebSocket:', error);
-        return;  // 如果 WebSocket 連接失敗，不繼續執行後續邏輯
+        return;
     }
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -59,25 +59,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     let usernameFromUrl = urlParams.get('username') || `User ${receiverIdFromUrl}`;
 
     if (receiverIdFromUrl && chatUuidFromUrl) {
-        // 檢查用戶名是否為 "User X" 格式
+
         if (usernameFromUrl && usernameFromUrl.startsWith('User ')) {
-            // 如果是，獲取正確的用戶名
+
             const userInfo = await fetchUserDetails(receiverIdFromUrl);
             usernameFromUrl = userInfo.username;
 
-            // 更新 URL 中的用戶名
+
             const newUrl = `/chat.html?chatUuid=${chatUuidFromUrl}&receiverId=${receiverIdFromUrl}&username=${encodeURIComponent(usernameFromUrl)}`;
             history.replaceState(null, '', newUrl);
         }
 
-        // 打開聊天並顯示正確的用戶名
+
         await openChat(receiverIdFromUrl, chatUuidFromUrl, decodeURIComponent(usernameFromUrl));
     } else {
-        // // 如果 URL 中沒有指定聊天，加載第一個聊天（如果有的話）
-        // const firstChat = await loadFirstChat();
-        // if (firstChat) {
-        //     await openChat(firstChat.otherUserId, firstChat.chatUuid, firstChat.username);
-        // }
+
+
+
+
+
     }
 
     async function loadFirstChat() {
@@ -129,15 +129,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function subscribeToPrivateChat(chatUuid) {
         if (subscribedChats.has(chatUuid)) {
-            console.log(`Already subscribed to private chat: ${chatUuid}`);
+            (`Already subscribed to private chat: ${chatUuid}`);
             return;
         }
 
         if (stompClient && stompClient.connected) {
-            // 訂閱該聊天頻道，並在接收到消息時執行處理
+
             stompClient.subscribe(`/user/queue/private/${chatUuid}`, message => onMessageReceived(message, chatUuid));
-            subscribedChats.add(chatUuid);  // 添加到已訂閱的列表中
-            console.log(`Subscribed to private chat: ${chatUuid}`);
+            subscribedChats.add(chatUuid);
+            (`Subscribed to private chat: ${chatUuid}`);
         } else {
             console.error('STOMP client is not connected');
         }
@@ -145,19 +145,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function subscribeToNotifications() {
-        console.log('Subscribing to notifications, STOMP client status:', stompClient.connected);
+        ('Subscribing to notifications, STOMP client status:', stompClient.connected);
         if (stompClient && stompClient.connected) {
             stompClient.subscribe('/user/queue/notifications', onNotificationReceived);
-            console.log('Subscribed to notifications');
+            ('Subscribed to notifications');
         } else {
             console.error('STOMP client is not connected');
         }
     }
 
     async function onNotificationReceived(notification) {
-        console.log('Received notification:', notification);
+        ('Received notification:', notification);
         const data = JSON.parse(notification.body);
-        console.log('Parsed notification data:', data);
+        ('Parsed notification data:', data);
         if (data.type === 'newChat' && data.senderId.toString() !== currentUserId.toString()) {
             const userInfo = await fetchUserDetails(data.senderId);
             addUserToList(data.senderId, userInfo.username, data.chatUuid, '', userInfo.avatarUrl);
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const messages = await response.json();
-            console.log("messages: "+JSON.stringify(messages));
+            ("messages: "+JSON.stringify(messages));
             chatContent.innerHTML = '';
 
             messages.forEach(message => {
@@ -195,23 +195,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function onMessageReceived(message, chatUuid) {
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.content && parsedMessage.senderId.toString() !== currentUserId) {
-            console.log("Received message for chat:", chatUuid);
+            ("Received message for chat:", chatUuid);
 
             if (chatUuid === currentChatUuid) {
-                // 消息屬於當前聊天室，直接顯示
-                console.log("Displaying message in current chat");
+
+                ("Displaying message in current chat");
                 const adjustedTime = adjustReceivedTime(parsedMessage.createdAt);
                 const messageElement = createMessageElement(parsedMessage.content, 'received', adjustedTime);
                 chatContent.appendChild(messageElement);
                 chatContent.scrollTop = chatContent.scrollHeight;
 
-                // 標記消息為已讀
+
                 await markMessagesAsRead(chatUuid, currentUserId);
                 updateUnreadCountUI(chatUuid, 0);
             } else {
-                // 消息不屬於當前聊天室，更新未讀計數
-                console.log("Updating unread count for chat:", chatUuid);
-                // 從後端獲取最新的未讀消息數量
+
+                ("Updating unread count for chat:", chatUuid);
+
                 const response = await fetch(`/api/1.0/chat/unreadCounts?userId=${currentUserId}`, {
                     method: 'GET',
                     credentials: 'include'
@@ -249,23 +249,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function clearCurrentChat() {
-        // 清理当前聊天的逻辑，例如清空聊天内容等
+
         chatContent.innerHTML = '';
-        // 可能还需要取消之前的WebSocket订阅
+
     }
 
 
     async function openChat(userId, chatUuid, username) {
-        console.log('Opening chat:', { userId, chatUuid, username });
+        ('Opening chat:', { userId, chatUuid, username });
 
-        // 如果已經打開該聊天，直接返回，避免重複打開
+
         if (currentChatUuid === chatUuid) {
-            console.log(`Already opened chat: ${chatUuid}`);
+            (`Already opened chat: ${chatUuid}`);
             return;
         }
 
         if (currentChatUuid) {
-            // 如果之前有打開的聊天，先清理
+
             clearCurrentChat();
         }
 
@@ -288,19 +288,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // 設定當前聊天的 chatUuid，避免重複打開相同聊天
+
         currentChatUuid = chatUuid;
 
         history.pushState(null, '', `/chat.html?chatUuid=${chatUuid}&receiverId=${userId}&username=${encodeURIComponent(username)}`);
         document.querySelector('.chat-username').textContent = username;
         await loadChatHistory(chatUuid);
 
-        // 確保只訂閱一次該聊天頻道
+
         subscribeToPrivateChat(chatUuid);
 
         selectUserInList(userId);
 
-        // 標記消息為已讀
+
         await markMessagesAsRead(chatUuid, currentUserId);
         updateUnreadCountUI(chatUuid, 0);
     }
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // 更新總的未讀消息計數
+
         const totalUnreadCount = Array.from(document.querySelectorAll('.unread-badge'))
             .reduce((total, badge) => total + parseInt(badge.textContent), 0);
         updateTotalUnreadCount(totalUnreadCount);
@@ -381,9 +381,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             createdAt: new Date().toISOString()
         };
 
-        console.log('Chat message object:', chatMessage);
+        ('Chat message object:', chatMessage);
 
-        const messageElement = createMessageElement(messageText, 'sent', chatMessage.createdAt, false);  // isLocal 設為 false
+        const messageElement = createMessageElement(messageText, 'sent', chatMessage.createdAt, false);
         chatContent.appendChild(messageElement);
         messageInput.value = '';
         chatContent.scrollTop = chatContent.scrollHeight;
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const data = await response.json();
-            console.log('Message saved:', data);
+            ('Message saved:', data);
 
             if (stompClient && stompClient.connected) {
                 stompClient.send("/app/message", {}, JSON.stringify(chatMessage));
@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error sending/saving message:', error);
-            // alert('發送消息失敗，請稍後再試。錯誤詳情：' + error.message);
+
         }
     }
 
@@ -488,17 +488,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 chat.username = userInfo.username;
                 chat.avatarUrl = userInfo.avatarUrl;
 
-                // 傳遞未讀消息數量
+
                 addUserToList(
                     chat.otherUserId,
                     chat.username,
                     chat.chatUuid,
                     chat.lastMessage,
                     chat.avatarUrl,
-                    chat.unreadCount  // 新增
+                    chat.unreadCount
                 );
 
-                // 訂閱每個聊天頻道
+
                 subscribeToPrivateChat(chat.chatUuid);
             }));
 

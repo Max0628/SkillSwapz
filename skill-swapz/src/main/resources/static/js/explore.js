@@ -1,4 +1,3 @@
-// explore.js
 import {
     getUserId,
     fetchLikedAndBookmarkedPosts,
@@ -21,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getUserId();
     if (!userId) {
         window.location.href = "landingPage.html";
-        console.log('User not logged in');
+        ('User not logged in');
         return;
     }
 
@@ -29,24 +28,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.insertBefore(navbar, document.body.firstChild);
     await addNavbarStyles();
 
-    // 初始化 WebSocket 連接
-    const stompClient = await connectWebSocket(userId);
+        const stompClient = await connectWebSocket(userId);
     await setupWebSocketSubscriptions(stompClient, userId);
 
-    // 設置搜尋和標籤點擊事件
-    setupSearchAndFilter(userId);
+        setupSearchAndFilter(userId);
 
-    // 加載分類和標籤
-    await fetchCategories();
+        await fetchCategories();
 
-    // 加載初始貼文（如果需要）
-    await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
+        await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
 
-    // 設置滾動監聽器（如果需要支持無限滾動）
-    setupScrollListener(userId);
+        setupScrollListener(userId);
 
-    // 更新 URL 並加載對應搜尋結果
-    async function updateURLAndFetchPosts(userId, searchKeyword = null) {
+        async function updateURLAndFetchPosts(userId, searchKeyword = null) {
         currentSearchKeyword = searchKeyword;
         currentPage = 0;
         hasMorePosts = true;
@@ -58,25 +51,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.history.pushState({}, '', newUrl);
 
         const postsList = document.getElementById('posts-list');
-        postsList.innerHTML = ''; // 清空現有的貼文
-
-        // 加載第一頁的搜尋結果
-        await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
+        postsList.innerHTML = '';
+                await fetchAndDisplayPosts(userId, currentSearchKeyword, currentPage);
     }
 
 
     function setupSearchAndFilter(userId) {
-        // 偵測使用者按下 Enter 鍵來觸發搜尋
-        searchInput.addEventListener('keydown', (event) => {
+                searchInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // 防止預設的 Enter 行為
-                const searchKeyword = event.target.value.trim();
+                event.preventDefault();                 const searchKeyword = event.target.value.trim();
                 sendSearchKeywordToIndex(searchKeyword);
             }
         });
 
-        // 點擊標籤進行搜尋
-        categoryContainer.addEventListener('click', (event) => {
+                categoryContainer.addEventListener('click', (event) => {
             if (event.target.classList.contains('tag')) {
                 const tagKeyword = event.target.textContent.replace('#', '').trim();
                 sendSearchKeywordToIndex(tagKeyword);
@@ -84,8 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     function sendSearchKeywordToIndex(searchKeyword) {
-        // 直接導航到 index.html 並傳遞搜尋關鍵字作為 URL 參數
-        window.location.href = `/index.html?search=${encodeURIComponent(searchKeyword)}`;
+                window.location.href = `/index.html?search=${encodeURIComponent(searchKeyword)}`;
     }
 
 
@@ -179,10 +166,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function setupWebSocketSubscriptions(stompClient, userId) {
-        // 這裡可以複製 index.js 中的訂閱邏輯
-        subscribeToPostEvents(stompClient, (postEvent) => {
-            // 根據 postEvent 處理即時更新
-        }, userId);
+                subscribeToPostEvents(stompClient, (postEvent) => {
+                    }, userId);
     }
 
 });

@@ -1,6 +1,6 @@
-// combinedUtils.js
+
 let stompClient = null;
-const commentCache = {}; // 格式: { postId1: [comment1, comment2], postId2: [comment3] }
+const commentCache = {};
 
 export async function getUserId() {
     try {
@@ -65,7 +65,7 @@ export function connectWebSocket(userId) {
     function connect() {
         return new Promise((resolve, reject) => {
             if (isConnecting) {
-                console.log('Connection attempt already in progress, skipping.');
+                ('Connection attempt already in progress, skipping.');
                 return;
             }
             isConnecting = true;
@@ -73,7 +73,7 @@ export function connectWebSocket(userId) {
             stompClient.connect(
                 {userId: userId},
                 frame => {
-                    console.log(`Successfully connected to WebSocket, User ID: ${userId}`);
+                    (`Successfully connected to WebSocket, User ID: ${userId}`);
                     reconnectAttempts = 0;
                     isConnecting = false;
                     stompClient.subscribe('/user/queue/unreadCount', function(message) {
@@ -100,10 +100,10 @@ export function connectWebSocket(userId) {
 
         reconnectAttempts++;
         const delay = baseDelay * Math.pow(2, reconnectAttempts - 1);
-        console.log(`Preparing reconnection attempt ${reconnectAttempts}, retrying in ${delay}ms...`);
+        (`Preparing reconnection attempt ${reconnectAttempts}, retrying in ${delay}ms...`);
 
         setTimeout(() => {
-            console.log(`Starting reconnection attempt ${reconnectAttempts}`);
+            (`Starting reconnection attempt ${reconnectAttempts}`);
             connect().then(resolve).catch(() => {
                 reconnect(resolve, reject);
             });
@@ -111,7 +111,7 @@ export function connectWebSocket(userId) {
     }
 
     stompClient.ws.onclose = (event) => {
-        console.log('WebSocket connection closed. Reason:', event.reason);
+        ('WebSocket connection closed. Reason:', event.reason);
         if (!isConnecting) {
             reconnect(() => {}, console.error);
         }
@@ -158,7 +158,7 @@ export async function markMessagesAsRead(chatUuid, userId) {
 }
 
 export function updateUnreadMessageCount(unreadCount) {
-    console.log("Updating unread message count:", unreadCount);
+    ("Updating unread message count:", unreadCount);
     const event = new CustomEvent('unreadCountUpdated', { detail: unreadCount });
     window.dispatchEvent(event);
 }
@@ -272,14 +272,14 @@ export async function handleLike(postId, userId) {
         }
     } catch (error) {
         console.error('Error liking post:', error);
-        // Revert the UI changes if the operation failed
+
         likeButton.classList.toggle('liked');
         heartIcon.classList.toggle('fa-solid');
         heartIcon.classList.toggle('fa-regular');
         likeCount.textContent = isCurrentlyLiked ?
             parseInt(likeCount.textContent) + 1 :
             parseInt(likeCount.textContent) - 1;
-        // alert('操作失敗，請稍後再試。');
+
     }
 }
 
@@ -314,11 +314,11 @@ export async function handleBookmark(postId, userId) {
         }
     } catch (error) {
         console.error('Error bookmarking post:', error);
-        // Revert the UI changes if the operation failed
+
         bookmarkButton.classList.toggle('bookmarked');
         bookmarkIcon.classList.toggle('fa-solid');
         bookmarkIcon.classList.toggle('fa-regular');
-        // alert('收藏操作失敗，請稍後再試。');
+
     }
 }
 export async function handleComment(postId, userId) {
@@ -354,15 +354,15 @@ export async function handleComment(postId, userId) {
         if (response.ok) {
             commentInput.value = '';
             commentInput.focus();
-            // 不在這裡更新 UI，等待 WebSocket 事件
+
         } else {
             const errorData = await response.json();
             console.error('Error commenting on post:', errorData.content || 'Unknown error');
-            // alert(`發表評論失敗: ${errorData.content || '請稍後再試。'}`);
+
         }
     } catch (error) {
         console.error('Error commenting:', error);
-        // alert('發表評論失敗，請稍後再試。');
+
     }
 }
 export async function createCommentElement(commentData, currentUserId) {
@@ -376,11 +376,11 @@ export async function createCommentElement(commentData, currentUserId) {
     commentElement.setAttribute('data-comment-id', String(commentData.id));
 
 
-    // 使用佔位符
+
     let avatarUrl = 'https://maxchauo-stylish-bucket.s3.ap-northeast-1.amazonaws.com/0_OtvYrwTXmO0Atzj5.webp';
     let username = 'Loading...';
 
-    // const createdAt = formatTimeAgo(commentData.createdAt);
+
     const createdAt = formatTimeAgo(adjustReceivedTime(commentData.createdAt));
 
     commentElement.innerHTML = `
@@ -400,7 +400,7 @@ export async function createCommentElement(commentData, currentUserId) {
     </div>
     `;
 
-    // 異步加載用戶詳情
+
     fetchUserDetails(commentData.userId).then(userDetails => {
         const avatarImg = commentElement.querySelector('.comment-avatar');
         const usernameSpan = commentElement.querySelector('.comment-username');
@@ -430,13 +430,13 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
         console.error('Invalid input provided to displayPost');
         return;
     }
-    const postId = post.postId || post.id; // 確保獲取正確的 ID
-    post.postId = postId; // 保證 post 對象有 postId 屬性
+    const postId = post.postId || post.id;
+    post.postId = postId;
 
-    // const postId = post.postId || post.id;
+
     if (document.getElementById(`post-${postId}`)) {
-        console.log(`Post with ID ${postId} already exists, skipping addition.`);
-        return; // 如果已存在，則跳過添加
+        (`Post with ID ${postId} already exists, skipping addition.`);
+        return;
     }
     const postDiv = document.createElement('div');
     postDiv.classList.add('post');
@@ -445,7 +445,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
     try {
         const authorDetails = await fetchUserDetails(post.userId);
         const postCreatedAt = formatTimeAgo(post.createdAt);
-        // const postCreatedAt = formatTimeAgo(adjustReceivedTime(post.createdAt));
+
 
 
         let postContent = `
@@ -559,9 +559,9 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
 
             const commentsContainer = postDiv.querySelector('.comments-container');
             postDiv.querySelector(`#comment-input-${postId}`).addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' && !event.shiftKey) {  // Shift+Enter 換行，Enter 發送留言
-                    event.preventDefault();  // 防止換行
-                    handleComment(postId, userId);  // 發送留言
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    handleComment(postId, userId);
                 }
             });
 
@@ -578,7 +578,7 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
                     }
                     commentsLoaded = true;
 
-                    // 展開後清除暫存的評論
+
                     if (commentCache[postId]) {
                         delete commentCache[postId];
                     }
@@ -613,12 +613,12 @@ export async function displayPost(post, userId, postsList, likedPosts, bookmarke
             editButton.id = `edit-btn-${postId}`;
             editButton.innerHTML = '<i class="fa-regular fa-pen-to-square"></i>';
 
-            // 添加編輯按鈕到 action-buttons
+
             postDiv.querySelector('.action-buttons').appendChild(editButton);
 
-            // 綁定點擊事件來觸發編輯邏輯
+
             editButton.addEventListener('click', () => {
-                showEditForm(post);  // 這個函數將處理顯示表單
+                showEditForm(post);
             });
         }
 
@@ -703,17 +703,17 @@ export async function handleDelete(postId, userId) {
 
         if (!response.ok) {
             const data = await response.json();
-            // throw new Error(data.message || '刪除貼文失敗');
+
         }
 
         const postElement = document.getElementById(`post-${postId}`);
         if (postElement) {
             postElement.remove();
         }
-        // alert('貼文已成功刪除');
+
     } catch (error) {
         console.error('Error deleting post:', error);
-        // alert(`刪除貼文失敗: ${error.message}`);
+
     }
 }
 
@@ -775,12 +775,12 @@ export function subscribeToPostEvents(stompClient, callback, currentUserId) {
         return;
     }
 
-    console.log("Subscribing to /topic/post with currentUserId:", currentUserId);
+    ("Subscribing to /topic/post with currentUserId:", currentUserId);
     stompClient.subscribe('/topic/post', function (message) {
-        console.log("Subscription to /topic/post successful");
+        ("Subscription to /topic/post successful");
         const postEvent = JSON.parse(message.body);
 
-        console.log("Received postEvent: ", postEvent);
+        ("Received postEvent: ", postEvent);
 
         switch (postEvent.type) {
             case 'LIKE_POST':
@@ -789,12 +789,12 @@ export function subscribeToPostEvents(stompClient, callback, currentUserId) {
                 break;
 
             case 'CREATE_COMMENT':
-                console.log("Handling CREATE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
+                ("Handling CREATE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", currentUserId);
                 handleCreateComment(postEvent.content, currentUserId);
                 break;
 
             case 'DELETE_COMMENT':
-                console.log("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", postEvent.content.userId);
+                ("Handling DELETE_COMMENT in subscribeToPostEvents", postEvent.content, "currentUserId:", postEvent.content.userId);
                 handleDeleteComment(postEvent.content.commentId, undefined, postEvent.content.postId);
                 break;
 
@@ -825,7 +825,7 @@ export function updateLikeCount(postId, count) {
 }
 
 function handleCreateComment(commentData, currentUserId) {
-    console.log("handleCreateComment called with:", { commentData, currentUserId });
+    ("handleCreateComment called with:", { commentData, currentUserId });
 
     if (!commentData || !currentUserId) {
         console.error("Invalid input: commentData or currentUserId is missing");
@@ -844,28 +844,28 @@ function handleCreateComment(commentData, currentUserId) {
         return;
     }
 
-    // 使用 getComputedStyle 判斷留言區是否展開
+
     if (getComputedStyle(commentSection).display === 'none') {
-        // 留言區未展開，暫存評論
+
         if (!commentCache[commentData.postId]) {
             commentCache[commentData.postId] = [];
         }
         commentCache[commentData.postId].push(commentData);
-        console.log(`Comment cached for postId ${commentData.postId}`);
+        (`Comment cached for postId ${commentData.postId}`);
     } else {
-        // 留言區已展開，直接添加評論到 DOM
+
         addCommentToDOM(commentData, currentUserId, commentContainer);
     }
 
-    // 更新評論數量
+
     updateCommentCount(commentData.postId, true);
 }
 
 
 function addCommentToDOM(commentData, currentUserId, commentContainer) {
-    // 檢查評論是否已存在
+
     if (commentContainer.querySelector(`[data-comment-id="${String(commentData.id)}"]`)) {
-        console.log("Comment already exists, skipping addition");
+        ("Comment already exists, skipping addition");
         return;
     }
 
@@ -875,14 +875,14 @@ function addCommentToDOM(commentData, currentUserId, commentContainer) {
                 throw new Error("Created comment element is null or undefined");
             }
             commentContainer.appendChild(newComment);
-            console.log("Comment successfully added to the DOM");
+            ("Comment successfully added to the DOM");
         })
         .catch(error => {
             console.error('Error creating or inserting comment element:', error);
         });
 }
 export async function handleDeleteComment(commentId, userId, postId) {
-    console.log("executing handleDeleteComment");
+    ("executing handleDeleteComment");
 
     if (!commentId) {
         console.error('Invalid commentId provided to handleDeleteComment');
@@ -890,7 +890,7 @@ export async function handleDeleteComment(commentId, userId, postId) {
     }
 
     if (userId !== undefined) {
-        // 用户确认删除操作
+
         if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
             return; // 如果用户选择取消，直接返回
         }
@@ -900,7 +900,7 @@ export async function handleDeleteComment(commentId, userId, postId) {
     const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
     if (commentElement) {
         commentElement.remove();
-        console.log(`Comment with ID ${commentId} removed from the DOM`);
+        (`Comment with ID ${commentId} removed from the DOM`);
     } else {
         console.warn(`Comment element not found for commentId: ${commentId}`);
     }
@@ -950,7 +950,7 @@ export function formatTimeAgo(dateString) {
     // 計算時間差（秒）
     const diffInSeconds = Math.floor((now - date) / 1000);
 
-    console.log(`Now: ${now}, Date: ${date}, Diff in seconds: ${diffInSeconds}`);
+    (`Now: ${now}, Date: ${date}, Diff in seconds: ${diffInSeconds}`);
 
     // 如果時間差小於 60 秒，顯示「剛剛發佈」
     if (diffInSeconds < 60) {
@@ -977,20 +977,20 @@ export function formatTimeAgo(dateString) {
 export function adjustReceivedTime(timeString) {
     const date = new Date(timeString);
     date.setHours(date.getHours() + 8);
-    console.log(`Original time: ${timeString}, Adjusted time: ${date}`);
+    (`Original time: ${timeString}, Adjusted time: ${date}`);
     return date;
 }
 
 //edit post
 export async function editPost(postId, formData) {
-    console.log("formData.type: " + formData.type)
+    ("formData.type: " + formData.type)
     // 過濾掉空值的屬性
     const filteredData = Object.fromEntries(
         Object.entries(formData).filter(([key, value]) => value && value.trim() !== "" || key === 'type') // 保留 type
     );
 
-    console.log("Editing post with ID:", postId);
-    console.log("Filtered form data being sent:", filteredData);  // 打印過濾後的數據
+    ("Editing post with ID:", postId);
+    ("Filtered form data being sent:", filteredData);  // 打印過濾後的數據
 
     try {
         const response = await fetch(`/api/1.0/post/${postId}`, {
@@ -1001,7 +1001,7 @@ export async function editPost(postId, formData) {
         });
 
 
-        console.log("Server response:", response);
+        ("Server response:", response);
         if (!response.ok) {
             throw new Error('Failed to update post');
         }

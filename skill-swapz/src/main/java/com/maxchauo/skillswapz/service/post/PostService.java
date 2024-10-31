@@ -34,8 +34,7 @@ public class PostService {
     private final PostSearchRepository postSearchRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
-    private static final String REDIS_KEY = "latestPosts"; // Redis Key
-
+    private static final String REDIS_KEY = "latestPosts";
     public PostService(
             PostRepository postRepo,
             CommentRepository commentRepo,
@@ -254,8 +253,7 @@ public class PostService {
 
 
     public List<PostForm> getLatestPosts(int page, int size) {
-        long startTime = System.currentTimeMillis(); // 開始時間
-        long start = (long) page * size;
+        long startTime = System.currentTimeMillis();         long start = (long) page * size;
         long end = (long) (page + 1) * size - 1;
         Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REDIS_KEY, start, Math.min(end, 29));
         log.info("Fetched postIds from Redis: {}", postIds);
@@ -345,8 +343,7 @@ public class PostService {
         return null;
     }
 
-    // update
-    public void updatePost(int postId, PostForm postForm) {
+        public void updatePost(int postId, PostForm postForm) {
         try {
             if (postForm == null) {
                 throw new IllegalArgumentException("Post form data cannot be null");

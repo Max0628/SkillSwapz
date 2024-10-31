@@ -27,7 +27,6 @@ h2 {
     flex-direction: column;
 }
 
-/* 貼文樣式 */
 .post {
     border: 1px solid #ddd;
     padding: 20px;
@@ -69,7 +68,6 @@ h2 {
     margin-top: 20px;
 }
 
-/* 按讚/收藏按鈕 */
 .post-footer .actions {
     display: flex;
     gap: 10px;
@@ -94,7 +92,6 @@ h2 {
     margin-left: 5px;
 }
 
-/* 按讚和收藏按鈕的基礎樣式 */
 .like-btn, .bookmark-btn {
     background-color: #f0f0f0;
     border: none;

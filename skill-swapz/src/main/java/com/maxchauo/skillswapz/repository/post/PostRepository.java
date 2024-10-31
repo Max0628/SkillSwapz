@@ -133,7 +133,6 @@ public class PostRepository {
         Integer postId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         postForm.setPostId(postId);
         postForm.setId(postId);
-        // 查詢並設置 createdAt
         String fetchSql = "SELECT created_at FROM post WHERE id = :postId";
         MapSqlParameterSource fetchParams = new MapSqlParameterSource().addValue("postId", postId);
         LocalDateTime createdAt = template.queryForObject(fetchSql, fetchParams, LocalDateTime.class);
@@ -182,14 +181,6 @@ public class PostRepository {
         }
     }
 
-
-//    public List<PostForm> findLatestPosts(int limit) {
-//        String sql = "SELECT * FROM post ORDER BY created_at DESC LIMIT :limit";
-//        MapSqlParameterSource params = new MapSqlParameterSource();
-//        params.addValue("limit", limit);
-//        return template.query(sql, params, new PostRowMapper());
-//    }
-
     public List<PostForm> getPostsByIds(List<Integer> postIds) {
         if (postIds.isEmpty()) return List.of();
 
@@ -207,7 +198,7 @@ public class PostRepository {
         public PostForm mapRow(ResultSet rs, int rowNum) throws SQLException, SQLException {
             PostForm post = new PostForm();
             post.setId(rs.getInt("id"));
-            post.setPostId(rs.getInt("id")); // 設置 postId 為相同的值
+            post.setPostId(rs.getInt("id"));
             post.setUserId(rs.getInt("user_id"));
             post.setType(rs.getString("type"));
             post.setLocation(rs.getString("location"));
@@ -221,7 +212,7 @@ public class PostRepository {
             post.setProfileUrl(rs.getString("profile_url"));
             post.setPostUrl(rs.getString("post_url"));
             post.setCommentCount(rs.getInt("comment_count"));
-            post.setTag(Arrays.asList(rs.getString("tag").split(","))); // 假設 tag 是以逗號分隔的字符串
+            post.setTag(Arrays.asList(rs.getString("tag").split(",")));
             post.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
             return post;
         }

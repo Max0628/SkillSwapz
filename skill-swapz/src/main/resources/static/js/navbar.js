@@ -4,7 +4,7 @@ let unreadCountBadge = null;
 let dropdownUnreadBadge = null;
 
 window.addEventListener('unreadCountUpdated', (event) => {
-    console.log("Received unreadCountUpdated event:", event.detail);
+    ("Received unreadCountUpdated event:", event.detail);
     updateNavbarUnreadCount(event.detail);
 });
 
@@ -265,9 +265,7 @@ export function addNavbarStyles() {
             display: none;
             position: absolute;
             right: 0;
-            top: 100%; /* 這會讓下拉選單從父元素的底部開始 */
-            margin-top: 35px; /* 這會讓下拉選單再往下移動10像素 */
-            background-color: #f9f9f9;
+            top: 100%;             margin-top: 35px;             background-color: #f9f9f9;
             min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
             z-index: 1;
