@@ -892,11 +892,10 @@ export async function handleDeleteComment(commentId, userId, postId) {
     if (userId !== undefined) {
 
         if (!confirm('確定要刪除這條評論嗎？此操作不可逆。')) {
-            return; // 如果用户选择取消，直接返回
+            return;
         }
     }
 
-    // 移除 DOM 中的评论 - 只有用户确认后才执行
     const commentElement = document.querySelector(`[data-comment-id='${commentId}']`);
     if (commentElement) {
         commentElement.remove();
@@ -905,12 +904,10 @@ export async function handleDeleteComment(commentId, userId, postId) {
         console.warn(`Comment element not found for commentId: ${commentId}`);
     }
 
-    // 从缓存中移除评论
     if (postId && commentCache[postId]) {
         commentCache[postId] = commentCache[postId].filter(comment => comment.id !== commentId);
     }
 
-    // 只有当 userId 未定义（即通过 WebSocket 调用）时，才更新评论数量
     if (postId && userId === undefined) {
         updateCommentCount(postId, false);
     }
@@ -947,27 +944,26 @@ export function formatTimeAgo(dateString) {
     const date = new Date(dateString);
     const now = new Date();
 
-    // 計算時間差（秒）
     const diffInSeconds = Math.floor((now - date) / 1000);
 
     (`Now: ${now}, Date: ${date}, Diff in seconds: ${diffInSeconds}`);
 
-    // 如果時間差小於 60 秒，顯示「剛剛發佈」
+
     if (diffInSeconds < 60) {
         return '剛剛發佈';
-    } else if (diffInSeconds < 3600) { // 小於 1 小時，顯示多少分鐘前
+    } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
         return `${minutes} 分鐘前`;
-    } else if (diffInSeconds < 86400) { // 小於 24 小時，顯示多少小時前
+    } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
         return `${hours} 小時前`;
-    } else if (diffInSeconds < 2592000) { // 小於 30 天，顯示多少天前
+    } else if (diffInSeconds < 2592000) {
         const days = Math.floor(diffInSeconds / 86400);
         return `${days} 天前`;
-    } else if (diffInSeconds < 31536000) { // 小於一年，顯示多少個月前
+    } else if (diffInSeconds < 31536000) {
         const months = Math.floor(diffInSeconds / 2592000);
         return `${months} 個月前`;
-    } else { // 超過一年，顯示多少年前
+    } else {
         const years = Math.floor(diffInSeconds / 31536000);
         return `${years} 年前`;
     }
@@ -981,22 +977,21 @@ export function adjustReceivedTime(timeString) {
     return date;
 }
 
-//edit post
+
 export async function editPost(postId, formData) {
     ("formData.type: " + formData.type)
-    // 過濾掉空值的屬性
     const filteredData = Object.fromEntries(
-        Object.entries(formData).filter(([key, value]) => value && value.trim() !== "" || key === 'type') // 保留 type
+        Object.entries(formData).filter(([key, value]) => value && value.trim() !== "" || key === 'type')
     );
 
     ("Editing post with ID:", postId);
-    ("Filtered form data being sent:", filteredData);  // 打印過濾後的數據
+    ("Filtered form data being sent:", filteredData);
 
     try {
         const response = await fetch(`/api/1.0/post/${postId}`, {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(filteredData), // 傳遞過濾後的數據
+            body: JSON.stringify(filteredData),
             credentials: 'include'
         });
 
@@ -1016,15 +1011,12 @@ export async function editPost(postId, formData) {
 
 
 export function showEditForm(post) {
-    // 建立黑色半透明遮罩
     const overlay = document.createElement('div');
     overlay.classList.add('modal-overlay');
 
-    // 建立編輯表單容器
     const modalContainer = document.createElement('div');
     modalContainer.classList.add('modal-container');
 
-    // 根據文章類型，顯示不同的表單，並增加隱藏的 `type` 欄位
     let formContent = `
         <input type="hidden" id="edit-post-type" value="${post.type}">
     `;
@@ -1062,7 +1054,6 @@ export function showEditForm(post) {
         `;
     }
 
-    // 將表單內容插入到表單容器
     modalContainer.innerHTML = `
         <h2>編輯文章</h2>
         <form>
@@ -1074,18 +1065,14 @@ export function showEditForm(post) {
         </form>
     `;
 
-    // 將遮罩和表單添加到頁面
     document.body.appendChild(overlay);
     document.body.appendChild(modalContainer);
 
-    // 當點擊「取消」按鈕或遮罩時，關閉表單
     overlay.addEventListener('click', closeModal);
     document.getElementById('close-btn').addEventListener('click', closeModal);
 
-    // 點擊儲存按鈕時，提交表單並呼叫 saveEditedPost
     document.getElementById('save-btn').addEventListener('click', async () => {
         try {
-            // 構建表單數據
             const formData = {
                 location: document.getElementById('edit-location').value,
                 skillOffered: document.getElementById('edit-skill-offered')?.value || '',
@@ -1095,10 +1082,8 @@ export function showEditForm(post) {
                 bookClubPurpose: document.getElementById('edit-book-club-purpose')?.value || ''
             };
 
-            // 呼叫 saveEditedPost，傳遞 postId 和 formData
             await saveEditedPost(post.postId, formData);
 
-            // 更新頁面上的文章內容
             const postElement = document.getElementById(`post-${post.postId}`);
             if (postElement) {
                 postElement.querySelector('.post-location').textContent = formData.location;
@@ -1113,7 +1098,7 @@ export function showEditForm(post) {
             // alert('文章更新失敗，請稍後再試。');
         }
 
-        // 關閉表單
+        //
         closeModal();
     });
 
@@ -1123,21 +1108,21 @@ export function showEditForm(post) {
     }
 }
 
-// 儲存編輯後的文章
+
 function saveEditedPost(postId) {
     const updatedPost = {
-        type: document.getElementById('edit-post-type').value, // 確保傳遞 type
+        type: document.getElementById('edit-post-type').value,
         location: document.getElementById('edit-location').value,
         skillOffered: document.getElementById('edit-skill-offered') ? document.getElementById('edit-skill-offered').value : '',
         skillWanted: document.getElementById('edit-skill-wanted') ? document.getElementById('edit-skill-wanted').value : '',
         salary: document.getElementById('edit-salary') ? document.getElementById('edit-salary').value : '',
         content: document.getElementById('edit-content').value,
         bookClubPurpose: document.getElementById('edit-book-club-purpose') ? document.getElementById('edit-book-club-purpose').value : '',
-        tag: document.getElementById('edit-tag') ? document.getElementById('edit-tag').value.split(',') : [], // 這裡確保 tag 被傳遞
-        postId: postId // 傳送 postId
+        tag: document.getElementById('edit-tag') ? document.getElementById('edit-tag').value.split(',') : [],
+        postId: postId
     };
 
-    // 發送 PATCH 請求到後端
+
     fetch(`/api/1.0/post/${postId}`, {
         method: 'PATCH',
         headers: {
