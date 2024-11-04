@@ -31,7 +31,7 @@ SkillSwapz is a platform designed to help you find learning partners or exchange
 * Users can update their profile or change their avatar by clicking on their profile.
 * Use JWT to secure user account authentication.
 
-## optimization
+## Optimization
 * Use Redis to cache the latest 30 posts, allowing users to load posts faster.
 * Implement infinite scrolling for a smoother user experience while viewing posts.
 
@@ -73,9 +73,6 @@ SkillSwapz is a platform designed to help you find learning partners or exchange
 | like_count        | int          | YES  |     | 0                 |                   |
 | book_club_purpose | varchar(255) | YES  |     | NULL              |                   |
 | content           | text         | NO   |     | NULL              |                   |
-| message_url       | varchar(255) | YES  |     | NULL              |                   |
-| profile_url       | varchar(255) | YES  |     | NULL              |                   |
-| post_url          | varchar(255) | YES  |     | NULL              |                   |
 | tag               | varchar(255) | YES  |     | NULL              |                   |
 | created_at        | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
 
