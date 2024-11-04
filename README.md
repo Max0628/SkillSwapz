@@ -111,14 +111,81 @@ SkillSwapz is a platform designed to help you find learning partners or exchange
 
 ## Limitations and Future Improvements
 * The `tag` column in the `post` table does not adhere to the First Normal Form (1NF).
+* The `post` table is not fully optimized for storing data specific to different post types, leading to potential null values and underutilized columns. 
 * Using the LIKE operator for keyword search in posts results in poor performance due to inefficient wildcard matching.
 * Does not support scaling server instances during high user activity periods.
 
 ## Future Solution
 * Add new tables, `tags` and `post_tag`, for normalization.
+* Refactor the `post` table structure by splitting type-specific fields into separate tables to optimize for null-free storage and better query performance.
 * Use ElasticSearch as the search engine to enhance search performance.
 * Use MongoDB to store posts due to its flexibility in handling unstructured data and its ability to scale horizontally.
 * Add a CDN for faster access from different global locations.
+
+## New table schema
+### user
+| Field      | Type         | Null | Key | Default           | Extra             |
+|------------|--------------|------|-----|-------------------|-------------------|
+| user_id    | int          | NO   | PRI | NULL              | auto_increment    |
+| username   | varchar(255) | NO   | UNI | NULL              |                   |
+| email      | varchar(255) | NO   | UNI | NULL              |                   |
+| password   | varchar(255) | NO   |     | NULL              |                   |
+| avatar_url | varchar(255) | YES  |     | NULL              |                   |
+| job_title  | varchar(255) | YES  |     | NULL              |                   |
+| bio        | text         | YES  |     | NULL              |                   |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
+
+### post
+| Field      | Type         | Null | Key | Default           | Extra             |
+|------------|--------------|------|-----|-------------------|-------------------|
+| post_id    | int          | NO   | PRI | NULL              | auto_increment    |
+| user_id    | int          | NO   | MUL | NULL              |                   |
+| type       | varchar(50)  | NO   |     | NULL              |                   |
+| like_count | int          | YES  |     | 0                 |                   |
+| content    | text         | NO   |     | NULL              |                   |
+| location   | varchar(255) | YES  |     | NULL              |                   |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
+
+### teacher_posts
+| Field         | Type         | Null | Key | Default | Extra |
+|---------------|--------------|------|-----|---------|-------|
+| post_id       | int          | NO   | PRI | NULL    |       |
+| skill_offered | varchar(255) | YES  |     | NULL    |       |
+| budget        | varchar(255) | YES  |     | NULL    |       |
+
+
+### student_posts
+| Field         | Type         | Null | Key | Default | Extra |
+|---------------|--------------|------|-----|---------|-------|
+| post_id       | int          | NO   | PRI | NULL    |       |
+| skill_wanted  | varchar(255) | YES  |     | NULL    |       |
+| budget        | varchar(255) | YES  |     | NULL    |       |
+
+
+### skill_exchange_posts 
+| Field         | Type         | Null | Key | Default | Extra |
+|---------------|--------------|------|-----|---------|-------|
+| post_id       | int          | NO   | PRI | NULL    |       |
+| skill_offered | varchar(255) | YES  |     | NULL    |       |
+| skill_wanted  | varchar(255) | YES  |     | NULL    |       |
+
+### book_club_posts
+| Field             | Type         | Null | Key | Default | Extra |
+|-------------------|--------------|------|-----|---------|-------|
+| post_id           | int          | NO   | PRI | NULL    |       |
+| book_club_purpose | varchar(255) | YES  |     | NULL    |       |
+
+### tags
+| Field | Type         | Null | Key | Default | Extra            |
+|-------|--------------|------|-----|---------|------------------|
+| id    | int          | NO   | PRI | NULL    | auto_increment   |
+| name  | varchar(255) | NO   | UNI | NULL    |                  |
+
+### post_tags
+| Field   | Type | Null | Key | Default | Extra |
+|---------|------|------|-----|---------|-------|
+| post_id | int  | NO   | PRI | NULL    |       |
+| tag_id  | int  | NO   | PRI | NULL    |       |
 
 ## Contact me
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2.svg?style=for-the-badge&logo=LinkedIn&logoColor=white)](https://www.linkedin.com/in/%E5%A4%A7%E6%81%95-%E9%82%B1-058348283/)
