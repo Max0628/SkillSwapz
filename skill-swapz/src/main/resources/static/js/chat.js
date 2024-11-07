@@ -107,6 +107,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl, unreadCount = 0) {
+    //     if (userId.toString() === currentUserId.toString()) {
+    //         return;
+    //     }
+    //     const userItem = document.createElement('li');
+    //     userItem.classList.add('user-item');
+    //     userItem.setAttribute('data-user-id', userId);
+    //     userItem.setAttribute('data-chat-uuid', chatUuid);
+    //     userItem.innerHTML = `
+    //     <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
+    //     <div class="user-details">
+    //         <span class="username">${username}</span>
+    //         <span class="last-message">${lastMessage || ''}</span>
+    //     </div>
+    //     ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
+    // `;
+    //     userItem.addEventListener('click', () => openChat(userId, chatUuid, username));
+    //     userList.appendChild(userItem);
+    // }
+
     function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl, unreadCount = 0) {
         if (userId.toString() === currentUserId.toString()) {
             return;
@@ -115,17 +135,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         userItem.classList.add('user-item');
         userItem.setAttribute('data-user-id', userId);
         userItem.setAttribute('data-chat-uuid', chatUuid);
-        userItem.innerHTML = `
-        <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
-        <div class="user-details">
-            <span class="username">${username}</span>
-            <span class="last-message">${lastMessage || ''}</span>
-        </div>
-        ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
-    `;
+
+        const avatarImg = document.createElement('img');
+        avatarImg.src = avatarUrl || DEFAULT_AVATAR_URL;
+        avatarImg.alt = username;
+        avatarImg.classList.add('user-avatar');
+
+        const userDetailsDiv = document.createElement('div');
+        userDetailsDiv.classList.add('user-details');
+
+        const usernameSpan = document.createElement('span');
+        usernameSpan.classList.add('username');
+        usernameSpan.textContent = username; // 使用 textContent 防止 XSS
+
+        const lastMessageSpan = document.createElement('span');
+        lastMessageSpan.classList.add('last-message');
+        lastMessageSpan.textContent = lastMessage || ''; // 使用 textContent 防止 XSS
+
+        userDetailsDiv.appendChild(usernameSpan);
+        userDetailsDiv.appendChild(lastMessageSpan);
+
+        userItem.appendChild(avatarImg);
+        userItem.appendChild(userDetailsDiv);
+
+        if (unreadCount > 0) {
+            const unreadBadge = document.createElement('span');
+            unreadBadge.classList.add('unread-badge');
+            unreadBadge.textContent = unreadCount;
+            userItem.appendChild(unreadBadge);
+        }
+
         userItem.addEventListener('click', () => openChat(userId, chatUuid, username));
         userList.appendChild(userItem);
     }
+
 
     function subscribeToPrivateChat(chatUuid) {
         if (subscribedChats.has(chatUuid)) {
@@ -417,15 +460,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // function createMessageElement(text, messageType, createdAt, isLocal = false) {
+    //     const messageElement = document.createElement('div');
+    //     messageElement.classList.add('chat-message', messageType);
+    //     messageElement.innerHTML = `
+    //     <span class="message-text">${text}</span>
+    //     <span class="message-time">${formatTime(createdAt)}</span>
+    // `;
+    //     return messageElement;
+    // }
+
     function createMessageElement(text, messageType, createdAt, isLocal = false) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', messageType);
-        messageElement.innerHTML = `
-        <span class="message-text">${text}</span>
-        <span class="message-time">${formatTime(createdAt)}</span>
-    `;
+
+        const textSpan = document.createElement('span');
+        textSpan.classList.add('message-text');
+        textSpan.textContent = text; // 使用 textContent 防止 XSS
+
+        const timeSpan = document.createElement('span');
+        timeSpan.classList.add('message-time');
+        timeSpan.textContent = formatTime(createdAt);
+
+        messageElement.appendChild(textSpan);
+        messageElement.appendChild(timeSpan);
+
         return messageElement;
     }
+
 
     function formatTime(timeString) {
         const date = new Date(timeString);
