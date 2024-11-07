@@ -107,26 +107,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl, unreadCount = 0) {
-    //     if (userId.toString() === currentUserId.toString()) {
-    //         return;
-    //     }
-    //     const userItem = document.createElement('li');
-    //     userItem.classList.add('user-item');
-    //     userItem.setAttribute('data-user-id', userId);
-    //     userItem.setAttribute('data-chat-uuid', chatUuid);
-    //     userItem.innerHTML = `
-    //     <img src="${avatarUrl || DEFAULT_AVATAR_URL}" alt="${username}" class="user-avatar">
-    //     <div class="user-details">
-    //         <span class="username">${username}</span>
-    //         <span class="last-message">${lastMessage || ''}</span>
-    //     </div>
-    //     ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
-    // `;
-    //     userItem.addEventListener('click', () => openChat(userId, chatUuid, username));
-    //     userList.appendChild(userItem);
-    // }
-
     function addUserToList(userId, username, chatUuid, lastMessage, avatarUrl, unreadCount = 0) {
         if (userId.toString() === currentUserId.toString()) {
             return;
@@ -146,11 +126,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const usernameSpan = document.createElement('span');
         usernameSpan.classList.add('username');
-        usernameSpan.textContent = username; // 使用 textContent 防止 XSS
+        usernameSpan.textContent = username;
 
         const lastMessageSpan = document.createElement('span');
         lastMessageSpan.classList.add('last-message');
-        lastMessageSpan.textContent = lastMessage || ''; // 使用 textContent 防止 XSS
+        lastMessageSpan.textContent = lastMessage || '';
 
         userDetailsDiv.appendChild(usernameSpan);
         userDetailsDiv.appendChild(lastMessageSpan);
@@ -460,23 +440,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // function createMessageElement(text, messageType, createdAt, isLocal = false) {
-    //     const messageElement = document.createElement('div');
-    //     messageElement.classList.add('chat-message', messageType);
-    //     messageElement.innerHTML = `
-    //     <span class="message-text">${text}</span>
-    //     <span class="message-time">${formatTime(createdAt)}</span>
-    // `;
-    //     return messageElement;
-    // }
-
     function createMessageElement(text, messageType, createdAt, isLocal = false) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', messageType);
 
         const textSpan = document.createElement('span');
         textSpan.classList.add('message-text');
-        textSpan.textContent = text; // 使用 textContent 防止 XSS
+        textSpan.textContent = text;
 
         const timeSpan = document.createElement('span');
         timeSpan.classList.add('message-time');

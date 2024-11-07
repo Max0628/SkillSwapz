@@ -30,6 +30,13 @@ h2 {
     transition: box-shadow 0.3s ease;
 }
 
+.post-content {
+    display: flex;
+    flex-direction: column;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
 
 .post:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
